@@ -18,7 +18,20 @@ def add_universe_flags(
     """Add listing-age, liquidity, and eligibility columns without future data."""
     data = bars.sort_values(["symbol", "date"]).copy()
     grouped = data.groupby("symbol", group_keys=False)
-    data["listed_days"] = grouped.cumcount() + 1
+    if "list_date" in data.columns:
+        list_date = pd.to_datetime(data["list_date"], errors="coerce")
+        data["listed_days"] = (pd.to_datetime(data["date"]) - list_date).dt.days
+        fallback = data["listed_days"].isna()
+        data.loc[fallback, "listed_days"] = grouped.cumcount()[fallback] + 1
+        list_date_fallback = (
+            data["list_date_fallback"].astype(bool)
+            if "list_date_fallback" in data.columns
+            else pd.Series(False, index=data.index)
+        )
+        data["listed_days_fallback"] = fallback | list_date_fallback
+    else:
+        data["listed_days"] = grouped.cumcount() + 1
+        data["listed_days_fallback"] = True
     data["avg_amount"] = grouped["amount"].transform(
         lambda s: s.rolling(liquidity_window, min_periods=1).mean()
     )

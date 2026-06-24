@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 import pandas as pd
 
 from ashare_quant.config import AppConfig
@@ -9,7 +11,10 @@ from ashare_quant.data.calendar import next_trading_day, rebalance_signal_dates,
 from ashare_quant.data.universe import add_universe_flags, eligible_symbols_on
 from ashare_quant.factors.composite import compute_composite_factors
 from ashare_quant.portfolio.weighting import build_target_weights
+from ashare_quant.research.benchmark import load_benchmarks
 from ashare_quant.strategy.base import Strategy
+
+LOGGER = logging.getLogger(__name__)
 
 
 class MultiFactorRotationStrategy(Strategy):
@@ -17,6 +22,7 @@ class MultiFactorRotationStrategy(Strategy):
 
     def __init__(self, config: AppConfig) -> None:
         self.config = config
+        self._benchmark_cache: pd.DataFrame | None = None
 
     def generate_targets(self, bars: pd.DataFrame) -> pd.DataFrame:
         """Generate target weights for execution on the next trading day."""
@@ -64,8 +70,10 @@ class MultiFactorRotationStrategy(Strategy):
     def _apply_market_filter(self, weights: pd.DataFrame, bars: pd.DataFrame, signal_date: pd.Timestamp) -> pd.DataFrame:
         if not self.config.risk.market_filter:
             return weights
-        proxy = bars[bars["date"] <= signal_date].copy()
-        market = proxy.groupby("date")["close"].mean().sort_index()
+        market = self._market_filter_series(bars, signal_date)
+        if market.empty:
+            LOGGER.warning("Market filter benchmark unavailable; market filter disabled for %s.", signal_date.date())
+            return weights
         if len(market) < self.config.risk.market_filter_window:
             return weights
         ma = market.rolling(self.config.risk.market_filter_window).mean()
@@ -74,3 +82,15 @@ class MultiFactorRotationStrategy(Strategy):
             filtered["target_weight"] *= self.config.risk.defensive_exposure
             return filtered
         return weights
+
+    def _market_filter_series(self, bars: pd.DataFrame, signal_date: pd.Timestamp) -> pd.Series:
+        try:
+            if self._benchmark_cache is None:
+                self._benchmark_cache = load_benchmarks(self.config, bars)
+            key = self.config.risk.market_filter_benchmark.lower()
+            benchmark = self._benchmark_cache[self._benchmark_cache["benchmark"].str.lower() == key].copy()
+            benchmark = benchmark[benchmark["date"] <= signal_date].sort_values("date")
+            return benchmark.set_index("date")["close"].astype(float)
+        except Exception as exc:
+            LOGGER.warning("Unable to load market filter benchmark: %s", exc)
+            return pd.Series(dtype=float)

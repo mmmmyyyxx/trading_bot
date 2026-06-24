@@ -42,6 +42,7 @@ strategy:
 risk:
   max_industry_weight: 0.2
   market_filter: true
+  market_filter_benchmark: csi500
   market_filter_window: 120
   defensive_exposure: 0.5
   target_volatility:

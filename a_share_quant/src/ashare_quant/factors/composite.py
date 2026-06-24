@@ -23,14 +23,17 @@ def industry_neutral_momentum_factor(bars: pd.DataFrame, config: FactorConfig) -
     momentum = momentum_factor(bars, config.momentum_window, config.momentum_skip)
     if "industry" not in bars.columns:
         momentum["industry_momentum"] = momentum["momentum"]
-        return momentum[["date", "symbol", "industry_momentum"]]
+        momentum["industry_momentum_fallback"] = True
+        return momentum[["date", "symbol", "industry_momentum", "industry_momentum_fallback"]]
 
     industries = bars[["date", "symbol", "industry"]].drop_duplicates()
     data = momentum.merge(industries, on=["date", "symbol"], how="left")
-    data["industry_momentum"] = data.groupby(["date", "industry"])["momentum"].transform(cross_sectional_zscore)
+    valid_industry = data["industry"].notna() & (data["industry"].astype(str) != "")
+    data["industry_momentum"] = data.where(valid_industry).groupby(["date", "industry"])["momentum"].transform(cross_sectional_zscore)
     missing = data["industry_momentum"].isna()
     data.loc[missing, "industry_momentum"] = data.loc[missing, "momentum"]
-    return data[["date", "symbol", "industry_momentum"]]
+    data["industry_momentum_fallback"] = missing
+    return data[["date", "symbol", "industry_momentum", "industry_momentum_fallback"]]
 
 
 def compute_raw_factors(bars: pd.DataFrame, config: FactorConfig) -> pd.DataFrame:

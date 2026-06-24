@@ -10,7 +10,7 @@ import pandas as pd
 from ashare_quant.backtest.engine import BacktestEngine
 from ashare_quant.backtest.result import BacktestResult
 from ashare_quant.config import AppConfig
-from ashare_quant.data.akshare_provider import AKShareProvider
+from ashare_quant.data.akshare_provider import AKShareProvider, enrich_bars_with_akshare_metadata
 from ashare_quant.data.base import DataProvider, ProviderUnavailable
 from ashare_quant.data.storage import SQLiteStorage
 from ashare_quant.data.tushare_provider import TushareProvider
@@ -41,10 +41,9 @@ def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
     except (FileNotFoundError, ValueError) as exc:
         LOGGER.info("Cache unavailable: %s", exc)
 
-    if not refresh:
-        if cached_bars is not None and not cached_bars.empty:
-            LOGGER.info("Loaded %d cached bars from %s", len(cached_bars), storage.db_path)
-            return cached_bars
+    if not refresh and cached_bars is not None and not cached_bars.empty and _cache_covers_symbols(cached_bars, symbols):
+        LOGGER.info("Loaded %d cached bars from %s", len(cached_bars), storage.db_path)
+        return _enrich_loaded_bars(config, cached_bars)
 
     try:
         provider = make_provider(config.data.provider)
@@ -57,21 +56,21 @@ def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
     except ProviderUnavailable as exc:
         if cached_bars is not None and not cached_bars.empty:
             LOGGER.warning(
-                "Provider %s unavailable (%s); keeping existing cache with %d rows.",
+                "Provider %s unavailable (%s); keeping existing real cache with %d rows.",
                 config.data.provider,
                 exc,
                 len(cached_bars),
             )
-            return cached_bars
+            return _enrich_loaded_bars(config, cached_bars)
         raise
 
     storage.save_bars(bars, replace=True)
     LOGGER.info("Saved %d bars to %s", len(bars), storage.db_path)
-    return bars
+    return _enrich_loaded_bars(config, bars)
 
 
 def resolve_symbols(config: AppConfig) -> list[str]:
-    """Resolve configured symbols or a real AKShare all-A universe."""
+    """Resolve configured symbols or a real AKShare all-A liquidity universe."""
     if config.data.symbols:
         return config.data.symbols[: config.data.max_symbols]
     if config.data.universe_type != "all_a_share_liquid":
@@ -81,21 +80,87 @@ def resolve_symbols(config: AppConfig) -> list[str]:
 
 def _fetch_akshare_symbols(config: AppConfig) -> list[str]:
     try:
-        import akshare as ak  # type: ignore
-
-        raw = ak.stock_info_a_code_name()
-        code_col = "code" if "code" in raw.columns else raw.columns[0]
-        name_col = "name" if "name" in raw.columns else (raw.columns[1] if len(raw.columns) > 1 else None)
-        data = raw.copy()
-        data[code_col] = data[code_col].astype(str).str.zfill(6)
-        if name_col is not None and config.data.exclude_st:
-            data = data[~data[name_col].astype(str).str.contains("ST", case=False, na=False)]
-        codes = data[code_col].tolist()
-        symbols = [f"{code}.SH" if code.startswith("6") else f"{code}.SZ" for code in codes]
-        LOGGER.info("Resolved %d AKShare A-share symbols; using first %d.", len(symbols), config.data.max_symbols)
-        return symbols[: config.data.max_symbols]
+        symbols = _symbols_from_akshare_spot(config)
+        LOGGER.info("Resolved %d AKShare symbols by real spot liquidity.", len(symbols))
+        return symbols
     except Exception as exc:  # pragma: no cover - depends on external API
-        raise ProviderUnavailable(f"Unable to fetch AKShare stock list: {exc}") from exc
+        LOGGER.warning("Unable to resolve live AKShare spot liquidity universe: %s", exc)
+
+    cached = _symbols_from_liquidity_cache(config)
+    if cached:
+        LOGGER.info("Resolved %d symbols from existing real liquidity cache.", len(cached))
+        return cached
+    raise ProviderUnavailable("Unable to resolve real liquidity universe and no usable liquidity cache exists.")
+
+
+def _symbols_from_akshare_spot(config: AppConfig) -> list[str]:
+    import akshare as ak  # type: ignore
+
+    raw = ak.stock_zh_a_spot_em()
+    code_col = _find_column(raw, ["\u4ee3\u7801"], 1)
+    name_col = _find_column(raw, ["\u540d\u79f0"], 2)
+    amount_col = _find_column(raw, ["\u6210\u4ea4\u989d"], 7)
+    if code_col is None or amount_col is None:
+        raise ProviderUnavailable("AKShare spot data does not contain code/amount columns.")
+
+    data = raw.copy()
+    data[code_col] = data[code_col].astype(str).str.split(".", expand=True).iloc[:, 0].str.zfill(6)
+    if name_col is not None and config.data.exclude_st:
+        data = data[~data[name_col].astype(str).str.contains("ST", case=False, na=False)]
+    data[amount_col] = pd.to_numeric(data[amount_col], errors="coerce").fillna(0.0)
+    data = data.sort_values(amount_col, ascending=False)
+    codes = data[code_col].head(config.data.max_symbols).tolist()
+    return [_symbol_from_code(code) for code in codes]
+
+
+def _symbols_from_liquidity_cache(config: AppConfig) -> list[str]:
+    cache_path = Path(config.data.cache_path)
+    if not cache_path.exists():
+        return []
+    try:
+        bars = SQLiteStorage(cache_path).load_bars(start_date=config.data.start_date, end_date=config.data.end_date)
+    except Exception:
+        return []
+    if bars.empty or "amount" not in bars.columns:
+        return []
+    recent_dates = pd.DatetimeIndex(pd.to_datetime(bars["date"]).drop_duplicates().sort_values())
+    if recent_dates.empty:
+        return []
+    selected_dates = set(recent_dates[-config.data.liquidity_window :])
+    recent = bars[bars["date"].isin(selected_dates)]
+    ranked = recent.groupby("symbol")["amount"].mean().sort_values(ascending=False)
+    return ranked.head(config.data.max_symbols).index.astype(str).tolist()
+
+
+def _enrich_loaded_bars(config: AppConfig, bars: pd.DataFrame) -> pd.DataFrame:
+    if config.data.provider.lower() != "akshare":
+        return bars
+    return enrich_bars_with_akshare_metadata(bars)
+
+
+def _cache_covers_symbols(cached_bars: pd.DataFrame, symbols: list[str]) -> bool:
+    if not symbols:
+        return True
+    return set(symbols).issubset(set(cached_bars["symbol"].astype(str).unique()))
+
+
+def _find_column(frame: pd.DataFrame, keywords: list[str], fallback_index: int | None) -> str | None:
+    for column in frame.columns:
+        text = str(column)
+        if all(keyword in text for keyword in keywords):
+            return str(column)
+    if fallback_index is not None and fallback_index < len(frame.columns):
+        return str(frame.columns[fallback_index])
+    return None
+
+
+def _symbol_from_code(code: object) -> str:
+    text = str(code).strip().split(".")[0].zfill(6)
+    if text.startswith(("8", "4", "920")):
+        return f"{text}.BJ"
+    if text.startswith("6"):
+        return f"{text}.SH"
+    return f"{text}.SZ"
 
 
 def run_backtest_pipeline(config: AppConfig, refresh_data: bool = False, write_outputs: bool = True) -> BacktestResult:

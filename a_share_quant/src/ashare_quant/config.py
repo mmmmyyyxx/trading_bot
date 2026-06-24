@@ -59,6 +59,7 @@ class StrategyConfig:
 class RiskConfig:
     max_industry_weight: float = 0.2
     market_filter: bool = False
+    market_filter_benchmark: str = "csi500"
     market_filter_window: int = 120
     defensive_exposure: float = 0.5
     target_volatility: float | None = None
