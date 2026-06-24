@@ -1,0 +1,21 @@
+[project]
+name = "a-share-quant"
+version = "0.1.0"
+description = "A-share daily multi-factor research and backtest MVP."
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "pandas",
+  "pyyaml",
+  "matplotlib",
+]
+
+[project.optional-dependencies]
+data = ["akshare"]
+test = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+

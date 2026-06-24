@@ -1,0 +1,23 @@
+{
+  "total_return": 0.13477957703000065,
+  "gross_total_return": 0.14387600000000056,
+  "annual_return": 0.1314477397012208,
+  "annual_volatility": 0.13734081111803742,
+  "sharpe": 0.9682952958076267,
+  "max_drawdown": -0.09770574044257663,
+  "calmar": 1.3453430587169537,
+  "win_rate": 0.48638132295719844,
+  "turnover": 9.160379476421056,
+  "average_turnover": 0.03550534680783355,
+  "total_cost": 9096.422969999778,
+  "benchmark_return": 0.28323035254553663,
+  "excess_return": -0.14845077551553598,
+  "tracking_error": 0.12801318339657028,
+  "information_ratio": -0.9807269428377484,
+  "beta": 0.5544112047856636,
+  "alpha": -0.021464267227937817,
+  "up_capture": 0.5513075513674583,
+  "down_capture": 0.5630725334232946,
+  "relative_drawdown": -0.17282364518689597,
+  "monthly_win_rate_vs_benchmark": 0.46153846153846156
+}

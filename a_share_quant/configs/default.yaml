@@ -1,0 +1,70 @@
+project:
+  name: a_share_quant
+
+data:
+  provider: akshare
+  universe_type: all_a_share_liquid
+  max_symbols: 300
+  start_date: "2024-06-01"
+  end_date: "2026-06-24"
+  adjust: qfq
+  cache_path: data/cache/all_a_share_liquid.sqlite
+  symbols: []
+  benchmark_symbol: hs300
+  min_listed_days: 252
+  min_amount: 50000000
+  liquidity_window: 20
+  liquidity_top_pct: 0.7
+  exclude_st: true
+  exclude_paused: true
+  exclude_limit_buy: true
+
+factors:
+  momentum_window: 120
+  momentum_skip: 20
+  trend_window: 120
+  volatility_window: 60
+  liquidity_window: 20
+  weights:
+    volatility: 0.60
+    industry_momentum: 0.40
+    momentum: 0.0
+    trend: 0.0
+    liquidity: 0.0
+
+strategy:
+  rebalance_frequency: M
+  top_k: 50
+  weighting: inverse_vol_weight
+  max_weight: 0.05
+  min_holdings: 30
+
+risk:
+  max_industry_weight: 0.2
+  market_filter: true
+  market_filter_window: 120
+  defensive_exposure: 0.5
+  target_volatility:
+
+backtest:
+  initial_cash: 1000000
+  start_date: "2025-06-01"
+  end_date: "2026-06-24"
+  allow_short: false
+  t_plus_one: true
+  trade_price: open
+  lot_size: 100
+
+cost:
+  commission_rate: 0.0003
+  min_commission: 5.0
+  stamp_tax_rate: 0.0005
+  transfer_fee_rate: 0.00001
+  slippage_bps: 2.0
+
+report:
+  output_dir: reports
+  make_plots: true
+
+logging:
+  level: INFO
