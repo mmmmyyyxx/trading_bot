@@ -4,5 +4,6 @@ PyYAML
 matplotlib
 pytest
 akshare
+pyarrow
 
 

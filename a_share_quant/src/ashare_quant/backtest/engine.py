@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+import numpy as np
 import pandas as pd
 
 from ashare_quant.backtest.broker import PositionBook
@@ -12,7 +13,7 @@ from ashare_quant.backtest.matching import can_trade, round_lot
 from ashare_quant.backtest.metrics import compute_metrics
 from ashare_quant.backtest.result import BacktestResult
 from ashare_quant.config import AppConfig
-from ashare_quant.data.base import validate_bars
+from ashare_quant.data.base import bars_are_normalized, validate_bars
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,14 +27,10 @@ class BacktestEngine:
 
     def run(self, bars: pd.DataFrame, targets: pd.DataFrame) -> BacktestResult:
         """Execute target weights and return equity, trades, positions, metrics."""
-        data = validate_bars(bars)
+        data = bars if bars_are_normalized(bars) else validate_bars(bars)
         targets = targets.copy()
         if not targets.empty:
             targets["date"] = pd.to_datetime(targets["date"])
-
-        by_date = {date: frame.set_index("symbol") for date, frame in data.groupby("date")}
-        target_by_date = {date: frame for date, frame in targets.groupby("date")}
-        days = sorted(by_date)
 
         cash = float(self.config.backtest.initial_cash)
         book = PositionBook()
@@ -47,13 +44,13 @@ class BacktestEngine:
 
         start_date = pd.Timestamp(self.config.backtest.start_date) if self.config.backtest.start_date else None
         end_date = pd.Timestamp(self.config.backtest.end_date) if self.config.backtest.end_date else None
+        if start_date is not None or end_date is not None:
+            data = _slice_date_window(data, start_date, end_date)
 
-        for date in days:
-            if start_date is not None and date < start_date:
-                continue
-            if end_date is not None and date > end_date:
-                continue
-            day_bars = by_date[date]
+        target_by_date = {date: frame for date, frame in targets.groupby("date")}
+
+        for date, day_frame in _iter_sorted_date_slices(data):
+            day_bars = day_frame.set_index("symbol")
             turnover_value = 0.0
             day_cost = 0.0
 
@@ -226,3 +223,29 @@ class BacktestEngine:
                 }
             )
         return rows
+
+
+def _iter_sorted_date_slices(data: pd.DataFrame):
+    """Yield same-date slices from date-sorted bars without pandas groupby copies."""
+    if data.empty:
+        return
+    date_values = data["date"].to_numpy()
+    boundaries = np.flatnonzero(date_values[1:] != date_values[:-1]) + 1
+    starts = np.r_[0, boundaries]
+    ends = np.r_[boundaries, len(data)]
+    for start, end in zip(starts, ends):
+        yield pd.Timestamp(date_values[start]), data.iloc[start:end]
+
+
+def _slice_date_window(
+    data: pd.DataFrame,
+    start_date: pd.Timestamp | None,
+    end_date: pd.Timestamp | None,
+) -> pd.DataFrame:
+    """Slice date-sorted bars to a date window without building a boolean copy."""
+    if data.empty:
+        return data
+    date_values = data["date"].to_numpy()
+    start_idx = 0 if start_date is None else int(np.searchsorted(date_values, np.datetime64(start_date), side="left"))
+    end_idx = len(data) if end_date is None else int(np.searchsorted(date_values, np.datetime64(end_date), side="right"))
+    return data.iloc[start_idx:end_idx]

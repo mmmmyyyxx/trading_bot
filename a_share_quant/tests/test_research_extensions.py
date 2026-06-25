@@ -17,6 +17,8 @@ from ashare_quant.pipeline import (
     load_market_data,
 )
 from ashare_quant.research.walk_forward_selection import run_walk_forward_selection
+from ashare_quant.research.strategy_compare import _evaluation_fields
+from ashare_quant.strategy.profiles import get_strategy_profile
 from ashare_quant.strategy.multi_factor_rotation import MultiFactorRotationStrategy
 from tests.real_data import load_real_cached_bars
 
@@ -141,6 +143,32 @@ def test_named_strategy_profiles_generate_targets() -> None:
         assert targets["target_weight"].max() <= config.strategy.max_weight
 
 
+def test_strategy_profile_defaults_are_balanced_and_no_liquidity_alpha() -> None:
+    config = _loose_config()
+
+    assert config.strategy.name == "balanced_multi_factor"
+    assert get_strategy_profile("offensive_momentum").factor_weights["liquidity"] == 0.0
+    assert get_strategy_profile("offensive_momentum").factor_weights["industry_momentum"] == 0.80
+
+
+def test_strategy_evaluation_fields_split_defensive_and_return_seeking() -> None:
+    defensive = _evaluation_fields(
+        "defensive_low_vol",
+        {"max_drawdown": -0.10, "calmar": 0.5},
+        {"beta": 0.5, "down_capture": 0.7},
+    )
+    balanced = _evaluation_fields(
+        "balanced_multi_factor",
+        {},
+        {"excess_return": 0.02, "information_ratio": 0.3, "monthly_win_rate_vs_benchmark": 0.6},
+    )
+
+    assert defensive["evaluation_class"] == "defensive"
+    assert defensive["acceptance_pass"] is True
+    assert balanced["evaluation_class"] == "return_seeking"
+    assert balanced["acceptance_pass"] is True
+
+
 def test_walk_forward_selection_outputs_oos_rows() -> None:
     config = _loose_config()
     config.data.benchmark_symbol = "hs300"
@@ -231,6 +259,26 @@ def test_fetch_bars_in_batches_skips_failed_batches() -> None:
 
     assert provider.calls == [["000001.SZ", "000002.SZ"], ["000003.SZ", "000004.SZ"], ["000005.SZ"]]
     assert set(bars["symbol"]) == {"000001.SZ", "000002.SZ", "000005.SZ"}
+
+
+def test_fetch_bars_in_batches_supports_parallel_workers() -> None:
+    class FakeProvider:
+        def fetch_bars(self, symbols, start_date, end_date, adjust="qfq"):
+            return _minimal_bars(list(symbols))
+
+    symbols = ["000001.SZ", "000002.SZ", "000003.SZ", "000004.SZ"]
+
+    bars = _fetch_bars_in_batches(
+        FakeProvider(),
+        symbols,
+        "2025-01-01",
+        "2025-01-31",
+        "qfq",
+        batch_size=1,
+        workers=2,
+    )
+
+    assert set(bars["symbol"]) == set(symbols)
 
 
 def test_non_refresh_large_candidate_file_uses_existing_full_cache(tmp_path) -> None:

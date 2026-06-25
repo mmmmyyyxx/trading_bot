@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
@@ -134,7 +135,7 @@ def universe_diagnostic_row(
 ) -> dict[str, object]:
     """Build one signal-date universe diagnostic row."""
     date = pd.Timestamp(as_of_date)
-    snapshot = enriched_bars[enriched_bars["date"] == date].copy()
+    snapshot = _date_slice(enriched_bars, date).copy()
     selected = select_universe_on(enriched_bars, date, universe_mode, top_n)
     eligible = snapshot[snapshot["eligible"]] if "eligible" in snapshot else snapshot.iloc[0:0]
     configured_top_n = int(top_n or 0)
@@ -202,17 +203,29 @@ def daily_universe_size(diagnostics: pd.DataFrame) -> pd.DataFrame:
 
 
 def _eligible_snapshot(enriched_bars: pd.DataFrame, as_of_date: pd.Timestamp) -> pd.DataFrame:
-    date = pd.Timestamp(as_of_date)
-    snapshot = enriched_bars[enriched_bars["date"] == date].copy()
+    snapshot = _date_slice(enriched_bars, as_of_date).copy()
     if snapshot.empty or "eligible" not in snapshot:
         return snapshot.iloc[0:0]
     return snapshot[snapshot["eligible"]].copy()
 
 
+def _date_slice(frame: pd.DataFrame, as_of_date: pd.Timestamp) -> pd.DataFrame:
+    if frame.empty or "date" not in frame.columns:
+        return frame.iloc[0:0]
+    date = pd.Timestamp(as_of_date)
+    date_values = frame["date"].to_numpy()
+    target = np.datetime64(date)
+    start = int(np.searchsorted(date_values, target, side="left"))
+    end = int(np.searchsorted(date_values, target, side="right"))
+    if start >= end:
+        return frame.iloc[0:0]
+    return frame.iloc[start:end]
+
+
 def _coverage_rate(frame: pd.DataFrame, column: str) -> float:
     if frame.empty or column not in frame.columns:
         return 0.0
-    values = frame[column].fillna("").astype(str).str.strip()
+    values = frame[column].astype("object").fillna("").astype(str).str.strip()
     return float((values != "").mean())
 
 

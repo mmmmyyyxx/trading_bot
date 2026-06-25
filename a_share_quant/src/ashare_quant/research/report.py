@@ -43,6 +43,7 @@ def write_research_report(
     walk_forward_selection: pd.DataFrame | None = None,
     universe_diagnostics: pd.DataFrame | None = None,
     strategy_comparison: pd.DataFrame | None = None,
+    regime_performance: pd.DataFrame | None = None,
     exposure_report: pd.DataFrame | None = None,
 ) -> None:
     """Write a Chinese research diagnostics report."""
@@ -130,8 +131,12 @@ def write_research_report(
                 "up_capture",
                 "down_capture",
                 "monthly_win_rate_vs_benchmark",
+                "evaluation_class",
+                "acceptance_pass",
             ],
         ),
+        "",
+        *_regime_section(regime_performance),
         "",
         "## 8. 参数网格样本内/样本外",
         "",
@@ -210,7 +215,7 @@ def write_research_report(
         "5. 对比单因子回测和策略线对比，找出收益来源或拖累项。",
         "6. 最后才看参数网格和 walk-forward selection，且必须同时看样本外和最差窗口。",
         "",
-        "详细 CSV 输出见同目录下的 `universe_diagnostics.csv`、`daily_universe_size.csv`、`strategy_comparison.csv`、`walk_forward_selection.csv`、`exposure_report.csv`、`factor_ic.csv`、`factor_group_returns.csv`、`single_factor_backtests.csv`、`parameter_grid.csv`。",
+        "详细 CSV 输出见同目录下的 `universe_diagnostics.csv`、`daily_universe_size.csv`、`strategy_comparison.csv`、`regime_performance.csv`、`walk_forward_selection.csv`、`exposure_report.csv`、`factor_ic.csv`、`factor_group_returns.csv`、`single_factor_backtests.csv`、`parameter_grid.csv`。",
     ]
     (path / "research_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -252,6 +257,32 @@ def _universe_summary(universe_diagnostics: pd.DataFrame | None) -> list[str]:
                 "possible_selection_bias",
             ],
             limit=10,
+        ),
+    ]
+    return lines
+
+
+def _regime_section(regime_performance: pd.DataFrame | None) -> list[str]:
+    lines = [
+        "## 8. Market Regime Performance",
+        "",
+        "Default-strategy returns are split by benchmark trend, volatility, and up/down months. Defensive profiles should be read through drawdown and down-capture; offensive and balanced profiles should be read through excess return and IR.",
+        "",
+        *_table(
+            regime_performance if regime_performance is not None else pd.DataFrame(),
+            [
+                "benchmark",
+                "regime",
+                "sample_days",
+                "strategy_return",
+                "benchmark_return",
+                "excess_return",
+                "sharpe",
+                "information_ratio",
+                "max_drawdown",
+                "win_rate",
+            ],
+            limit=30,
         ),
     ]
     return lines

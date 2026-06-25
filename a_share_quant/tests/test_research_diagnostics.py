@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import pandas as pd
+
 from ashare_quant.config import AppConfig
 from ashare_quant.factors.composite import compute_composite_factors
 from ashare_quant.research.benchmark import benchmark_summary, load_benchmarks
 from ashare_quant.research.groups import compute_factor_group_returns
 from ashare_quant.research.grid import run_parameter_grid
 from ashare_quant.research.ic import compute_rank_ic
+from ashare_quant.research.parallel import parallel_map
+from ashare_quant.research.regime import compute_regime_performance
+from ashare_quant.research.single_factor import SINGLE_FACTORS
 from tests.real_data import load_real_cached_bars
 
 
@@ -30,6 +35,45 @@ def test_rank_ic_and_group_returns_are_generated_offline() -> None:
     assert not group_summary.empty
     assert not group_returns.empty
     assert group_returns["group"].nunique() == 3
+
+
+def test_short_term_reversal_is_available_for_factor_research() -> None:
+    config, bars = _sample_config_and_bars()
+    config.factors.reversal_window = 5
+
+    factors = compute_composite_factors(bars, config.factors)
+
+    assert "short_term_reversal" in factors.columns
+    assert "short_term_reversal_score" in factors.columns
+    assert "short_term_reversal" in SINGLE_FACTORS
+
+
+def test_regime_performance_splits_benchmark_states() -> None:
+    dates = pd.bdate_range("2025-01-01", periods=150)
+    equity = pd.DataFrame(
+        {
+            "date": dates,
+            "daily_return": [0.001 if idx % 3 else -0.0005 for idx in range(len(dates))],
+        }
+    )
+    benchmark_return = pd.Series([0.001 if idx < 90 else -0.0015 for idx in range(len(dates))])
+    benchmark = pd.DataFrame(
+        {
+            "date": dates,
+            "benchmark": "hs300",
+            "benchmark_name": "HS300",
+            "source": "akshare",
+            "close": (1.0 + benchmark_return).cumprod() * 1000.0,
+            "return": benchmark_return,
+            "equity": (1.0 + benchmark_return).cumprod(),
+        }
+    )
+
+    result = compute_regime_performance(equity, benchmark, ma_window=20, vol_window=10)
+
+    assert not result.empty
+    assert {"benchmark_above_ma120", "benchmark_below_ma120", "up_month", "down_month"}.issubset(set(result["regime"]))
+    assert {"strategy_return", "excess_return", "information_ratio", "max_drawdown"}.issubset(result.columns)
 
 
 def test_benchmark_loads_real_akshare_series() -> None:
@@ -57,3 +101,9 @@ def test_parameter_grid_reports_is_and_oos_metrics() -> None:
     assert "is_total_return" in grid.columns
     assert "oos_total_return" in grid.columns
     assert "oos_sharpe" in grid.columns
+
+
+def test_parallel_map_preserves_order() -> None:
+    result = parallel_map([3, 1, 2], lambda value: value * 10, max_workers=3)
+
+    assert result == [30, 10, 20]

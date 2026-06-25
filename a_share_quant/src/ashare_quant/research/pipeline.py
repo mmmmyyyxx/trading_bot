@@ -18,6 +18,7 @@ from ashare_quant.research.groups import compute_factor_group_returns
 from ashare_quant.research.grid import run_parameter_grid
 from ashare_quant.research.ic import compute_rank_ic
 from ashare_quant.research.report import write_research_report
+from ashare_quant.research.regime import compute_regime_performance
 from ashare_quant.research.single_factor import run_single_factor_backtests
 from ashare_quant.research.strategy_compare import run_strategy_comparison
 from ashare_quant.research.walk_forward import run_walk_forward
@@ -44,16 +45,18 @@ def run_research_pipeline(config: AppConfig, refresh_data: bool = False) -> dict
     LOGGER.info("Generating default strategy targets for universe and exposure diagnostics.")
     default_enriched = build_strategy_universe_flags(config, bars)
     strategy = MultiFactorRotationStrategy(config)
+    strategy._benchmark_cache = benchmarks
     default_targets = strategy.generate_targets(bars, factor_scores=factor_scores, enriched_bars=default_enriched)
     default_result = BacktestEngine(config).run(bars, default_targets)
     _attach_benchmark_return(default_result, config, bars)
     write_report(default_result, output_dir, make_plots=config.report.make_plots, clean_output=False)
+    regime_performance = compute_regime_performance(default_result.equity_curve, benchmarks)
     LOGGER.info("Computing factor IC diagnostics.")
     ic_summary, ic_daily = compute_rank_ic(bars, factor_scores, horizons=[1, 5, 20])
     LOGGER.info("Computing factor group returns.")
     group_summary, group_returns = compute_factor_group_returns(bars, factor_scores, n_groups=5, horizon=1, min_group_size=20)
     LOGGER.info("Running single-factor backtests.")
-    single_factor_results = run_single_factor_backtests(config, bars)
+    single_factor_results = run_single_factor_backtests(config, bars, benchmarks=benchmarks)
     LOGGER.info("Running daily research parameter grid.")
     parameter_grid = run_parameter_grid(
         config,
@@ -63,9 +66,10 @@ def run_research_pipeline(config: AppConfig, refresh_data: bool = False) -> dict
         weighting_values=["equal_weight", "inverse_vol_weight"],
         momentum_windows=[60, 120],
         skip_windows=[5, 20],
+        benchmarks=benchmarks,
     )
     LOGGER.info("Running rolling OOS evaluation.")
-    walk_forward = run_walk_forward(config, bars)
+    walk_forward = run_walk_forward(config, bars, benchmarks=benchmarks)
     LOGGER.info("Running walk-forward parameter selection.")
     walk_forward_selection = run_walk_forward_selection(
         config,
@@ -78,7 +82,7 @@ def run_research_pipeline(config: AppConfig, refresh_data: bool = False) -> dict
         skip_windows=[20],
     )
     LOGGER.info("Running named strategy comparison.")
-    strategy_comparison = run_strategy_comparison(config, bars)
+    strategy_comparison = run_strategy_comparison(config, bars, benchmark_frame=benchmarks)
     exposure_reports = write_exposure_reports(default_result, bars, benchmarks, output_dir)
 
     benchmarks.to_csv(output_dir / "benchmark_returns.csv", index=False)
@@ -95,6 +99,7 @@ def run_research_pipeline(config: AppConfig, refresh_data: bool = False) -> dict
     walk_forward.to_csv(output_dir / "rolling_oos_eval.csv", index=False)
     walk_forward_selection.to_csv(output_dir / "walk_forward_selection.csv", index=False)
     strategy_comparison.to_csv(output_dir / "strategy_comparison.csv", index=False)
+    regime_performance.to_csv(output_dir / "regime_performance.csv", index=False)
 
     write_research_report(
         output_dir=output_dir,
@@ -109,6 +114,7 @@ def run_research_pipeline(config: AppConfig, refresh_data: bool = False) -> dict
         walk_forward_selection=walk_forward_selection,
         universe_diagnostics=strategy.universe_diagnostics,
         strategy_comparison=strategy_comparison,
+        regime_performance=regime_performance,
         exposure_report=exposure_reports["exposure_report"],
     )
     LOGGER.info("Research diagnostics written to %s", output_dir)
@@ -123,6 +129,7 @@ def run_research_pipeline(config: AppConfig, refresh_data: bool = False) -> dict
         "walk_forward": walk_forward,
         "walk_forward_selection": walk_forward_selection,
         "strategy_comparison": strategy_comparison,
+        "regime_performance": regime_performance,
         "universe_diagnostics": strategy.universe_diagnostics,
         "daily_universe_size": strategy.daily_universe_size,
         "exposure_report": exposure_reports["exposure_report"],

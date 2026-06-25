@@ -27,6 +27,7 @@ STRATEGY_PROFILES: dict[str, StrategyProfile] = {
             "volatility": 0.70,
             "industry_momentum": 0.30,
             "momentum": 0.0,
+            "short_term_reversal": 0.0,
             "trend": 0.0,
             "liquidity": 0.0,
         },
@@ -36,9 +37,10 @@ STRATEGY_PROFILES: dict[str, StrategyProfile] = {
     "offensive_momentum": StrategyProfile(
         name="offensive_momentum",
         factor_weights={
-            "industry_momentum": 0.70,
+            "industry_momentum": 0.80,
             "momentum": 0.20,
-            "liquidity": 0.10,
+            "short_term_reversal": 0.0,
+            "liquidity": 0.0,
             "trend": 0.0,
             "volatility": 0.0,
         },
@@ -52,6 +54,7 @@ STRATEGY_PROFILES: dict[str, StrategyProfile] = {
             "volatility": 0.40,
             "trend": 0.20,
             "momentum": 0.0,
+            "short_term_reversal": 0.0,
             "liquidity": 0.0,
         },
         default_weighting="equal_weight",

@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable
 
 import pandas as pd
+from pandas.api.types import is_bool_dtype, is_datetime64_any_dtype, is_numeric_dtype
 
 REQUIRED_COLUMNS = [
     "date",
@@ -60,4 +61,23 @@ def validate_bars(bars: pd.DataFrame) -> pd.DataFrame:
 
     normalized = normalized.dropna(subset=["date", "symbol", "open", "high", "low", "close"])
     return normalized.sort_values(["date", "symbol"]).reset_index(drop=True)
+
+
+def bars_are_normalized(bars: pd.DataFrame) -> bool:
+    """Return whether bars already satisfy the backtest-required schema and dtypes."""
+    if bars.empty:
+        return all(col in bars.columns for col in REQUIRED_COLUMNS)
+    if any(col not in bars.columns for col in REQUIRED_COLUMNS):
+        return False
+    if not is_datetime64_any_dtype(bars["date"]):
+        return False
+    if bars[["date", "symbol", "open", "high", "low", "close"]].isna().any().any():
+        return False
+    for col in ["open", "high", "low", "close", "volume", "amount", "adj_factor", "limit_up", "limit_down"]:
+        if not is_numeric_dtype(bars[col]):
+            return False
+    for col in ["is_paused", "is_st"]:
+        if not is_bool_dtype(bars[col]):
+            return False
+    return True
 

@@ -21,6 +21,8 @@ class DataConfig:
     universe_min_amount: float = 50_000_000.0
     max_symbols: int = 3000
     download_batch_size: int = 100
+    download_workers: int = 1
+    prefer_eastmoney: bool = False
     start_date: str = "2022-01-01"
     end_date: str = "2023-12-31"
     adjust: str = "qfq"
@@ -40,6 +42,7 @@ class DataConfig:
 class FactorConfig:
     momentum_window: int = 120
     momentum_skip: int = 20
+    reversal_window: int = 20
     trend_window: int = 120
     volatility_window: int = 60
     liquidity_window: int = 20
@@ -97,6 +100,7 @@ class CostConfig:
 class ReportConfig:
     output_dir: str = "reports"
     make_plots: bool = True
+    parallel_workers: int = 1
 
 
 @dataclass

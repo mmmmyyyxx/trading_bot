@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 
@@ -17,6 +18,7 @@ from ashare_quant.data.tushare_provider import TushareProvider
 from ashare_quant.report.performance_report import write_report
 from ashare_quant.research.benchmark import benchmark_summary, load_benchmarks
 from ashare_quant.research.exposure import write_exposure_reports
+from ashare_quant.research.regime import compute_regime_performance
 from ashare_quant.strategy.multi_factor_rotation import MultiFactorRotationStrategy
 
 LOGGER = logging.getLogger(__name__)
@@ -32,10 +34,10 @@ def make_provider(name: str) -> DataProvider:
     raise ProviderUnavailable(f"Unknown data provider: {name}")
 
 
-def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
+def load_market_data(config: AppConfig, refresh: bool = False, refresh_candidates: bool = False) -> pd.DataFrame:
     """Load cached bars or fetch them from the configured provider."""
     storage = SQLiteStorage(config.data.cache_path)
-    symbols = resolve_symbols(config, refresh=refresh)
+    symbols = resolve_symbols(config, refresh=refresh_candidates)
     cached_bars: pd.DataFrame | None = None
     try:
         cached_bars = storage.load_bars(symbols or None, config.data.start_date, config.data.end_date)
@@ -76,13 +78,14 @@ def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
     cached_bars_all = _load_all_cached_bars(storage, config) if refresh else cached_bars
     cached_symbols = _cached_symbol_set(cached_bars)
     all_cached_symbols = _cached_symbol_set(cached_bars_all)
-    date_range_complete = _cache_covers_date_range(cached_bars, config.data.start_date, config.data.end_date)
+    missing_date_ranges = _missing_cache_date_ranges(cached_bars, config.data.start_date, config.data.end_date)
+    date_range_complete = not missing_date_ranges
     if refresh:
         if symbols:
             missing_symbols = [symbol for symbol in symbols if symbol not in all_cached_symbols]
-            symbols_to_fetch = symbols if not date_range_complete else missing_symbols
+            symbols_to_fetch = symbols if missing_date_ranges else missing_symbols
         elif all_cached_symbols:
-            symbols_to_fetch = sorted(all_cached_symbols) if not date_range_complete else []
+            symbols_to_fetch = sorted(all_cached_symbols) if missing_date_ranges else []
         else:
             symbols_to_fetch = []
     else:
@@ -100,14 +103,32 @@ def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
 
     try:
         provider = make_provider(config.data.provider)
-        bars = _fetch_bars_in_batches(
-            provider,
-            symbols_to_fetch,
-            config.data.start_date,
-            config.data.end_date,
-            config.data.adjust,
-            config.data.download_batch_size,
-        )
+        if hasattr(provider, "prefer_eastmoney"):
+            provider.prefer_eastmoney = bool(config.data.prefer_eastmoney)
+        if refresh and missing_date_ranges and cached_bars_all is not None and not cached_bars_all.empty:
+            fetched_frames = [
+                _fetch_bars_in_batches(
+                    provider,
+                    symbols_to_fetch,
+                    start_date,
+                    end_date,
+                    config.data.adjust,
+                    config.data.download_batch_size,
+                    config.data.download_workers,
+                )
+                for start_date, end_date in missing_date_ranges
+            ]
+            bars = pd.concat(fetched_frames, ignore_index=True)
+        else:
+            bars = _fetch_bars_in_batches(
+                provider,
+                symbols_to_fetch,
+                config.data.start_date,
+                config.data.end_date,
+                config.data.adjust,
+                config.data.download_batch_size,
+                config.data.download_workers,
+            )
     except ProviderUnavailable as exc:
         fallback_bars = cached_bars if cached_bars is not None and not cached_bars.empty else cached_bars_all
         if fallback_bars is not None and not fallback_bars.empty:
@@ -121,9 +142,16 @@ def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
         raise
 
     combined = _merge_bar_frames(cached_bars_all, bars)
-    storage.save_bars(combined, replace=True)
+    storage.upsert_bars(bars)
     LOGGER.info("Saved %d bars to %s", len(combined), storage.db_path)
     return _enrich_loaded_bars(config, _filter_bars_to_symbols(combined, symbols))
+
+
+def load_cached_market_data(config: AppConfig) -> pd.DataFrame:
+    """Load all cached bars for the configured range without provider access."""
+    storage = SQLiteStorage(config.data.cache_path)
+    bars = storage.load_bars(start_date=config.data.start_date, end_date=config.data.end_date)
+    return _enrich_loaded_bars(config, bars)
 
 
 def resolve_symbols(config: AppConfig, refresh: bool = False) -> list[str]:
@@ -313,6 +341,25 @@ def _cache_covers_date_range(cached_bars: pd.DataFrame | None, start_date: str, 
     return dates.min() <= pd.Timestamp(start_date) and dates.max() >= pd.Timestamp(end_date)
 
 
+def _missing_cache_date_ranges(cached_bars: pd.DataFrame | None, start_date: str, end_date: str) -> list[tuple[str, str]]:
+    """Return coarse missing edge ranges for expanding a continuous daily cache."""
+    if cached_bars is None or cached_bars.empty or "date" not in cached_bars.columns:
+        return [(start_date, end_date)]
+    dates = pd.to_datetime(cached_bars["date"], errors="coerce").dropna()
+    if dates.empty:
+        return [(start_date, end_date)]
+    requested_start = pd.Timestamp(start_date)
+    requested_end = pd.Timestamp(end_date)
+    cached_start = dates.min()
+    cached_end = dates.max()
+    ranges: list[tuple[str, str]] = []
+    if requested_start < cached_start:
+        ranges.append((requested_start.strftime("%Y-%m-%d"), (cached_start - pd.Timedelta(days=1)).strftime("%Y-%m-%d")))
+    if requested_end > cached_end:
+        ranges.append(((cached_end + pd.Timedelta(days=1)).strftime("%Y-%m-%d"), requested_end.strftime("%Y-%m-%d")))
+    return ranges
+
+
 def _is_large_candidate_request(config: AppConfig, symbols: list[str]) -> bool:
     if not symbols:
         return False
@@ -326,12 +373,15 @@ def _fetch_bars_in_batches(
     end_date: str,
     adjust: str,
     batch_size: int,
+    workers: int = 1,
 ) -> pd.DataFrame:
     frames: list[pd.DataFrame] = []
     effective_batch_size = max(1, int(batch_size or 1))
     total = len(symbols)
-    for start in range(0, total, effective_batch_size):
-        batch = symbols[start : start + effective_batch_size]
+    batches = [(start, symbols[start : start + effective_batch_size]) for start in range(0, total, effective_batch_size)]
+
+    def fetch_batch(item: tuple[int, list[str]]) -> pd.DataFrame | None:
+        start, batch = item
         LOGGER.info(
             "Fetching bars for symbols %d-%d of %d.",
             start + 1,
@@ -347,11 +397,49 @@ def _fetch_bars_in_batches(
             )
         except ProviderUnavailable as exc:
             LOGGER.warning("Provider returned no usable bars for batch starting at %s: %s", batch[0], exc)
-            continue
-        if not frame.empty:
-            frames.append(frame)
+            return None
+        return frame if not frame.empty else None
+
+    max_workers = min(max(1, int(workers or 1)), len(batches) or 1)
+    if max_workers <= 1:
+        frames = [frame for frame in (fetch_batch(batch) for batch in batches) if frame is not None]
+    else:
+        LOGGER.info("Fetching %d provider batches with %d workers.", len(batches), max_workers)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            frames = [frame for frame in executor.map(fetch_batch, batches) if frame is not None]
     if not frames:
         raise ProviderUnavailable("Provider returned no usable bars for any requested batch.")
+    return pd.concat(frames, ignore_index=True)
+
+
+def _fetch_symbol_frames(
+    provider: DataProvider,
+    symbols: list[str],
+    start_date: str,
+    end_date: str,
+    adjust: str,
+    workers: int = 1,
+) -> pd.DataFrame:
+    """Fetch one frame per symbol, using a process-safe worker pool when requested."""
+    if not symbols:
+        raise ProviderUnavailable("No symbols provided for fetching.")
+
+    def _fetch(symbol: str) -> pd.DataFrame | None:
+        LOGGER.info("Fetching bars for symbol %s.", symbol)
+        try:
+            frame = provider.fetch_bars([symbol], start_date=start_date, end_date=end_date, adjust=adjust)
+        except ProviderUnavailable:
+            return None
+        return frame if not frame.empty else None
+
+    max_workers = min(max(1, int(workers or 1)), len(symbols))
+    if max_workers <= 1:
+        frames = [frame for frame in (_fetch(symbol) for symbol in symbols) if frame is not None]
+    else:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            frames = [frame for frame in executor.map(_fetch, symbols) if frame is not None]
+    if not frames:
+        raise ProviderUnavailable("Provider returned no usable bars for any requested symbol.")
     return pd.concat(frames, ignore_index=True)
 
 
@@ -415,6 +503,10 @@ def run_backtest_pipeline(config: AppConfig, refresh_data: bool = False, write_o
         except Exception as exc:  # pragma: no cover - depends on external data
             LOGGER.warning("Unable to load benchmarks for exposure report: %s", exc)
             benchmarks = pd.DataFrame()
+        compute_regime_performance(result.equity_curve, benchmarks).to_csv(
+            Path(config.report.output_dir) / "regime_performance.csv",
+            index=False,
+        )
         write_exposure_reports(result, bars, benchmarks, Path(config.report.output_dir))
         LOGGER.info("Reports written to %s", config.report.output_dir)
     return result

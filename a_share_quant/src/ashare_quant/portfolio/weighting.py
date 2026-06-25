@@ -38,6 +38,18 @@ def build_target_weights(
         & (factor_scores["symbol"].isin(eligible_symbols))
         & factor_scores["composite_score"].notna()
     ].copy()
+    return build_target_weights_from_snapshot(snapshot, top_k, weighting, max_weight)
+
+
+def build_target_weights_from_snapshot(
+    snapshot: pd.DataFrame,
+    top_k: int,
+    weighting: str,
+    max_weight: float,
+) -> pd.DataFrame:
+    """Build target weights from a pre-filtered factor cross-section."""
+    if top_k <= 0:
+        raise ValueError("top_k must be positive.")
     if snapshot.empty:
         return pd.DataFrame(columns=["symbol", "target_weight"])
 

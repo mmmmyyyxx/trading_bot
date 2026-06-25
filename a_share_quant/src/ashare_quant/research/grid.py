@@ -11,6 +11,8 @@ from ashare_quant.backtest.engine import BacktestEngine
 from ashare_quant.backtest.metrics import compute_metrics
 from ashare_quant.config import AppConfig
 from ashare_quant.factors.composite import compute_composite_factors
+from ashare_quant.research.benchmark import load_benchmarks
+from ashare_quant.research.parallel import SharedFrameStore, process_map, read_shared_frame
 from ashare_quant.strategy.multi_factor_rotation import MultiFactorRotationStrategy, build_strategy_universe_flags
 from ashare_quant.strategy.profiles import apply_strategy_profile
 
@@ -48,6 +50,7 @@ def _period_metrics(result, start_date: pd.Timestamp, end_date: pd.Timestamp, pr
 def run_parameter_grid(
     config: AppConfig,
     bars: pd.DataFrame,
+    benchmarks: pd.DataFrame | None = None,
     top_k_values: list[int] | None = None,
     rebalance_values: list[str] | None = None,
     weighting_values: list[str] | None = None,
@@ -67,77 +70,142 @@ def run_parameter_grid(
     start_date = pd.Timestamp(dates[0])
     end_date = pd.Timestamp(dates[-1])
 
-    rows: list[dict[str, object]] = []
     enriched = build_strategy_universe_flags(config, bars)
-    factor_cache: dict[tuple[object, ...], pd.DataFrame] = {}
-    combos = itertools.product(top_k_values, rebalance_values, weighting_values, momentum_windows, skip_windows)
-    for top_k, rebalance, weighting, momentum_window, skip_window in combos:
-        unique_symbols = bars["symbol"].nunique()
-        if unique_symbols < top_k * 2:
-            rows.append(
-                {
-                    "top_k": top_k,
-                    "rebalance": rebalance,
-                    "weighting": weighting,
-                    "momentum_window": momentum_window,
-                    "skip_window": skip_window,
-                    "target_rows": 0,
-                    "split_date": split_date,
-                    "status": "skipped_insufficient_universe",
-                    "is_total_return": 0.0,
-                    "is_annual_return": 0.0,
-                    "is_annual_volatility": 0.0,
-                    "is_sharpe": 0.0,
-                    "is_max_drawdown": 0.0,
-                    "is_calmar": 0.0,
-                    "oos_total_return": 0.0,
-                    "oos_annual_return": 0.0,
-                    "oos_annual_volatility": 0.0,
-                    "oos_sharpe": 0.0,
-                    "oos_max_drawdown": 0.0,
-                    "oos_calmar": 0.0,
-                }
+    combos = list(itertools.product(top_k_values, rebalance_values, weighting_values, momentum_windows, skip_windows))
+    unique_symbols = bars["symbol"].nunique()
+    factor_cache = _precompute_factor_cache(config, bars, momentum_windows, skip_windows)
+    benchmark_frame = benchmarks if benchmarks is not None else load_benchmarks(config, bars)
+    with SharedFrameStore(config.report.output_dir) as store:
+        bars_path = store.write("grid_bars", bars)
+        enriched_path = store.write("grid_enriched", enriched)
+        benchmark_path = store.write("grid_benchmarks", benchmark_frame)
+        factor_paths = {key: store.write(f"grid_factors_{idx}", frame) for idx, (key, frame) in enumerate(factor_cache.items())}
+        jobs = [
+            (
+                config,
+                combo,
+                bars_path,
+                enriched_path,
+                benchmark_path,
+                factor_paths,
+                split_date,
+                start_date,
+                end_date,
+                unique_symbols,
             )
-            continue
-        cfg = copy.deepcopy(config)
-        cfg.strategy.top_k = top_k
-        cfg.strategy.rebalance_frequency = rebalance
-        cfg.strategy.weighting = weighting
-        cfg.factors.momentum_window = momentum_window
-        cfg.factors.momentum_skip = skip_window
-        cfg.report.make_plots = False
-
-        factor_scores = _cached_factor_scores(cfg, bars, factor_cache)
-        targets = MultiFactorRotationStrategy(cfg).generate_targets(bars, factor_scores=factor_scores, enriched_bars=enriched)
-        result = BacktestEngine(cfg).run(bars, targets)
-        row: dict[str, object] = {
-            "top_k": top_k,
-            "rebalance": rebalance,
-            "weighting": weighting,
-            "momentum_window": momentum_window,
-            "skip_window": skip_window,
-            "target_rows": len(targets),
-            "split_date": split_date,
-            "status": "ok",
-        }
-        row.update(_period_metrics(result, start_date, split_date, "is"))
-        row.update(_period_metrics(result, split_date, end_date, "oos"))
-        rows.append(row)
+            for combo in combos
+        ]
+        if unique_symbols < max(top_k_values) * 2:
+            rows = [_run_grid_combo_job(job) for job in jobs]
+        else:
+            rows = process_map(jobs, _run_grid_combo_job, max_workers=config.report.parallel_workers)
     return pd.DataFrame(rows).sort_values(["oos_sharpe", "oos_total_return"], ascending=False).reset_index(drop=True)
 
 
-def _cached_factor_scores(
+def _run_grid_combo_job(
+    job: tuple[
+        AppConfig,
+        tuple[int, str, str, int, int],
+        str,
+        str,
+        str,
+        dict[tuple[object, ...], str],
+        pd.Timestamp,
+        pd.Timestamp,
+        pd.Timestamp,
+        int,
+    ],
+) -> dict[str, object]:
+    config, combo, bars_path, enriched_path, benchmark_path, factor_paths, split_date, start_date, end_date, unique_symbols = job
+    top_k, rebalance, weighting, momentum_window, skip_window = combo
+    if unique_symbols < top_k * 2:
+        return _skipped_row(top_k, rebalance, weighting, momentum_window, skip_window, split_date)
+
+    bars = read_shared_frame(bars_path)
+    enriched = read_shared_frame(enriched_path)
+    benchmark_frame = read_shared_frame(benchmark_path)
+    cfg = copy.deepcopy(config)
+    cfg.strategy.top_k = top_k
+    cfg.strategy.rebalance_frequency = rebalance
+    cfg.strategy.weighting = weighting
+    cfg.factors.momentum_window = momentum_window
+    cfg.factors.momentum_skip = skip_window
+    cfg.report.make_plots = False
+
+    factor_scores = read_shared_frame(factor_paths[_factor_cache_key(apply_strategy_profile(cfg))], cache=False)
+    strategy = MultiFactorRotationStrategy(cfg)
+    strategy._benchmark_cache = benchmark_frame
+    targets = strategy.generate_targets(bars, factor_scores=factor_scores, enriched_bars=enriched)
+    result = BacktestEngine(cfg).run(bars, targets)
+    row: dict[str, object] = {
+        "top_k": top_k,
+        "rebalance": rebalance,
+        "weighting": weighting,
+        "momentum_window": momentum_window,
+        "skip_window": skip_window,
+        "target_rows": len(targets),
+        "split_date": split_date,
+        "status": "ok",
+    }
+    row.update(_period_metrics(result, start_date, split_date, "is"))
+    row.update(_period_metrics(result, split_date, end_date, "oos"))
+    return row
+
+
+def _skipped_row(
+    top_k: int,
+    rebalance: str,
+    weighting: str,
+    momentum_window: int,
+    skip_window: int,
+    split_date: pd.Timestamp,
+) -> dict[str, object]:
+    return {
+        "top_k": top_k,
+        "rebalance": rebalance,
+        "weighting": weighting,
+        "momentum_window": momentum_window,
+        "skip_window": skip_window,
+        "target_rows": 0,
+        "split_date": split_date,
+        "status": "skipped_insufficient_universe",
+        "is_total_return": 0.0,
+        "is_annual_return": 0.0,
+        "is_annual_volatility": 0.0,
+        "is_sharpe": 0.0,
+        "is_max_drawdown": 0.0,
+        "is_calmar": 0.0,
+        "oos_total_return": 0.0,
+        "oos_annual_return": 0.0,
+        "oos_annual_volatility": 0.0,
+        "oos_sharpe": 0.0,
+        "oos_max_drawdown": 0.0,
+        "oos_calmar": 0.0,
+    }
+
+
+def _precompute_factor_cache(
     config: AppConfig,
     bars: pd.DataFrame,
-    cache: dict[tuple[object, ...], pd.DataFrame],
-) -> pd.DataFrame:
-    effective = apply_strategy_profile(config)
-    key = (
-        effective.strategy.name,
-        effective.factors.momentum_window,
-        effective.factors.momentum_skip,
-        tuple(sorted(effective.factors.weights.items())),
+    momentum_windows: list[int],
+    skip_windows: list[int],
+) -> dict[tuple[object, ...], pd.DataFrame]:
+    cache: dict[tuple[object, ...], pd.DataFrame] = {}
+    for momentum_window, skip_window in itertools.product(momentum_windows, skip_windows):
+        cfg = copy.deepcopy(config)
+        cfg.factors.momentum_window = momentum_window
+        cfg.factors.momentum_skip = skip_window
+        effective = apply_strategy_profile(cfg)
+        key = _factor_cache_key(effective)
+        if key not in cache:
+            cache[key] = compute_composite_factors(bars, effective.factors)
+    return cache
+
+
+def _factor_cache_key(config: AppConfig) -> tuple[object, ...]:
+    return (
+        config.strategy.name,
+        config.factors.momentum_window,
+        config.factors.momentum_skip,
+        tuple(sorted(config.factors.weights.items())),
     )
-    if key not in cache:
-        cache[key] = compute_composite_factors(bars, effective.factors)
-    return cache[key]

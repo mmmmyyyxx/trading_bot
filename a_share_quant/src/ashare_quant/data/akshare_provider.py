@@ -22,6 +22,7 @@ class AKShareProvider(DataProvider):
             raise ProviderUnavailable("akshare is not installed in this environment.") from exc
         self._ak = ak
         self._metadata = self._load_metadata()
+        self.prefer_eastmoney = False
 
     def fetch_bars(
         self,
@@ -37,14 +38,18 @@ class AKShareProvider(DataProvider):
         adjust_arg = "" if adjust in {"none", "raw", ""} else adjust
 
         for symbol in symbols:
-            try:
-                frame = self._fetch_daily(symbol, start, end, adjust_arg)
-            except Exception as exc:  # pragma: no cover - depends on network/API
-                LOGGER.warning("AKShare daily failed for %s: %s; trying Eastmoney endpoint.", symbol, exc)
+            fetchers = (
+                (self._fetch_eastmoney, self._fetch_daily)
+                if self.prefer_eastmoney
+                else (self._fetch_daily, self._fetch_eastmoney)
+            )
+            frame = pd.DataFrame()
+            for fetcher in fetchers:
                 try:
-                    frame = self._fetch_eastmoney(symbol, start, end, adjust_arg)
-                except Exception as fallback_exc:  # pragma: no cover - depends on network/API
-                    LOGGER.warning("AKShare Eastmoney endpoint failed for %s: %s", symbol, fallback_exc)
+                    frame = fetcher(symbol, start, end, adjust_arg)
+                    break
+                except Exception as exc:  # pragma: no cover - depends on network/API
+                    LOGGER.warning("AKShare %s failed for %s: %s", fetcher.__name__, symbol, exc)
                     continue
             if not frame.empty:
                 frames.append(frame)

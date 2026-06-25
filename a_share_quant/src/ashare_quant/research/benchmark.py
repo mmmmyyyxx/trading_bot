@@ -18,6 +18,9 @@ BENCHMARKS = {
 }
 
 
+_BENCHMARK_CACHE: dict[tuple[str, str], pd.DataFrame] = {}
+
+
 def _normalize_index_frame(raw: pd.DataFrame, key: str, name: str) -> pd.DataFrame:
     renamed = raw.rename(columns={"日期": "date", "收盘": "close"})
     if "date" not in renamed.columns or "close" not in renamed.columns:
@@ -49,6 +52,10 @@ def _fetch_akshare_index(key: str, name: str, ak_symbol: str, start_date: str, e
 
 def load_benchmarks(config: AppConfig, bars: pd.DataFrame) -> pd.DataFrame:
     """Load HS300/CSI500/CSI1000 benchmarks from AKShare only."""
+    cache_key = (str(config.data.start_date), str(config.data.end_date))
+    if cache_key in _BENCHMARK_CACHE:
+        return _BENCHMARK_CACHE[cache_key].copy()
+
     frames: list[pd.DataFrame] = []
     for key, (name, ak_symbol) in BENCHMARKS.items():
         try:
@@ -59,7 +66,9 @@ def load_benchmarks(config: AppConfig, bars: pd.DataFrame) -> pd.DataFrame:
         except Exception as exc:  # pragma: no cover - network/API dependent
             LOGGER.warning("Benchmark %s unavailable from AKShare: %s", name, exc)
     if len(frames) == len(BENCHMARKS):
-        return pd.concat(frames, ignore_index=True)
+        benchmarks = pd.concat(frames, ignore_index=True)
+        _BENCHMARK_CACHE[cache_key] = benchmarks
+        return benchmarks.copy()
     raise ProviderUnavailable("AKShare benchmark data is incomplete; synthetic benchmark fallback is disabled.")
 
 

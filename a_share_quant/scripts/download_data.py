@@ -20,14 +20,18 @@ def main() -> None:
     parser.add_argument("--config", default="configs/default.yaml")
     parser.add_argument("--set", dest="overrides", action="append", default=[])
     parser.add_argument("--refresh", action="store_true", help="Force a provider refresh and rebuild the cache.")
+    parser.add_argument("--refresh-candidates", action="store_true", help="Refresh AKShare candidate symbol metadata.")
     parser.add_argument("--batch-size", type=int, help="Number of symbols to fetch per provider batch.")
+    parser.add_argument("--workers", type=int, help="Number of provider batches to fetch concurrently.")
     args = parser.parse_args()
 
     config = load_config(args.config, args.overrides)
     if args.batch_size:
         config.data.download_batch_size = args.batch_size
+    if args.workers:
+        config.data.download_workers = args.workers
     setup_logging(config.logging.level)
-    bars = load_market_data(config, refresh=args.refresh)
+    bars = load_market_data(config, refresh=args.refresh, refresh_candidates=args.refresh_candidates)
     print(f"saved_rows={len(bars)} cache={config.data.cache_path}")
 
 

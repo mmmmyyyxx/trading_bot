@@ -12,7 +12,9 @@ data:
   universe_min_amount: 50000000
   max_symbols: 3000
   download_batch_size: 100
-  start_date: "2024-06-01"
+  download_workers: 4
+  prefer_eastmoney: false
+  start_date: "2022-01-01"
   end_date: "2026-06-24"
   adjust: qfq
   cache_path: data/cache/all_a_share_liquid.sqlite
@@ -29,21 +31,23 @@ data:
 factors:
   momentum_window: 120
   momentum_skip: 20
+  reversal_window: 20
   trend_window: 120
   volatility_window: 60
   liquidity_window: 20
   weights:
-    volatility: 0.60
     industry_momentum: 0.40
+    volatility: 0.40
+    trend: 0.20
     momentum: 0.0
-    trend: 0.0
+    short_term_reversal: 0.0
     liquidity: 0.0
 
 strategy:
-  name: defensive_low_vol
+  name: balanced_multi_factor
   rebalance_frequency: M
   top_k: 50
-  weighting: inverse_vol_weight
+  weighting: equal_weight
   max_weight: 0.05
   min_holdings: 30
 
@@ -57,7 +61,7 @@ risk:
 
 backtest:
   initial_cash: 1000000
-  start_date: "2025-06-01"
+  start_date: "2023-01-01"
   end_date: "2026-06-24"
   allow_short: false
   t_plus_one: true
@@ -74,6 +78,7 @@ cost:
 report:
   output_dir: reports
   make_plots: true
+  parallel_workers: 4
 
 logging:
   level: INFO

@@ -10,7 +10,7 @@ from ashare_quant.config import AppConfig
 from ashare_quant.data.calendar import next_trading_day, rebalance_signal_dates, trading_days_from_bars
 from ashare_quant.data.universe import add_universe_flags, build_universe_diagnostics, daily_universe_size, select_universe_on
 from ashare_quant.factors.composite import compute_composite_factors
-from ashare_quant.portfolio.weighting import build_target_weights
+from ashare_quant.portfolio.weighting import build_target_weights_from_snapshot
 from ashare_quant.research.benchmark import load_benchmarks
 from ashare_quant.strategy.base import Strategy
 from ashare_quant.strategy.profiles import apply_strategy_profile
@@ -57,6 +57,8 @@ class MultiFactorRotationStrategy(Strategy):
         universe_mode = cfg.data.universe_mode
         enriched = enriched_bars if enriched_bars is not None else build_strategy_universe_flags(cfg, bars)
         factor_scores = factor_scores if factor_scores is not None else compute_composite_factors(bars, cfg.factors)
+        enriched_lookup = _DateSliceLookup(enriched)
+        factor_lookup = _DateSliceLookup(factor_scores)
         signal_dates = rebalance_signal_dates(days, cfg.strategy.rebalance_frequency)
         self.universe_diagnostics = build_universe_diagnostics(
             enriched,
@@ -72,14 +74,17 @@ class MultiFactorRotationStrategy(Strategy):
             execution_date = next_trading_day(days, signal_date)
             if execution_date is None:
                 continue
-            universe = select_universe_on(enriched, signal_date, universe_mode, cfg.data.universe_top_n)
+            universe = _select_universe_snapshot(
+                enriched_lookup.get(signal_date),
+                universe_mode,
+                cfg.data.universe_top_n,
+            )
             eligible = universe["symbol"].astype(str).tolist()
             if len(eligible) < cfg.strategy.top_k:
                 continue
-            weights = build_target_weights(
-                factor_scores=factor_scores,
-                as_of_date=signal_date,
-                eligible_symbols=eligible,
+            factor_snapshot = _eligible_factor_snapshot(factor_lookup.get(signal_date), eligible)
+            weights = build_target_weights_from_snapshot(
+                snapshot=factor_snapshot,
                 top_k=cfg.strategy.top_k,
                 weighting=cfg.strategy.weighting,
                 max_weight=cfg.strategy.max_weight,
@@ -118,6 +123,8 @@ class MultiFactorRotationStrategy(Strategy):
         try:
             if self._benchmark_cache is None:
                 self._benchmark_cache = load_benchmarks(self.config, bars)
+            if self._benchmark_cache.empty or "benchmark" not in self._benchmark_cache.columns:
+                return pd.Series(dtype=float)
             key = self.config.risk.market_filter_benchmark.lower()
             benchmark = self._benchmark_cache[self._benchmark_cache["benchmark"].str.lower() == key].copy()
             benchmark = benchmark[benchmark["date"] <= signal_date].sort_values("date")
@@ -125,3 +132,60 @@ class MultiFactorRotationStrategy(Strategy):
         except Exception as exc:
             LOGGER.warning("Unable to load market filter benchmark: %s", exc)
             return pd.Series(dtype=float)
+
+
+class _DateSliceLookup:
+    """Fast same-date lookup for date-sorted frames."""
+
+    def __init__(self, frame: pd.DataFrame) -> None:
+        self.frame = frame
+        if frame.empty or "date" not in frame.columns:
+            self.date_values = None
+            self.unique_dates = pd.DatetimeIndex([])
+            self.starts: list[int] = []
+            self.ends: list[int] = []
+            return
+        self.date_values = frame["date"].to_numpy()
+        change_idx = (self.date_values[1:] != self.date_values[:-1]).nonzero()[0] + 1
+        self.starts = [0, *change_idx.tolist()]
+        self.ends = [*change_idx.tolist(), len(frame)]
+        self.unique_dates = pd.DatetimeIndex(self.date_values[self.starts])
+
+    def get(self, date: pd.Timestamp) -> pd.DataFrame:
+        if self.date_values is None or self.unique_dates.empty:
+            return self.frame.iloc[0:0]
+        pos = self.unique_dates.searchsorted(pd.Timestamp(date))
+        if pos >= len(self.unique_dates) or self.unique_dates[pos] != pd.Timestamp(date):
+            return self.frame.iloc[0:0]
+        return self.frame.iloc[self.starts[pos] : self.ends[pos]]
+
+
+def _select_universe_snapshot(
+    snapshot: pd.DataFrame,
+    universe_mode: str,
+    top_n: int | None,
+) -> pd.DataFrame:
+    if snapshot.empty or "eligible" not in snapshot:
+        return snapshot.iloc[0:0]
+    selected = snapshot[snapshot["eligible"]]
+    mode = universe_mode.lower()
+    if mode == "dynamic_liquidity":
+        top_n = int(top_n or 0)
+        if top_n <= 0:
+            raise ValueError("top_n must be positive for dynamic_liquidity universe.")
+        return selected.sort_values(["avg_amount", "symbol"], ascending=[False, True]).head(top_n)
+    if mode in {"fixed_symbols", "current_snapshot", "current_liquidity_snapshot"}:
+        if int(top_n or 0) > 0 and mode != "fixed_symbols":
+            selected = selected.sort_values(["avg_amount", "symbol"], ascending=[False, True]).head(int(top_n or 0))
+        return selected
+    raise ValueError(f"Unsupported universe_mode: {universe_mode}")
+
+
+def _eligible_factor_snapshot(factor_snapshot: pd.DataFrame, eligible_symbols: list[str]) -> pd.DataFrame:
+    if factor_snapshot.empty:
+        return factor_snapshot
+    eligible = set(eligible_symbols)
+    return factor_snapshot[
+        factor_snapshot["symbol"].astype(str).isin(eligible)
+        & factor_snapshot["composite_score"].notna()
+    ]

@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import pandas as pd
 
-FACTOR_COLUMNS = ["momentum", "industry_momentum", "trend", "volatility", "liquidity", "composite_score"]
+FACTOR_COLUMNS = [
+    "momentum",
+    "industry_momentum",
+    "trend",
+    "volatility",
+    "liquidity",
+    "short_term_reversal",
+    "composite_score",
+]
 LOWER_IS_BETTER = {"volatility"}
 
 
