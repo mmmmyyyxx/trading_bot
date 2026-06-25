@@ -13,13 +13,13 @@
 请继续使用你的 DL 环境，不需要创建新环境：
 
 ```powershell
-D:\conda\envs_dirs\DL\python.exe
+D:\Anaconda\envs\DL\python.exe
 ```
 
 进入项目目录：
 
 ```powershell
-cd "D:\games waiting for me\grade_one\experiments\trading_bot\a_share_quant"
+cd "D:\myx\grade_one\experiments\trading_bot\a_share_quant"
 ```
 
 ## 2. 安装依赖
@@ -27,7 +27,7 @@ cd "D:\games waiting for me\grade_one\experiments\trading_bot\a_share_quant"
 如果依赖尚未安装，在 DL 环境中执行：
 
 ```powershell
-D:\conda\envs_dirs\DL\python.exe -m pip install -r requirements.txt
+D:\Anaconda\envs\DL\python.exe -m pip install -r requirements.txt
 ```
 
 说明：
@@ -39,7 +39,7 @@ D:\conda\envs_dirs\DL\python.exe -m pip install -r requirements.txt
 ## 3. 运行测试
 
 ```powershell
-D:\conda\envs_dirs\DL\python.exe -m pytest
+D:\Anaconda\envs\DL\python.exe -m pytest
 ```
 
 当前测试覆盖：
@@ -48,6 +48,8 @@ D:\conda\envs_dirs\DL\python.exe -m pytest
 - 绩效指标
 - 调仓权重约束
 - 无未来函数检查
+- 动态流动性股票池诊断
+- 命名策略 profile 和 walk-forward selection
 - 真实缓存数据完整回测 smoke test
 
 ## 4. 下载或生成数据
@@ -55,7 +57,7 @@ D:\conda\envs_dirs\DL\python.exe -m pytest
 默认配置优先使用 AKShare 数据，会生成标准化 A 股日频字段并写入 sqlite 缓存：
 
 ```powershell
-D:\conda\envs_dirs\DL\python.exe scripts\download_data.py --config configs\default.yaml
+D:\Anaconda\envs\DL\python.exe scripts\download_data.py --config configs\default.yaml
 ```
 
 输出位置：
@@ -69,19 +71,19 @@ data/cache/bars.sqlite
 ## 5. 运行回测
 
 ```powershell
-D:\conda\envs_dirs\DL\python.exe scripts\run_backtest.py --config configs\default.yaml
+D:\Anaconda\envs\DL\python.exe scripts\run_backtest.py --config configs\default.yaml
 ```
 
 支持命令行覆盖配置，例如：
 
 ```powershell
-D:\conda\envs_dirs\DL\python.exe scripts\run_backtest.py --config configs\default.yaml --set strategy.top_k=3 --set strategy.max_weight=0.3
+D:\Anaconda\envs\DL\python.exe scripts\run_backtest.py --config configs\default.yaml --set strategy.top_k=3 --set strategy.max_weight=0.3
 ```
 
 ## 6. 生成报告
 
 ```powershell
-D:\conda\envs_dirs\DL\python.exe scripts\generate_report.py --config configs\default.yaml
+D:\Anaconda\envs\DL\python.exe scripts\generate_report.py --config configs\default.yaml
 ```
 
 报告默认输出到：
@@ -99,6 +101,10 @@ reports/
 - `positions.csv`：每日持仓
 - `yearly_performance.csv`：逐年收益和回撤
 - `industry_exposure.csv`：行业暴露；若真实数据无行业字段则为空表
+- `universe_diagnostics.csv`：股票池构造、可选数量、行业覆盖和偏差标记
+- `daily_universe_size.csv`：每个调仓信号日的股票池规模
+- `exposure_report.csv`：beta、行业集中度、现金和前十大集中度
+- `top_holdings.csv`：每日前十大持仓
 - `equity_curve.png`：净值曲线图
 - `drawdown.png`：回撤图
 
@@ -107,7 +113,7 @@ reports/
 当基础回测跑通后，可以运行研究诊断模块，检查因子是否真的有效：
 
 ```powershell
-D:\conda\envs_dirs\DL\python.exe scripts\run_research.py --config configs\default.yaml
+D:\Anaconda\envs\DL\python.exe scripts\run_research.py --config configs\default.yaml
 ```
 
 研究诊断会输出：
@@ -120,6 +126,10 @@ D:\conda\envs_dirs\DL\python.exe scripts\run_research.py --config configs\defaul
 - `factor_group_returns.csv`：因子分组净值序列
 - `single_factor_backtests.csv`：单因子 top-K 回测对比
 - `parameter_grid.csv`：参数网格样本内/样本外结果
+- `rolling_oos_eval.csv` / `walk_forward.csv`：固定参数 rolling OOS 评估
+- `walk_forward_selection.csv`：训练窗口选参、下一测试窗口验证
+- `strategy_comparison.csv`：防守、进攻、平衡策略相对 hs300/csi500/csi1000 的对比
+- `exposure_report.csv`：组合暴露诊断
 
 ## 8. 绩效指标中文解释
 
@@ -158,8 +168,14 @@ configs/default.yaml
 
 - `data.provider`：数据源，默认 `akshare`
 - `data.adjust`：复权方式，默认 `qfq`
+- `data.universe_mode`：`fixed_symbols`、`current_snapshot` 或 `dynamic_liquidity`
+- `data.candidate_source`：候选下载源，`cache`、`akshare_metadata` 或 `current_snapshot`
+- `data.universe_top_n`：动态股票池最多保留数量
+- `data.universe_liquidity_window`：动态股票池滚动成交额窗口
+- `data.universe_min_amount`：动态股票池最低平均成交额
 - `data.min_listed_days`：上市最少交易日
 - `data.min_amount`：最低成交额过滤
+- `strategy.name`：`defensive_low_vol`、`offensive_momentum` 或 `balanced_multi_factor`
 - `strategy.top_k`：每次选股数量
 - `strategy.weighting`：`equal_weight` 或 `inverse_vol_weight`
 - `strategy.max_weight`：单票最大权重
@@ -199,4 +215,11 @@ a_share_quant/
 
 - AKShare adapter 为 MVP 级别实现，真实环境中需要进一步校验字段和接口稳定性。
 - 指数成分历史、退市历史、真实停牌/ST 历史暂未完整接入。
+- `dynamic_liquidity` 避免调仓日使用未来成交额，但如果本地缓存候选股票数量小于 `universe_top_n`，`universe_diagnostics.csv` 会通过 `candidate_pool_limited` 和 `raw_to_top_n_ratio` 标记候选池容量限制。
+- 扩展候选缓存时可以显式使用 AKShare 元数据股票列表，而不是当前成交额快照：
+
+```powershell
+D:\Anaconda\envs\DL\python.exe scripts\download_data.py --config configs\default.yaml --set data.candidate_source=akshare_metadata --set data.max_symbols=800
+```
+
 - 当前不接入实盘或 paper trading 下单接口。

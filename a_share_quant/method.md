@@ -49,6 +49,48 @@ Tushare token 只从环境变量读取，不写入代码。
 
 过滤只使用当前信号日及之前已经存在的数据，不读取未来日期信息。
 
+当前支持三种股票池模式：
+
+```text
+fixed_symbols：只在配置给定的 symbols 内过滤。
+current_snapshot：候选股票集合来自当前快照，适合快速调试，但报告会标记 possible_selection_bias=true。
+dynamic_liquidity：每个调仓信号日按过去窗口平均成交额动态选池，默认研究模式。
+```
+
+`dynamic_liquidity` 在每个 signal_date 使用 `universe_liquidity_window` 个历史交易日的 `amount` 均值，剔除 ST、停牌、上市天数不足和成交额不足的股票，再按平均成交额选取前 `universe_top_n`。报告会输出：
+
+```text
+reports/universe_diagnostics.csv
+reports/daily_universe_size.csv
+```
+
+需要注意：动态选池解决的是调仓日选股时的成交额未来函数；如果本地缓存本身只包含某个当前快照候选集合，仍应在研究结论中说明候选下载范围的限制。`universe_diagnostics.csv` 会额外输出：
+
+```text
+configured_top_n
+raw_to_top_n_ratio
+selected_to_top_n_ratio
+candidate_pool_limited
+```
+
+这些字段用于判断候选缓存数量是否小于配置的动态池目标数量。
+
+候选下载源由 `data.candidate_source` 控制：
+
+```text
+cache：默认值，研究时使用本地真实缓存中的全部股票，避免无意触发大规模下载。
+akshare_metadata：使用 AKShare 股票代码/名称元数据生成候选列表，不按当前成交额排序。
+current_snapshot：使用 AKShare 当前 spot 成交额快照，仅适合快速调试，报告会标记 possible_selection_bias=true。
+```
+
+扩展候选缓存时可以显式运行：
+
+```powershell
+D:\Anaconda\envs\DL\python.exe scripts\download_data.py --config configs\default.yaml --set data.candidate_source=akshare_metadata --set data.max_symbols=800
+```
+
+这一步仍不是历史指数成分或退市全样本，只是避免候选下载阶段直接按当前成交额排序；严格历史全市场研究仍需要后续接入更完整的历史候选集合。
+
 ## 4. 因子设计
 
 当前实现四类日频因子。
@@ -116,17 +158,33 @@ score =
 ```yaml
 factors:
   weights:
-    momentum: 0.35
-    trend: 0.25
-    volatility: 0.25
-    liquidity: 0.15
+    volatility: 0.60
+    industry_momentum: 0.40
+    momentum: 0.0
+    trend: 0.0
+    liquidity: 0.0
 ```
 
 注意：波动率因子在标准化后取反，因此低波动股票得分更高。
 
+命名策略会覆盖默认因子权重：
+
+```text
+defensive_low_vol：0.70 * low_volatility + 0.30 * industry_momentum，默认 inverse_vol_weight。
+offensive_momentum：0.70 * industry_momentum + 0.20 * momentum + 0.10 * liquidity，默认 equal_weight。
+balanced_multi_factor：0.40 * industry_momentum + 0.40 * low_volatility + 0.20 * trend，默认 equal_weight。
+```
+
+当前 `quality.py` 和 `value.py` 仅保留接口占位。由于尚未接入稳定基本面数据，报告中标记：
+
+```text
+quality_factor_available = false
+value_factor_available = false
+```
+
 ## 6. 调仓逻辑
 
-当前策略为月频多因子轮动：
+当前策略为命名多因子轮动：
 
 1. 每月最后一个交易日收盘后计算因子和股票池。
 2. 按综合分数排序。
@@ -257,7 +315,7 @@ reports/backtest_summary_cn.md
 当前系统新增了研究诊断流水线：
 
 ```powershell
-D:\conda\envs_dirs\DL\python.exe scripts\run_research.py --config configs\default.yaml
+D:\Anaconda\envs\DL\python.exe scripts\run_research.py --config configs\default.yaml
 ```
 
 它用于判断策略是否真的存在 alpha 来源，而不是只看最终回测收益。
@@ -315,7 +373,9 @@ Group 5 = 高分组
 
 ### 13.5 参数网格和样本外验证
 
-当前参数网格包括：
+日常研究参数网格默认使用较小但完整报告的诊断组合，避免每次运行都变成大规模实验。每个实际测试组合都会完整输出样本内和样本外指标，不只报告最优结果。
+
+完整候选可以通过 `run_parameter_grid()` 和 `run_walk_forward_selection()` 的参数显式传入。建议的大规模候选包括：
 
 ```text
 top_k: [10, 20, 30, 50]
@@ -339,14 +399,58 @@ skip_window: [5, 20]
 - `reports/single_factor_backtests.csv`
 - `reports/parameter_grid.csv`
 
+### 13.6 Rolling OOS 与 walk-forward selection
+
+系统区分两类样本外诊断：
+
+```text
+rolling_oos_eval：固定当前参数，在滚动 OOS 窗口中评估稳定性。
+walk_forward_selection：每个训练窗口内比较候选参数，再把选出的参数固定到下一测试窗口评估。
+```
+
+输出文件：
+
+```text
+reports/walk_forward.csv
+reports/rolling_oos_eval.csv
+reports/walk_forward_selection.csv
+```
+
+`walk_forward_selection.csv` 至少包含训练窗口、测试窗口、被选择策略、top_k、权重方式、动量窗口、skip、训练评分和测试期收益、超额、Sharpe、IR、回撤、Calmar、beta、上涨/下跌捕获。
+
+### 13.7 策略线和暴露诊断
+
+研究诊断会分别运行：
+
+```text
+defensive_low_vol
+offensive_momentum
+balanced_multi_factor
+```
+
+并输出相对 `hs300`、`csi500`、`csi1000` 的收益、超额、IR、beta、up_capture、down_capture 和月度跑赢率：
+
+```text
+reports/strategy_comparison.csv
+```
+
+暴露诊断输出：
+
+```text
+reports/exposure_report.csv
+reports/top_holdings.csv
+reports/industry_exposure.csv
+```
+
+其中包括组合相对三大 benchmark 的 rolling beta、平均持仓波动率、行业 top1/top3 集中度、现金权重和前十大持仓集中度。若没有真实市值字段，则 `market_cap_available=false`。
+
 ## 14. 后续扩展方向
 
 建议按以下顺序扩展：
 
-1. 接入真实 AKShare 数据并校验字段。
-2. 增加真实指数成分历史和交易日历。
+1. 接入历史指数成分或更完整的历史全市场候选集合。
+2. 增加真实市值、质量和价值基本面字段，并报告缺失率。
 3. 增加前复权、后复权、不复权的一致性校验。
-4. 增加样本内/样本外和 walk-forward 测试。
-5. 增加行业中性、市值中性、风险暴露控制。
-6. 接入基本面数据，补充质量和价值因子。
-7. 在研究稳定后，再扩展 paper trading。
+4. 增加行业中性、市值中性、风险暴露控制。
+5. 扩展更长历史样本，覆盖 2018-2026 的不同市场阶段。
+6. 在研究稳定后，再扩展 paper trading。

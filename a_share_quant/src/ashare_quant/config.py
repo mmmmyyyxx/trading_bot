@@ -13,6 +13,11 @@ import yaml
 class DataConfig:
     provider: str = "akshare"
     universe_type: str = "static_symbols"
+    universe_mode: str = "fixed_symbols"
+    candidate_source: str = "cache"
+    universe_top_n: int = 500
+    universe_liquidity_window: int = 20
+    universe_min_amount: float = 50_000_000.0
     max_symbols: int = 300
     start_date: str = "2022-01-01"
     end_date: str = "2023-12-31"
@@ -48,6 +53,7 @@ class FactorConfig:
 
 @dataclass
 class StrategyConfig:
+    name: str = "balanced_multi_factor"
     rebalance_frequency: str = "M"
     top_k: int = 5
     weighting: str = "equal_weight"

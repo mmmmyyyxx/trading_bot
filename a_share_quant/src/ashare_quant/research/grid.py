@@ -10,7 +10,9 @@ import pandas as pd
 from ashare_quant.backtest.engine import BacktestEngine
 from ashare_quant.backtest.metrics import compute_metrics
 from ashare_quant.config import AppConfig
-from ashare_quant.strategy.multi_factor_rotation import MultiFactorRotationStrategy
+from ashare_quant.factors.composite import compute_composite_factors
+from ashare_quant.strategy.multi_factor_rotation import MultiFactorRotationStrategy, build_strategy_universe_flags
+from ashare_quant.strategy.profiles import apply_strategy_profile
 
 
 def _period_metrics(result, start_date: pd.Timestamp, end_date: pd.Timestamp, prefix: str) -> dict[str, float]:
@@ -66,6 +68,8 @@ def run_parameter_grid(
     end_date = pd.Timestamp(dates[-1])
 
     rows: list[dict[str, object]] = []
+    enriched = build_strategy_universe_flags(config, bars)
+    factor_cache: dict[tuple[object, ...], pd.DataFrame] = {}
     combos = itertools.product(top_k_values, rebalance_values, weighting_values, momentum_windows, skip_windows)
     for top_k, rebalance, weighting, momentum_window, skip_window in combos:
         unique_symbols = bars["symbol"].nunique()
@@ -103,7 +107,8 @@ def run_parameter_grid(
         cfg.factors.momentum_skip = skip_window
         cfg.report.make_plots = False
 
-        targets = MultiFactorRotationStrategy(cfg).generate_targets(bars)
+        factor_scores = _cached_factor_scores(cfg, bars, factor_cache)
+        targets = MultiFactorRotationStrategy(cfg).generate_targets(bars, factor_scores=factor_scores, enriched_bars=enriched)
         result = BacktestEngine(cfg).run(bars, targets)
         row: dict[str, object] = {
             "top_k": top_k,
@@ -119,3 +124,20 @@ def run_parameter_grid(
         row.update(_period_metrics(result, split_date, end_date, "oos"))
         rows.append(row)
     return pd.DataFrame(rows).sort_values(["oos_sharpe", "oos_total_return"], ascending=False).reset_index(drop=True)
+
+
+def _cached_factor_scores(
+    config: AppConfig,
+    bars: pd.DataFrame,
+    cache: dict[tuple[object, ...], pd.DataFrame],
+) -> pd.DataFrame:
+    effective = apply_strategy_profile(config)
+    key = (
+        effective.strategy.name,
+        effective.factors.momentum_window,
+        effective.factors.momentum_skip,
+        tuple(sorted(effective.factors.weights.items())),
+    )
+    if key not in cache:
+        cache[key] = compute_composite_factors(bars, effective.factors)
+    return cache[key]

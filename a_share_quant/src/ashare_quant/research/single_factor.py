@@ -20,6 +20,7 @@ def run_single_factor_backtests(config: AppConfig, bars: pd.DataFrame) -> pd.Dat
     rows: list[dict[str, object]] = []
     for factor in SINGLE_FACTORS:
         cfg = copy.deepcopy(config)
+        cfg.strategy.name = "custom"
         cfg.factors.weights = {name: 0.0 for name in SINGLE_FACTORS}
         cfg.factors.weights[factor] = 1.0
         targets = MultiFactorRotationStrategy(cfg).generate_targets(bars)

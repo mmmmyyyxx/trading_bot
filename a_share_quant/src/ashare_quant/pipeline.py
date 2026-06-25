@@ -16,6 +16,7 @@ from ashare_quant.data.storage import SQLiteStorage
 from ashare_quant.data.tushare_provider import TushareProvider
 from ashare_quant.report.performance_report import write_report
 from ashare_quant.research.benchmark import benchmark_summary, load_benchmarks
+from ashare_quant.research.exposure import write_exposure_reports
 from ashare_quant.strategy.multi_factor_rotation import MultiFactorRotationStrategy
 
 LOGGER = logging.getLogger(__name__)
@@ -44,6 +45,9 @@ def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
     if not refresh and cached_bars is not None and not cached_bars.empty and _cache_covers_symbols(cached_bars, symbols):
         LOGGER.info("Loaded %d cached bars from %s", len(cached_bars), storage.db_path)
         return _enrich_loaded_bars(config, cached_bars)
+    if not symbols and cached_bars is not None and not cached_bars.empty:
+        LOGGER.warning("No explicit symbols are available for refresh; using existing real cache.")
+        return _enrich_loaded_bars(config, cached_bars)
 
     try:
         provider = make_provider(config.data.provider)
@@ -70,12 +74,26 @@ def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
 
 
 def resolve_symbols(config: AppConfig) -> list[str]:
-    """Resolve configured symbols or a real AKShare all-A liquidity universe."""
+    """Resolve configured symbols or a candidate universe for downloading bars."""
     if config.data.symbols:
         return config.data.symbols[: config.data.max_symbols]
+    if config.data.universe_mode == "fixed_symbols":
+        return []
     if config.data.universe_type != "all_a_share_liquid":
         return []
-    return _fetch_akshare_symbols(config)
+    source = config.data.candidate_source.lower()
+    cache_exists = Path(config.data.cache_path).exists()
+    if source in {"cache", "local_cache"} and cache_exists:
+        LOGGER.info("Dynamic liquidity mode uses all symbols available in the local cache.")
+        return []
+    if source in {"akshare_metadata", "metadata", "all_a_metadata"}:
+        return _fetch_akshare_metadata_symbols(config)
+    if source in {"current_snapshot", "current_liquidity_snapshot", "spot"}:
+        return _fetch_akshare_symbols(config)
+    if source in {"cache", "local_cache"} and not cache_exists:
+        LOGGER.warning("Local cache candidate source requested but cache is missing; falling back to AKShare metadata candidates.")
+        return _fetch_akshare_metadata_symbols(config)
+    raise ProviderUnavailable(f"Unsupported data.candidate_source: {config.data.candidate_source}")
 
 
 def _fetch_akshare_symbols(config: AppConfig) -> list[str]:
@@ -91,6 +109,50 @@ def _fetch_akshare_symbols(config: AppConfig) -> list[str]:
         LOGGER.info("Resolved %d symbols from existing real liquidity cache.", len(cached))
         return cached
     raise ProviderUnavailable("Unable to resolve real liquidity universe and no usable liquidity cache exists.")
+
+
+def _fetch_akshare_metadata_symbols(config: AppConfig) -> list[str]:
+    """Resolve A-share candidates from AKShare code-name metadata, not current liquidity."""
+    try:
+        import akshare as ak  # type: ignore
+
+        raw = ak.stock_info_a_code_name()
+        symbols = _symbols_from_metadata_frame(raw, config)
+        if symbols:
+            LOGGER.info("Resolved %d AKShare metadata candidate symbols.", len(symbols))
+            return symbols
+    except Exception as exc:  # pragma: no cover - depends on external API
+        LOGGER.warning("Unable to resolve AKShare metadata candidates: %s", exc)
+
+    cached = _symbols_from_liquidity_cache(config)
+    if cached:
+        LOGGER.info("Resolved %d symbols from existing real liquidity cache.", len(cached))
+        return cached
+    raise ProviderUnavailable("Unable to resolve AKShare metadata candidates and no usable cache exists.")
+
+
+def _symbols_from_metadata_frame(raw: pd.DataFrame, config: AppConfig) -> list[str]:
+    """Normalize AKShare code-name metadata into exchange-qualified symbols."""
+    if raw.empty:
+        return []
+    code_col = _find_column(raw, ["code"], None) or _find_column(raw, ["\u4ee3\u7801"], 0) or str(raw.columns[0])
+    name_col = _find_column(raw, ["name"], None) or _find_column(raw, ["\u540d\u79f0"], 1)
+    data = raw.copy()
+    data[code_col] = data[code_col].astype(str).str.split(".", expand=True).iloc[:, 0].str.zfill(6)
+    if name_col is not None and config.data.exclude_st:
+        data = data[~data[name_col].astype(str).str.contains("ST", case=False, na=False)]
+    codes = (
+        data[code_col]
+        .dropna()
+        .astype(str)
+        .str.strip()
+        .loc[lambda s: (s != "") & (s.str.lower() != "nan")]
+        .drop_duplicates()
+        .sort_values()
+        .head(config.data.max_symbols)
+        .tolist()
+    )
+    return [_symbol_from_code(code) for code in codes]
 
 
 def _symbols_from_akshare_spot(config: AppConfig) -> list[str]:
@@ -174,8 +236,21 @@ def run_backtest_pipeline(config: AppConfig, refresh_data: bool = False, write_o
     _attach_benchmark_return(result, config, bars)
     if write_outputs:
         write_report(result, Path(config.report.output_dir), make_plots=config.report.make_plots)
+        _write_universe_reports(strategy, Path(config.report.output_dir))
+        try:
+            benchmarks = load_benchmarks(config, bars)
+        except Exception as exc:  # pragma: no cover - depends on external data
+            LOGGER.warning("Unable to load benchmarks for exposure report: %s", exc)
+            benchmarks = pd.DataFrame()
+        write_exposure_reports(result, bars, benchmarks, Path(config.report.output_dir))
         LOGGER.info("Reports written to %s", config.report.output_dir)
     return result
+
+
+def _write_universe_reports(strategy: MultiFactorRotationStrategy, output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    strategy.universe_diagnostics.to_csv(output_dir / "universe_diagnostics.csv", index=False)
+    strategy.daily_universe_size.to_csv(output_dir / "daily_universe_size.csv", index=False)
 
 
 def _attach_benchmark_return(result: BacktestResult, config: AppConfig, bars: pd.DataFrame) -> None:
