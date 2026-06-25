@@ -35,7 +35,7 @@ def make_provider(name: str) -> DataProvider:
 def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
     """Load cached bars or fetch them from the configured provider."""
     storage = SQLiteStorage(config.data.cache_path)
-    symbols = resolve_symbols(config)
+    symbols = resolve_symbols(config, refresh=refresh)
     cached_bars: pd.DataFrame | None = None
     try:
         cached_bars = storage.load_bars(symbols or None, config.data.start_date, config.data.end_date)
@@ -45,35 +45,88 @@ def load_market_data(config: AppConfig, refresh: bool = False) -> pd.DataFrame:
     if not refresh and cached_bars is not None and not cached_bars.empty and _cache_covers_symbols(cached_bars, symbols):
         LOGGER.info("Loaded %d cached bars from %s", len(cached_bars), storage.db_path)
         return _enrich_loaded_bars(config, cached_bars)
-    if not symbols and cached_bars is not None and not cached_bars.empty:
-        LOGGER.warning("No explicit symbols are available for refresh; using existing real cache.")
+    if not refresh and cached_bars is not None and not cached_bars.empty:
+        if symbols:
+            LOGGER.warning(
+                "Cached bars do not cover the requested candidate universe (%d symbols); using existing cache. "
+                "Run download_data.py with refresh=True to expand the candidate pool.",
+                len(symbols),
+            )
+            fallback_bars = _load_all_cached_bars(storage, config)
+            if fallback_bars is not None and not fallback_bars.empty:
+                return _enrich_loaded_bars(config, fallback_bars)
+        else:
+            LOGGER.warning("No explicit symbols are available for refresh; using existing real cache.")
         return _enrich_loaded_bars(config, cached_bars)
+    if not refresh and symbols:
+        fallback_bars = _load_all_cached_bars(storage, config)
+        if fallback_bars is not None and not fallback_bars.empty:
+            LOGGER.warning(
+                "Cached bars have no overlap with the requested candidate universe (%d symbols); "
+                "using all existing cache rows instead.",
+                len(symbols),
+            )
+            return _enrich_loaded_bars(config, fallback_bars)
+    if not refresh and (cached_bars is None or cached_bars.empty) and _is_large_candidate_request(config, symbols):
+        raise ProviderUnavailable(
+            "No usable local bar cache is available for the configured large candidate universe. "
+            "Run scripts/download_data.py with --refresh to build or expand the cache explicitly."
+        )
+
+    cached_bars_all = _load_all_cached_bars(storage, config) if refresh else cached_bars
+    cached_symbols = _cached_symbol_set(cached_bars)
+    all_cached_symbols = _cached_symbol_set(cached_bars_all)
+    date_range_complete = _cache_covers_date_range(cached_bars, config.data.start_date, config.data.end_date)
+    if refresh:
+        if symbols:
+            missing_symbols = [symbol for symbol in symbols if symbol not in all_cached_symbols]
+            symbols_to_fetch = symbols if not date_range_complete else missing_symbols
+        elif all_cached_symbols:
+            symbols_to_fetch = sorted(all_cached_symbols) if not date_range_complete else []
+        else:
+            symbols_to_fetch = []
+    else:
+        symbols_to_fetch = symbols
+
+    if refresh and not symbols_to_fetch:
+        if cached_bars is not None and not cached_bars.empty:
+            LOGGER.info("Local cache already covers %d requested symbols and the configured date range.", len(cached_symbols))
+            return _enrich_loaded_bars(config, cached_bars)
+        if cached_bars_all is not None and not cached_bars_all.empty:
+            LOGGER.info("Local cache already covers the configured date range; returning all cached bars.")
+            return _enrich_loaded_bars(config, _filter_bars_to_symbols_or_all(cached_bars_all, symbols))
+    if not symbols_to_fetch:
+        raise ProviderUnavailable("No symbols are available for provider refresh.")
 
     try:
         provider = make_provider(config.data.provider)
-        bars = provider.fetch_bars(
-            symbols=symbols,
-            start_date=config.data.start_date,
-            end_date=config.data.end_date,
-            adjust=config.data.adjust,
+        bars = _fetch_bars_in_batches(
+            provider,
+            symbols_to_fetch,
+            config.data.start_date,
+            config.data.end_date,
+            config.data.adjust,
+            config.data.download_batch_size,
         )
     except ProviderUnavailable as exc:
-        if cached_bars is not None and not cached_bars.empty:
+        fallback_bars = cached_bars if cached_bars is not None and not cached_bars.empty else cached_bars_all
+        if fallback_bars is not None and not fallback_bars.empty:
             LOGGER.warning(
                 "Provider %s unavailable (%s); keeping existing real cache with %d rows.",
                 config.data.provider,
                 exc,
-                len(cached_bars),
+                len(fallback_bars),
             )
-            return _enrich_loaded_bars(config, cached_bars)
+            return _enrich_loaded_bars(config, _filter_bars_to_symbols_or_all(fallback_bars, symbols))
         raise
 
-    storage.save_bars(bars, replace=True)
-    LOGGER.info("Saved %d bars to %s", len(bars), storage.db_path)
-    return _enrich_loaded_bars(config, bars)
+    combined = _merge_bar_frames(cached_bars_all, bars)
+    storage.save_bars(combined, replace=True)
+    LOGGER.info("Saved %d bars to %s", len(combined), storage.db_path)
+    return _enrich_loaded_bars(config, _filter_bars_to_symbols(combined, symbols))
 
 
-def resolve_symbols(config: AppConfig) -> list[str]:
+def resolve_symbols(config: AppConfig, refresh: bool = False) -> list[str]:
     """Resolve configured symbols or a candidate universe for downloading bars."""
     if config.data.symbols:
         return config.data.symbols[: config.data.max_symbols]
@@ -86,13 +139,13 @@ def resolve_symbols(config: AppConfig) -> list[str]:
     if source in {"cache", "local_cache"} and cache_exists:
         LOGGER.info("Dynamic liquidity mode uses all symbols available in the local cache.")
         return []
-    if source in {"akshare_metadata", "metadata", "all_a_metadata"}:
-        return _fetch_akshare_metadata_symbols(config)
+    if source in {"akshare_metadata", "metadata", "all_a_metadata", "full_a_share", "full_a_share_metadata"}:
+        return _fetch_akshare_metadata_symbols(config, refresh=refresh)
     if source in {"current_snapshot", "current_liquidity_snapshot", "spot"}:
         return _fetch_akshare_symbols(config)
     if source in {"cache", "local_cache"} and not cache_exists:
         LOGGER.warning("Local cache candidate source requested but cache is missing; falling back to AKShare metadata candidates.")
-        return _fetch_akshare_metadata_symbols(config)
+        return _fetch_akshare_metadata_symbols(config, refresh=refresh)
     raise ProviderUnavailable(f"Unsupported data.candidate_source: {config.data.candidate_source}")
 
 
@@ -111,8 +164,13 @@ def _fetch_akshare_symbols(config: AppConfig) -> list[str]:
     raise ProviderUnavailable("Unable to resolve real liquidity universe and no usable liquidity cache exists.")
 
 
-def _fetch_akshare_metadata_symbols(config: AppConfig) -> list[str]:
+def _fetch_akshare_metadata_symbols(config: AppConfig, refresh: bool = False) -> list[str]:
     """Resolve A-share candidates from AKShare code-name metadata, not current liquidity."""
+    cache_path = Path(config.data.candidate_symbols_path)
+    cached = _load_candidate_symbols_file(cache_path, config)
+    if cached and not refresh:
+        LOGGER.info("Loaded %d cached metadata candidate symbols from %s.", len(cached), cache_path)
+        return cached
     try:
         import akshare as ak  # type: ignore
 
@@ -120,9 +178,14 @@ def _fetch_akshare_metadata_symbols(config: AppConfig) -> list[str]:
         symbols = _symbols_from_metadata_frame(raw, config)
         if symbols:
             LOGGER.info("Resolved %d AKShare metadata candidate symbols.", len(symbols))
+            _store_candidate_symbols_file(cache_path, symbols)
             return symbols
     except Exception as exc:  # pragma: no cover - depends on external API
         LOGGER.warning("Unable to resolve AKShare metadata candidates: %s", exc)
+
+    if cached:
+        LOGGER.warning("Using stale metadata candidate symbol cache from %s.", cache_path)
+        return cached
 
     cached = _symbols_from_liquidity_cache(config)
     if cached:
@@ -153,6 +216,27 @@ def _symbols_from_metadata_frame(raw: pd.DataFrame, config: AppConfig) -> list[s
         .tolist()
     )
     return [_symbol_from_code(code) for code in codes]
+
+
+def _load_candidate_symbols_file(path: Path, config: AppConfig) -> list[str]:
+    if not path.exists():
+        return []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except Exception:
+        return []
+    symbols = [line.strip() for line in lines if line.strip()]
+    if config.data.max_symbols > 0:
+        symbols = symbols[: config.data.max_symbols]
+    return symbols
+
+
+def _store_candidate_symbols_file(path: Path, symbols: list[str]) -> None:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("\n".join(symbols) + "\n", encoding="utf-8")
+    except Exception as exc:  # pragma: no cover - filesystem dependent
+        LOGGER.warning("Unable to persist candidate symbol cache %s: %s", path, exc)
 
 
 def _symbols_from_akshare_spot(config: AppConfig) -> list[str]:
@@ -200,10 +284,99 @@ def _enrich_loaded_bars(config: AppConfig, bars: pd.DataFrame) -> pd.DataFrame:
     return enrich_bars_with_akshare_metadata(bars)
 
 
-def _cache_covers_symbols(cached_bars: pd.DataFrame, symbols: list[str]) -> bool:
+def _load_all_cached_bars(storage: SQLiteStorage, config: AppConfig) -> pd.DataFrame | None:
+    try:
+        return storage.load_bars(start_date=config.data.start_date, end_date=config.data.end_date)
+    except (FileNotFoundError, ValueError) as exc:
+        LOGGER.info("Full cache unavailable: %s", exc)
+        return None
+
+
+def _cached_symbol_set(cached_bars: pd.DataFrame | None) -> set[str]:
+    if cached_bars is None or cached_bars.empty or "symbol" not in cached_bars.columns:
+        return set()
+    return set(cached_bars["symbol"].astype(str).unique())
+
+
+def _cache_covers_symbols(cached_bars: pd.DataFrame | None, symbols: list[str]) -> bool:
     if not symbols:
         return True
-    return set(symbols).issubset(set(cached_bars["symbol"].astype(str).unique()))
+    return set(symbols).issubset(_cached_symbol_set(cached_bars))
+
+
+def _cache_covers_date_range(cached_bars: pd.DataFrame | None, start_date: str, end_date: str) -> bool:
+    if cached_bars is None or cached_bars.empty or "date" not in cached_bars.columns:
+        return False
+    dates = pd.to_datetime(cached_bars["date"], errors="coerce").dropna()
+    if dates.empty:
+        return False
+    return dates.min() <= pd.Timestamp(start_date) and dates.max() >= pd.Timestamp(end_date)
+
+
+def _is_large_candidate_request(config: AppConfig, symbols: list[str]) -> bool:
+    if not symbols:
+        return False
+    return config.data.universe_mode == "dynamic_liquidity" and len(symbols) >= 100
+
+
+def _fetch_bars_in_batches(
+    provider: DataProvider,
+    symbols: list[str],
+    start_date: str,
+    end_date: str,
+    adjust: str,
+    batch_size: int,
+) -> pd.DataFrame:
+    frames: list[pd.DataFrame] = []
+    effective_batch_size = max(1, int(batch_size or 1))
+    total = len(symbols)
+    for start in range(0, total, effective_batch_size):
+        batch = symbols[start : start + effective_batch_size]
+        LOGGER.info(
+            "Fetching bars for symbols %d-%d of %d.",
+            start + 1,
+            start + len(batch),
+            total,
+        )
+        try:
+            frame = provider.fetch_bars(
+                symbols=batch,
+                start_date=start_date,
+                end_date=end_date,
+                adjust=adjust,
+            )
+        except ProviderUnavailable as exc:
+            LOGGER.warning("Provider returned no usable bars for batch starting at %s: %s", batch[0], exc)
+            continue
+        if not frame.empty:
+            frames.append(frame)
+    if not frames:
+        raise ProviderUnavailable("Provider returned no usable bars for any requested batch.")
+    return pd.concat(frames, ignore_index=True)
+
+
+def _merge_bar_frames(existing: pd.DataFrame | None, fetched: pd.DataFrame) -> pd.DataFrame:
+    frames = [frame for frame in [existing, fetched] if frame is not None and not frame.empty]
+    if not frames:
+        raise ProviderUnavailable("No bars are available to save.")
+    merged = pd.concat(frames, ignore_index=True)
+    sort_cols = [col for col in ["date", "symbol"] if col in merged.columns]
+    if sort_cols:
+        merged = merged.drop_duplicates(subset=sort_cols, keep="last")
+    return merged
+
+
+def _filter_bars_to_symbols(bars: pd.DataFrame, symbols: list[str]) -> pd.DataFrame:
+    if not symbols or bars.empty or "symbol" not in bars.columns:
+        return bars
+    return bars[bars["symbol"].astype(str).isin(set(symbols))].copy()
+
+
+def _filter_bars_to_symbols_or_all(bars: pd.DataFrame, symbols: list[str]) -> pd.DataFrame:
+    filtered = _filter_bars_to_symbols(bars, symbols)
+    if symbols and filtered.empty and not bars.empty:
+        return bars
+    return filtered
 
 
 def _find_column(frame: pd.DataFrame, keywords: list[str], fallback_index: int | None) -> str | None:

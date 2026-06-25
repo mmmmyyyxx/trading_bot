@@ -10,7 +10,8 @@ import pandas as pd
 from ashare_quant.backtest.engine import BacktestEngine
 from ashare_quant.config import AppConfig
 from ashare_quant.factors.composite import compute_composite_factors
-from ashare_quant.pipeline import load_market_data
+from ashare_quant.pipeline import _attach_benchmark_return, load_market_data
+from ashare_quant.report.performance_report import prepare_output_dir, write_report
 from ashare_quant.research.benchmark import benchmark_summary, load_benchmarks
 from ashare_quant.research.exposure import write_exposure_reports
 from ashare_quant.research.groups import compute_factor_group_returns
@@ -30,7 +31,7 @@ LOGGER = logging.getLogger(__name__)
 def run_research_pipeline(config: AppConfig, refresh_data: bool = False) -> dict[str, pd.DataFrame]:
     """Run benchmark, IC, group-return, single-factor, and grid diagnostics."""
     output_dir = Path(config.report.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    prepare_output_dir(output_dir, clean=True)
 
     bars = load_market_data(config, refresh=refresh_data)
     LOGGER.info("Research data rows: %d", len(bars))
@@ -45,6 +46,8 @@ def run_research_pipeline(config: AppConfig, refresh_data: bool = False) -> dict
     strategy = MultiFactorRotationStrategy(config)
     default_targets = strategy.generate_targets(bars, factor_scores=factor_scores, enriched_bars=default_enriched)
     default_result = BacktestEngine(config).run(bars, default_targets)
+    _attach_benchmark_return(default_result, config, bars)
+    write_report(default_result, output_dir, make_plots=config.report.make_plots, clean_output=False)
     LOGGER.info("Computing factor IC diagnostics.")
     ic_summary, ic_daily = compute_rank_ic(bars, factor_scores, horizons=[1, 5, 20])
     LOGGER.info("Computing factor group returns.")

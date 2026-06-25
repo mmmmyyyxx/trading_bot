@@ -14,11 +14,13 @@ class DataConfig:
     provider: str = "akshare"
     universe_type: str = "static_symbols"
     universe_mode: str = "fixed_symbols"
-    candidate_source: str = "cache"
-    universe_top_n: int = 500
+    candidate_source: str = "akshare_metadata"
+    candidate_symbols_path: str = "data/cache/candidate_symbols.txt"
+    universe_top_n: int = 3000
     universe_liquidity_window: int = 20
     universe_min_amount: float = 50_000_000.0
-    max_symbols: int = 300
+    max_symbols: int = 3000
+    download_batch_size: int = 100
     start_date: str = "2022-01-01"
     end_date: str = "2023-12-31"
     adjust: str = "qfq"

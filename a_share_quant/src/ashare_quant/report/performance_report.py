@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -43,10 +44,15 @@ def _json_default(value: Any) -> Any:
     raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 
-def write_report(result: BacktestResult, output_dir: str | Path, make_plots: bool = True) -> None:
+def write_report(
+    result: BacktestResult,
+    output_dir: str | Path,
+    make_plots: bool = True,
+    clean_output: bool = True,
+) -> None:
     """Persist summary metrics, equity curve, trades, positions, and plots."""
     path = Path(output_dir)
-    path.mkdir(parents=True, exist_ok=True)
+    prepare_output_dir(path, clean=clean_output)
 
     with (path / "backtest_summary.json").open("w", encoding="utf-8") as fh:
         json.dump(result.metrics, fh, indent=2, ensure_ascii=False, default=_json_default)
@@ -59,6 +65,19 @@ def write_report(result: BacktestResult, output_dir: str | Path, make_plots: boo
 
     if make_plots and not result.equity_curve.empty:
         write_plots(result.equity_curve, path)
+
+
+def prepare_output_dir(output_dir: str | Path, clean: bool = True) -> Path:
+    """Create the output directory and optionally clear existing contents."""
+    path = Path(output_dir)
+    path.mkdir(parents=True, exist_ok=True)
+    if clean:
+        for child in path.iterdir():
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                child.unlink(missing_ok=True)
+    return path
 
 
 def write_plots(equity_curve: pd.DataFrame, output_dir: str | Path) -> None:

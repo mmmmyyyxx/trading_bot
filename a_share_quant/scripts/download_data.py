@@ -19,11 +19,15 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="configs/default.yaml")
     parser.add_argument("--set", dest="overrides", action="append", default=[])
+    parser.add_argument("--refresh", action="store_true", help="Force a provider refresh and rebuild the cache.")
+    parser.add_argument("--batch-size", type=int, help="Number of symbols to fetch per provider batch.")
     args = parser.parse_args()
 
     config = load_config(args.config, args.overrides)
+    if args.batch_size:
+        config.data.download_batch_size = args.batch_size
     setup_logging(config.logging.level)
-    bars = load_market_data(config, refresh=True)
+    bars = load_market_data(config, refresh=args.refresh)
     print(f"saved_rows={len(bars)} cache={config.data.cache_path}")
 
 

@@ -169,8 +169,11 @@ configs/default.yaml
 - `data.provider`：数据源，默认 `akshare`
 - `data.adjust`：复权方式，默认 `qfq`
 - `data.universe_mode`：`fixed_symbols`、`current_snapshot` 或 `dynamic_liquidity`
-- `data.candidate_source`：候选下载源，`cache`、`akshare_metadata` 或 `current_snapshot`
-- `data.universe_top_n`：动态股票池最多保留数量
+- `data.candidate_source`：候选下载源，默认 `akshare_metadata`
+- `data.candidate_symbols_path`：候选股票列表本地缓存
+- `data.universe_top_n`：动态股票池最多保留数量，默认 `3000`
+- `data.max_symbols`：候选股票最大数量，默认 `3000`
+- `data.download_batch_size`：候选下载分批大小，默认 `100`
 - `data.universe_liquidity_window`：动态股票池滚动成交额窗口
 - `data.universe_min_amount`：动态股票池最低平均成交额
 - `data.min_listed_days`：上市最少交易日
@@ -216,10 +219,19 @@ a_share_quant/
 - AKShare adapter 为 MVP 级别实现，真实环境中需要进一步校验字段和接口稳定性。
 - 指数成分历史、退市历史、真实停牌/ST 历史暂未完整接入。
 - `dynamic_liquidity` 避免调仓日使用未来成交额，但如果本地缓存候选股票数量小于 `universe_top_n`，`universe_diagnostics.csv` 会通过 `candidate_pool_limited` 和 `raw_to_top_n_ratio` 标记候选池容量限制。
+- 普通 `run_backtest.py` / `run_research.py` 会优先使用已有本地缓存；当候选池目标大于本地缓存覆盖范围时，会提示需要 `--refresh` 才会扩池。
 - 扩展候选缓存时可以显式使用 AKShare 元数据股票列表，而不是当前成交额快照：
 
 ```powershell
-D:\Anaconda\envs\DL\python.exe scripts\download_data.py --config configs\default.yaml --set data.candidate_source=akshare_metadata --set data.max_symbols=800
+D:\Anaconda\envs\DL\python.exe scripts\download_data.py --config configs\default.yaml --refresh
 ```
+
+如果只想先刷新候选池而不马上切换研究区间，可以显式覆盖：
+
+```powershell
+D:\Anaconda\envs\DL\python.exe scripts\download_data.py --config configs\default.yaml --set data.candidate_source=akshare_metadata --set data.max_symbols=3000
+```
+
+需要控制单次拉取规模时，可以加 `--batch-size 100`。
 
 - 当前不接入实盘或 paper trading 下单接口。

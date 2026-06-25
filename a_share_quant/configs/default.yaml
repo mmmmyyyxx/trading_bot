@@ -5,11 +5,13 @@ data:
   provider: akshare
   universe_type: all_a_share_liquid
   universe_mode: dynamic_liquidity
-  candidate_source: cache
-  universe_top_n: 500
+  candidate_source: akshare_metadata
+  candidate_symbols_path: data/cache/candidate_symbols.txt
+  universe_top_n: 3000
   universe_liquidity_window: 20
   universe_min_amount: 50000000
-  max_symbols: 500
+  max_symbols: 3000
+  download_batch_size: 100
   start_date: "2024-06-01"
   end_date: "2026-06-24"
   adjust: qfq

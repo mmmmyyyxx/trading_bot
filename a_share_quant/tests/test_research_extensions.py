@@ -1,10 +1,21 @@
 from __future__ import annotations
 
+import sys
+from types import SimpleNamespace
+
 import pandas as pd
 
 from ashare_quant.config import AppConfig
+from ashare_quant.data.base import ProviderUnavailable
+from ashare_quant.data.storage import SQLiteStorage
 from ashare_quant.data.universe import add_universe_flags, build_universe_diagnostics, select_universe_on
-from ashare_quant.pipeline import _symbols_from_metadata_frame
+from ashare_quant.pipeline import (
+    _fetch_akshare_metadata_symbols,
+    _fetch_bars_in_batches,
+    _load_candidate_symbols_file,
+    _symbols_from_metadata_frame,
+    load_market_data,
+)
 from ashare_quant.research.walk_forward_selection import run_walk_forward_selection
 from ashare_quant.strategy.multi_factor_rotation import MultiFactorRotationStrategy
 from tests.real_data import load_real_cached_bars
@@ -20,6 +31,30 @@ def _loose_config() -> AppConfig:
     config.strategy.max_weight = 0.3
     config.risk.market_filter = False
     return config
+
+
+def _minimal_bars(symbols: list[str], date: str = "2025-01-02") -> pd.DataFrame:
+    rows = []
+    for index, symbol in enumerate(symbols):
+        close = 10.0 + index
+        rows.append(
+            {
+                "date": date,
+                "symbol": symbol,
+                "open": close,
+                "high": close * 1.01,
+                "low": close * 0.99,
+                "close": close,
+                "volume": 1000,
+                "amount": 100000000.0,
+                "adj_factor": 1.0,
+                "is_paused": False,
+                "is_st": False,
+                "limit_up": close * 1.1,
+                "limit_down": close * 0.9,
+            }
+        )
+    return pd.DataFrame(rows)
 
 
 def test_dynamic_liquidity_universe_ignores_future_amount_edits() -> None:
@@ -142,3 +177,78 @@ def test_akshare_metadata_candidate_symbols_do_not_require_spot_amount() -> None
     symbols = _symbols_from_metadata_frame(raw, config)
 
     assert symbols == ["000001.SZ", "600000.SH", "688001.SH"]
+
+
+def test_candidate_symbols_file_respects_max_symbols(tmp_path) -> None:
+    config = AppConfig()
+    config.data.max_symbols = 2
+    path = tmp_path / "candidate_symbols.txt"
+    path.write_text("000001.SZ\n600000.SH\n688001.SH\n", encoding="utf-8")
+
+    symbols = _load_candidate_symbols_file(path, config)
+
+    assert symbols == ["000001.SZ", "600000.SH"]
+
+
+def test_akshare_metadata_refresh_rebuilds_stale_candidate_file(monkeypatch, tmp_path) -> None:
+    config = AppConfig()
+    config.data.max_symbols = 3
+    config.data.candidate_symbols_path = str(tmp_path / "candidate_symbols.txt")
+    stale_path = tmp_path / "candidate_symbols.txt"
+    stale_path.write_text("000001.SZ\n", encoding="utf-8")
+    fake_akshare = SimpleNamespace(
+        stock_info_a_code_name=lambda: pd.DataFrame(
+            {
+                "code": ["600000", "000002", "300001", "688001"],
+                "name": ["浦发银行", "万科A", "ST测试", "华兴源创"],
+            }
+        )
+    )
+    monkeypatch.setitem(sys.modules, "akshare", fake_akshare)
+
+    symbols = _fetch_akshare_metadata_symbols(config, refresh=True)
+
+    assert symbols == ["000002.SZ", "600000.SH", "688001.SH"]
+    assert stale_path.read_text(encoding="utf-8").splitlines() == symbols
+
+
+def test_fetch_bars_in_batches_skips_failed_batches() -> None:
+    class FakeProvider:
+        def __init__(self) -> None:
+            self.calls: list[list[str]] = []
+
+        def fetch_bars(self, symbols, start_date, end_date, adjust="qfq"):
+            batch = list(symbols)
+            self.calls.append(batch)
+            if batch[0] == "000003.SZ":
+                raise ProviderUnavailable("batch failed")
+            return _minimal_bars(batch)
+
+    provider = FakeProvider()
+    symbols = ["000001.SZ", "000002.SZ", "000003.SZ", "000004.SZ", "000005.SZ"]
+
+    bars = _fetch_bars_in_batches(provider, symbols, "2025-01-01", "2025-01-31", "qfq", batch_size=2)
+
+    assert provider.calls == [["000001.SZ", "000002.SZ"], ["000003.SZ", "000004.SZ"], ["000005.SZ"]]
+    assert set(bars["symbol"]) == {"000001.SZ", "000002.SZ", "000005.SZ"}
+
+
+def test_non_refresh_large_candidate_file_uses_existing_full_cache(tmp_path) -> None:
+    cache_path = tmp_path / "bars.sqlite"
+    SQLiteStorage(cache_path).save_bars(_minimal_bars(["000001.SZ", "300001.SZ"]))
+    candidate_path = tmp_path / "candidate_symbols.txt"
+    candidate_path.write_text("000001.SZ\n000002.SZ\n000003.SZ\n", encoding="utf-8")
+    config = AppConfig()
+    config.data.provider = "tushare"
+    config.data.universe_type = "all_a_share_liquid"
+    config.data.universe_mode = "dynamic_liquidity"
+    config.data.candidate_source = "akshare_metadata"
+    config.data.candidate_symbols_path = str(candidate_path)
+    config.data.cache_path = str(cache_path)
+    config.data.start_date = "2025-01-01"
+    config.data.end_date = "2025-01-31"
+    config.data.max_symbols = 3
+
+    bars = load_market_data(config, refresh=False)
+
+    assert set(bars["symbol"]) == {"000001.SZ", "300001.SZ"}
