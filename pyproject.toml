@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qlib-a-share-project"
+version = "0.1.0"
+description = "Qlib-based A-share multi-factor research adapter."
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "pandas",
+  "PyYAML",
+]
+
+[project.optional-dependencies]
+data = ["akshare", "pyarrow"]
+qlib = ["pyqlib", "lightgbm"]
+test = ["pytest", "pyarrow"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ashare_adapter*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

@@ -1,0 +1,14 @@
+artifact_uri: file:D:\myx\grade_one\experiments\trading_bot\mlruns/738980534231996348/2d1843b3fd9744e5b0e0026817e5379e/artifacts
+end_time: 1782453227797
+entry_point_name: ''
+experiment_id: '738980534231996348'
+lifecycle_stage: active
+run_id: 2d1843b3fd9744e5b0e0026817e5379e
+run_name: mlflow_recorder
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1782453212370
+status: 4
+tags: []
+user_id: Administrator

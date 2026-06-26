@@ -1,4 +1,0 @@
-benchmark,benchmark_name,source,start_date,end_date,benchmark_return
-csi1000,中证1000,akshare,2022-01-04,2026-06-24,0.10151723623047926
-csi500,中证500,akshare,2022-01-04,2026-06-24,0.2023918560393858
-hs300,沪深300,akshare,2022-01-04,2026-06-24,0.005135462959287018

@@ -1,1 +1,12 @@
 .vscode/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+data/*
+!data/.gitkeep
+reports/*
+!reports/.gitkeep

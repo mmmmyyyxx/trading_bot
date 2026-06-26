@@ -1,0 +1,129 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .gitignore
+	deleted:    a_share_quant/.gitignore
+	deleted:    a_share_quant/README.md
+	deleted:    a_share_quant/configs/default.yaml
+	deleted:    a_share_quant/data/cache/.gitkeep
+	deleted:    a_share_quant/data/cache/candidate_symbols.txt
+	deleted:    a_share_quant/method.md
+	deleted:    a_share_quant/pyproject.toml
+	deleted:    a_share_quant/reports/backtest_summary.json
+	deleted:    a_share_quant/reports/backtest_summary_cn.md
+	deleted:    a_share_quant/reports/benchmark_returns.csv
+	deleted:    a_share_quant/reports/benchmark_summary.csv
+	deleted:    a_share_quant/reports/daily_universe_size.csv
+	deleted:    a_share_quant/reports/drawdown.png
+	deleted:    a_share_quant/reports/equity_curve.csv
+	deleted:    a_share_quant/reports/equity_curve.png
+	deleted:    a_share_quant/reports/exposure_report.csv
+	deleted:    a_share_quant/reports/factor_group_returns.csv
+	deleted:    a_share_quant/reports/factor_group_summary.csv
+	deleted:    a_share_quant/reports/factor_ic.csv
+	deleted:    a_share_quant/reports/factor_ic_daily.csv
+	deleted:    a_share_quant/reports/industry_exposure.csv
+	deleted:    a_share_quant/reports/parameter_grid.csv
+	deleted:    a_share_quant/reports/positions.csv
+	deleted:    a_share_quant/reports/regime_performance.csv
+	deleted:    a_share_quant/reports/research_report.md
+	deleted:    a_share_quant/reports/rolling_oos_eval.csv
+	deleted:    a_share_quant/reports/single_factor_backtests.csv
+	deleted:    a_share_quant/reports/strategy_comparison.csv
+	deleted:    a_share_quant/reports/top_holdings.csv
+	deleted:    a_share_quant/reports/trades.csv
+	deleted:    a_share_quant/reports/universe_diagnostics.csv
+	deleted:    a_share_quant/reports/walk_forward.csv
+	deleted:    a_share_quant/reports/walk_forward_selection.csv
+	deleted:    a_share_quant/reports/yearly_performance.csv
+	deleted:    a_share_quant/requirements.txt
+	deleted:    a_share_quant/scripts/download_data.py
+	deleted:    a_share_quant/scripts/download_history_incremental.py
+	deleted:    a_share_quant/scripts/fetch_one_symbol.py
+	deleted:    a_share_quant/scripts/generate_report.py
+	deleted:    a_share_quant/scripts/run_backtest.py
+	deleted:    a_share_quant/scripts/run_research.py
+	deleted:    a_share_quant/src/ashare_quant/__init__.py
+	deleted:    a_share_quant/src/ashare_quant/backtest/__init__.py
+	deleted:    a_share_quant/src/ashare_quant/backtest/broker.py
+	deleted:    a_share_quant/src/ashare_quant/backtest/cost.py
+	deleted:    a_share_quant/src/ashare_quant/backtest/engine.py
+	deleted:    a_share_quant/src/ashare_quant/backtest/matching.py
+	deleted:    a_share_quant/src/ashare_quant/backtest/metrics.py
+	deleted:    a_share_quant/src/ashare_quant/backtest/result.py
+	deleted:    a_share_quant/src/ashare_quant/config.py
+	deleted:    a_share_quant/src/ashare_quant/data/__init__.py
+	deleted:    a_share_quant/src/ashare_quant/data/adjust.py
+	deleted:    a_share_quant/src/ashare_quant/data/akshare_provider.py
+	deleted:    a_share_quant/src/ashare_quant/data/base.py
+	deleted:    a_share_quant/src/ashare_quant/data/calendar.py
+	deleted:    a_share_quant/src/ashare_quant/data/storage.py
+	deleted:    a_share_quant/src/ashare_quant/data/tushare_provider.py
+	deleted:    a_share_quant/src/ashare_quant/data/universe.py
+	deleted:    a_share_quant/src/ashare_quant/factors/__init__.py
+	deleted:    a_share_quant/src/ashare_quant/factors/base.py
+	deleted:    a_share_quant/src/ashare_quant/factors/composite.py
+	deleted:    a_share_quant/src/ashare_quant/factors/liquidity.py
+	deleted:    a_share_quant/src/ashare_quant/factors/momentum.py
+	deleted:    a_share_quant/src/ashare_quant/factors/quality.py
+	deleted:    a_share_quant/src/ashare_quant/factors/trend.py
+	deleted:    a_share_quant/src/ashare_quant/factors/value.py
+	deleted:    a_share_quant/src/ashare_quant/factors/volatility.py
+	deleted:    a_share_quant/src/ashare_quant/logger.py
+	deleted:    a_share_quant/src/ashare_quant/pipeline.py
+	deleted:    a_share_quant/src/ashare_quant/portfolio/__init__.py
+	deleted:    a_share_quant/src/ashare_quant/portfolio/constraints.py
+	deleted:    a_share_quant/src/ashare_quant/portfolio/rebalance.py
+	deleted:    a_share_quant/src/ashare_quant/portfolio/risk.py
+	deleted:    a_share_quant/src/ashare_quant/portfolio/weighting.py
+	deleted:    a_share_quant/src/ashare_quant/report/__init__.py
+	deleted:    a_share_quant/src/ashare_quant/report/performance_report.py
+	deleted:    a_share_quant/src/ashare_quant/research/__init__.py
+	deleted:    a_share_quant/src/ashare_quant/research/benchmark.py
+	deleted:    a_share_quant/src/ashare_quant/research/exposure.py
+	deleted:    a_share_quant/src/ashare_quant/research/grid.py
+	deleted:    a_share_quant/src/ashare_quant/research/groups.py
+	deleted:    a_share_quant/src/ashare_quant/research/ic.py
+	deleted:    a_share_quant/src/ashare_quant/research/parallel.py
+	deleted:    a_share_quant/src/ashare_quant/research/pipeline.py
+	deleted:    a_share_quant/src/ashare_quant/research/regime.py
+	deleted:    a_share_quant/src/ashare_quant/research/report.py
+	deleted:    a_share_quant/src/ashare_quant/research/single_factor.py
+	deleted:    a_share_quant/src/ashare_quant/research/strategy_compare.py
+	deleted:    a_share_quant/src/ashare_quant/research/walk_forward.py
+	deleted:    a_share_quant/src/ashare_quant/research/walk_forward_selection.py
+	deleted:    a_share_quant/src/ashare_quant/strategy/__init__.py
+	deleted:    a_share_quant/src/ashare_quant/strategy/base.py
+	deleted:    a_share_quant/src/ashare_quant/strategy/multi_factor_rotation.py
+	deleted:    a_share_quant/src/ashare_quant/strategy/profiles.py
+	deleted:    a_share_quant/src/ashare_quant/utils/__init__.py
+	deleted:    a_share_quant/src/ashare_quant/utils/dates.py
+	deleted:    a_share_quant/src/ashare_quant/utils/validation.py
+	deleted:    a_share_quant/tests/conftest.py
+	deleted:    a_share_quant/tests/real_data.py
+	deleted:    a_share_quant/tests/test_backtest_smoke.py
+	deleted:    a_share_quant/tests/test_cost_model.py
+	deleted:    a_share_quant/tests/test_metrics.py
+	deleted:    a_share_quant/tests/test_no_lookahead.py
+	deleted:    a_share_quant/tests/test_real_data_constraints.py
+	deleted:    a_share_quant/tests/test_rebalance.py
+	deleted:    a_share_quant/tests/test_research_diagnostics.py
+	deleted:    a_share_quant/tests/test_research_extensions.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	README.md
+	ashare_adapter/
+	configs/
+	data/
+	mlruns/
+	pyproject.toml
+	reports/
+	requirements.txt
+	scripts/
+	tests/
+
+no changes added to commit (use "git add" and/or "git commit -a")

@@ -1,0 +1,9 @@
+artifact_location: file:D:\myx\grade_one\experiments\trading_bot\mlruns/738980534231996348
+creation_time: 1782452994929
+effective_trace_archival_retention: null
+experiment_id: '738980534231996348'
+last_update_time: 1782452994929
+lifecycle_stage: active
+name: workflow
+trace_location: null
+workspace: default

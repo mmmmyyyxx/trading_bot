@@ -1,0 +1,30 @@
+data:
+  start_date: "2020-01-01"
+  end_date: "2023-12-31"
+  adjust: "qfq"
+  bars_path: "data/ashare_bars.parquet"
+  qlib_dir: "data/qlib_cn_ashare"
+
+universe:
+  exclude_st: true
+  exclude_paused: true
+  exclude_limit_buy: false
+  min_listed_days: 120
+  min_amount: 10000000.0
+  liquidity_window: 20
+  dynamic_liquidity_top_n: 1000
+
+cost:
+  open_cost: 0.00031
+  close_cost: 0.00081
+  min_cost: 5.0
+  commission_rate: 0.0003
+  stamp_tax_rate: 0.0005
+  transfer_fee_rate: 0.00001
+  slippage_bps: 2.0
+
+diagnostics:
+  horizons: [1, 5, 20]
+  n_groups: 5
+  min_cross_section: 30
+  oos_start_date:

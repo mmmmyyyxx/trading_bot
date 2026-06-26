@@ -1,9 +1,0 @@
-numpy
-pandas
-PyYAML
-matplotlib
-pytest
-akshare
-pyarrow
-
-
