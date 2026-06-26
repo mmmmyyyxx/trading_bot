@@ -8,8 +8,9 @@ from ashare_adapter.benchmarks import dump_benchmarks_to_qlib
 from ashare_adapter.config import UniverseConfig
 from ashare_adapter.diagnostics import compute_group_returns, compute_ic, compute_turnover, split_oos
 from ashare_adapter.factors import reversal_lowvol_scores
-from ashare_adapter.metadata import limit_rate, normalize_symbol, to_qlib_symbol
+from ashare_adapter.metadata import limit_rate, normalize_symbol, to_qlib_symbol, write_metadata_sidecar
 from ashare_adapter.qlib_converter import dump_qlib_bin, prepare_qlib_frame
+from ashare_adapter.signal_mask import apply_selected_mask, to_qlib_signal_frame
 from ashare_adapter.universe import build_dynamic_universe, build_universe_diagnostics, selected_symbols_on
 
 
@@ -67,6 +68,9 @@ def test_qlib_bin_dump_smoke(tmp_path) -> None:
     payload = np.fromfile(close_bin, dtype="<f4")
     assert payload[0] == 0.0
     assert len(payload) == 6
+    for field in ["vwap", "eligible", "selected", "avg_amount", "limit_up", "limit_down"]:
+        assert (qlib_dir / "features" / "sz000001" / f"{field}.day.bin").exists()
+    assert (qlib_dir / "metadata" / "instruments.parquet").exists() or (qlib_dir / "metadata" / "instruments.csv").exists()
 
     benchmark_dir = dump_benchmarks_to_qlib(_make_benchmarks(), qlib_dir)
     assert benchmark_dir == qlib_dir
@@ -99,6 +103,49 @@ def test_universe_diagnostics_columns() -> None:
     diagnostics = build_universe_diagnostics(enriched, top_n=2)
     assert diagnostics["selected_universe_count"].max() == 2
     assert "listed_days_fallback_rate" in diagnostics.columns
+
+
+def test_signal_mask_masks_non_selected_scores() -> None:
+    bars = _make_bars(symbol_count=2, periods=2)
+    bars["selected"] = True
+    target_date = bars["date"].min()
+    bars.loc[(bars["date"] == target_date) & (bars["symbol"] == "000002.SZ"), "selected"] = False
+    predictions = pd.DataFrame(
+        {
+            "date": [target_date, target_date],
+            "symbol": ["SZ000001", "SZ000002"],
+            "score": [1.0, 2.0],
+        }
+    )
+
+    masked = apply_selected_mask(predictions, bars)
+    kept = masked.loc[masked["symbol"] == "000001.SZ", "score"].iloc[0]
+    blocked = masked.loc[masked["symbol"] == "000002.SZ", "score"].iloc[0]
+    signal = to_qlib_signal_frame(masked)
+
+    assert kept == 1.0
+    assert pd.isna(blocked)
+    assert signal.index.names == ["datetime", "instrument"]
+    assert ("SZ000001" in signal.index.get_level_values("instrument"))
+
+
+def test_metadata_sidecar_writes_industry_and_list_date(tmp_path) -> None:
+    metadata = pd.DataFrame(
+        {
+            "symbol": ["000001.SZ"],
+            "name": ["平安银行"],
+            "is_st": [False],
+            "list_date": [pd.Timestamp("1991-04-03")],
+            "industry": ["bank"],
+        }
+    )
+
+    path = write_metadata_sidecar(metadata, tmp_path)
+    frame = pd.read_parquet(path) if path.suffix == ".parquet" else pd.read_csv(path)
+
+    assert frame.loc[0, "qlib_symbol"] == "SZ000001"
+    assert frame.loc[0, "industry"] == "bank"
+    assert pd.Timestamp(frame.loc[0, "list_date"]).date().isoformat() == "1991-04-03"
 
 
 def _make_bars(symbol_count: int = 5, periods: int = 10) -> pd.DataFrame:

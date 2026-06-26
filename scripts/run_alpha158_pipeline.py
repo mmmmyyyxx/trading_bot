@@ -17,7 +17,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from ashare_adapter.akshare_downloader import AKShareDownloader
-from ashare_adapter.benchmarks import dump_benchmarks_to_qlib, load_akshare_benchmarks, write_benchmarks
+from ashare_adapter.benchmarks import (
+    QLIB_BENCHMARK_SYMBOLS,
+    dump_benchmarks_to_qlib,
+    load_akshare_benchmarks,
+    write_benchmarks,
+)
 from ashare_adapter.config import UniverseConfig
 from ashare_adapter.indexes import load_index_constituents, symbols_from_constituents, write_constituents
 from ashare_adapter.metadata import normalize_symbol
@@ -89,8 +94,13 @@ def main() -> None:
     if benchmarks_path.exists() and not args.refresh_benchmarks:
         benchmarks = pd.read_parquet(benchmarks_path) if benchmarks_path.suffix.lower() in {".parquet", ".pq"} else pd.read_csv(benchmarks_path)
         print(f"Reusing benchmarks: {benchmarks_path} rows={len(benchmarks)}")
+        missing_benchmarks = sorted(set(args.benchmark_keys) - set(benchmarks.get("benchmark", pd.Series(dtype=str)).astype(str)))
+        if missing_benchmarks:
+            benchmarks = load_akshare_benchmarks(args.start_date, args.end_date, keys=args.benchmark_keys)
+            written_benchmarks = write_benchmarks(benchmarks, benchmarks_path)
+            print(f"Refreshed benchmarks for missing keys {missing_benchmarks}: {written_benchmarks} rows={len(benchmarks)}")
     else:
-        benchmarks = load_akshare_benchmarks(args.start_date, args.end_date, keys=["hs300"])
+        benchmarks = load_akshare_benchmarks(args.start_date, args.end_date, keys=args.benchmark_keys)
         written_benchmarks = write_benchmarks(benchmarks, benchmarks_path)
         print(f"Wrote benchmarks: {written_benchmarks} rows={len(benchmarks)}")
     dump_benchmarks_to_qlib(benchmarks, qlib_dir, market="benchmarks")
@@ -132,6 +142,7 @@ def load_symbols(args: argparse.Namespace) -> list[str]:
 
 
 def write_runtime_config(args: argparse.Namespace, output_path: Path) -> None:
+    benchmark_symbol = args.benchmark or QLIB_BENCHMARK_SYMBOLS[args.benchmark_key]
     config = {
         "qlib_init": {
             "provider_uri": str(Path(args.qlib_dir).as_posix()),
@@ -140,7 +151,7 @@ def write_runtime_config(args: argparse.Namespace, output_path: Path) -> None:
             "joblib_backend": args.joblib_backend,
         },
         "market": args.market,
-        "benchmark": "SH000300",
+        "benchmark": benchmark_symbol,
         "data_handler_config": {
             "start_time": args.start_date,
             "end_time": args.end_date,
@@ -170,7 +181,7 @@ def write_runtime_config(args: argparse.Namespace, output_path: Path) -> None:
             "start_time": args.test_start_date,
             "end_time": args.end_date,
             "account": args.account,
-            "benchmark": "SH000300",
+            "benchmark": benchmark_symbol,
             "exchange_kwargs": {
                 "limit_threshold": 0.095,
                 "deal_price": "close",
@@ -267,6 +278,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--adjust", default="qfq")
     parser.add_argument("--bars-path", default="data/alpha158_hs300_bars.parquet")
     parser.add_argument("--benchmarks-path", default="data/benchmarks.parquet")
+    parser.add_argument("--benchmark-key", choices=sorted(QLIB_BENCHMARK_SYMBOLS), default="hs300")
+    parser.add_argument("--benchmark", default=None)
+    parser.add_argument("--benchmark-keys", nargs="+", choices=sorted(QLIB_BENCHMARK_SYMBOLS), default=["hs300", "csi500", "csi1000"])
     parser.add_argument("--qlib-dir", default="data/qlib_alpha158_hs300")
     parser.add_argument("--output-dir", default="reports/alpha158_hs300")
     parser.add_argument("--metadata-cache", default="data/cache/akshare_metadata.parquet")

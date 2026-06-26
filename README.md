@@ -28,7 +28,11 @@ scripts/
   prepare_akshare_data.py
   dump_qlib_data.py
   fetch_benchmarks.py
+  run_alpha158_pipeline.py
   run_qlib_workflow.py
+  export_alpha158_results.py
+  export_qlib_records.py
+  apply_signal_mask.py
   run_diagnostics.py
 ashare_adapter/
   akshare_downloader.py
@@ -40,6 +44,7 @@ ashare_adapter/
   filters.py
   metadata.py
   qlib_converter.py
+  signal_mask.py
   universe.py
 tests/
 data/
@@ -108,17 +113,53 @@ python scripts/run_diagnostics.py `
   --output-dir reports
 ```
 
+Run the integrated Alpha158 pipeline:
+
+```powershell
+python scripts/run_alpha158_pipeline.py `
+  --symbols-file data/cache/hs300_symbols_full.txt `
+  --max-symbols 300 `
+  --start-date 2018-01-01 `
+  --end-date 2024-12-31 `
+  --benchmark-key hs300 `
+  --output-dir reports/alpha158_hs300_full
+```
+
+Export a completed Qlib recorder and run local diagnostics:
+
+```powershell
+python scripts/export_qlib_records.py `
+  --run-dir mlruns/<experiment_id>/<run_id> `
+  --bars data/alpha158_hs300_full_bars.parquet `
+  --benchmarks data/benchmarks.parquet `
+  --output-dir reports/alpha158_hs300_full/qlib_records `
+  --apply-mask `
+  --run-diagnostics
+```
+
 ## A-share Data Notes
 
 Qlib binary features are numeric.  The converter writes numeric fields such as
 `open`, `high`, `low`, `close`, `volume`, `amount`, `factor`, `is_st`,
-`is_paused`, `limit_up`, `limit_down`, `listed_days`, and `avg_amount`.
+`is_paused`, `limit_up`, `limit_down`, `listed_days`, `avg_amount`,
+`eligible`, and `selected`.
 Non-numeric metadata such as `industry` and original `list_date` are preserved
 under `metadata/instruments.parquet` or `metadata/instruments.csv`.
 
 The universe filters are backward-looking.  Dynamic liquidity uses rolling
 average amount computed per symbol up to the current date, then selects the
 top-N eligible names cross-sectionally on that same signal date.
+
+The Qlib configs and generated runtime configs use `ExpressionDFilter` with
+`$selected > 0.5`, so the dynamic A-share universe is applied during dataset
+loading.  `apply_signal_mask.py` and `export_qlib_records.py --apply-mask`
+provide a second diagnostics-layer check by masking any non-selected prediction
+scores to `NaN`.
+
+Current Qlib backtests still use Qlib's simplified `limit_threshold` exchange
+setting.  The per-stock `limit_up`/`limit_down` fields are written into Qlib
+data for later custom exchange or order-filter work, but they are not yet a
+full replacement for A-share board-specific trading constraints.
 
 ## References
 
