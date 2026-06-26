@@ -13,6 +13,8 @@ data:
   max_symbols: 3000
   download_batch_size: 100
   download_workers: 4
+  download_retry: 2
+  download_sleep: 0.05
   prefer_eastmoney: false
   start_date: "2022-01-01"
   end_date: "2026-06-24"
@@ -44,7 +46,7 @@ factors:
     liquidity: 0.0
 
 strategy:
-  name: balanced_multi_factor
+  name: reversal_low_vol
   rebalance_frequency: M
   top_k: 50
   weighting: equal_weight
@@ -67,6 +69,8 @@ backtest:
   t_plus_one: true
   trade_price: open
   lot_size: 100
+  save_positions: true
+  position_frequency: daily
 
 cost:
   commission_rate: 0.0003

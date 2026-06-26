@@ -13,6 +13,7 @@ from ashare_quant.backtest.engine import BacktestEngine
 from ashare_quant.config import AppConfig
 from ashare_quant.factors.composite import compute_composite_factors
 from ashare_quant.research.benchmark import load_benchmarks
+from ashare_quant.research.parallel import SharedFrameStore, process_map, read_shared_frame
 from ashare_quant.research.strategy_compare import _relative_metrics
 from ashare_quant.strategy.multi_factor_rotation import MultiFactorRotationStrategy, build_strategy_universe_flags
 from ashare_quant.strategy.profiles import apply_strategy_profile, profile_names
@@ -60,6 +61,7 @@ class Candidate:
 def run_walk_forward_selection(
     config: AppConfig,
     bars: pd.DataFrame,
+    benchmarks: pd.DataFrame | None = None,
     train_months: int = 12,
     test_months: int = 6,
     strategy_names: list[str] | None = None,
@@ -81,10 +83,13 @@ def run_walk_forward_selection(
     if not windows:
         return pd.DataFrame(columns=OUTPUT_COLUMNS)
 
-    try:
-        benchmarks = load_benchmarks(config, bars)
-    except Exception:
-        benchmarks = pd.DataFrame()
+    if benchmarks is None:
+        try:
+            benchmark_frame = load_benchmarks(config, bars)
+        except Exception:
+            benchmark_frame = pd.DataFrame()
+    else:
+        benchmark_frame = benchmarks
 
     candidates = [
         Candidate(strategy, top_k, weighting, rebalance, momentum_window, skip)
@@ -101,34 +106,29 @@ def run_walk_forward_selection(
     enriched = build_strategy_universe_flags(config, bars)
     factor_cache: dict[tuple[object, ...], pd.DataFrame] = {}
     target_cache: dict[Candidate, tuple[AppConfig, pd.DataFrame]] = {}
+    for candidate in candidates:
+        _candidate_config_and_targets(config, bars, candidate, target_cache, factor_cache, enriched, benchmark_frame)
+
+    train_rows = _run_train_candidate_jobs(config, bars, benchmark_frame, windows, target_cache)
+    train_by_window = (
+        {
+            (pd.Timestamp(train_start), pd.Timestamp(train_end)): group
+            for (train_start, train_end), group in train_rows.groupby(["train_start", "train_end"], sort=False)
+        }
+        if not train_rows.empty
+        else {}
+    )
+
     rows: list[dict[str, object]] = []
-
     for train_start, train_end, test_start, test_end in windows:
-        train_rows: list[dict[str, object]] = []
-        for candidate in candidates:
-            cfg, targets = _candidate_config_and_targets(config, bars, candidate, target_cache, factor_cache, enriched)
-            train_result = _run_window(cfg, bars, targets, train_start, train_end)
-            rel = _relative_for_config(train_result.equity_curve, benchmarks, cfg, train_result.metrics)
-            train_rows.append(
-                {
-                    "candidate": candidate,
-                    "train_total_return": train_result.metrics["total_return"],
-                    "train_sharpe": train_result.metrics["sharpe"],
-                    "train_ir": rel.get("information_ratio", 0.0),
-                    "train_calmar": train_result.metrics["calmar"],
-                    "monthly_win_rate_vs_benchmark": rel.get("monthly_win_rate_vs_benchmark", 0.0),
-                    "turnover_penalty": train_result.metrics.get("average_turnover", 0.0),
-                }
-            )
-
-        scored = _score_candidates(pd.DataFrame(train_rows))
+        scored = _score_candidates(train_by_window.get((pd.Timestamp(train_start), pd.Timestamp(train_end)), pd.DataFrame()))
         if scored.empty:
             continue
         best = scored.sort_values(["train_score", "train_sharpe", "train_total_return"], ascending=False).iloc[0]
         selected: Candidate = best["candidate"]
-        selected_cfg, selected_targets = _candidate_config_and_targets(config, bars, selected, target_cache, factor_cache, enriched)
+        selected_cfg, selected_targets = target_cache[selected]
         test_result = _run_window(selected_cfg, bars, selected_targets, test_start, test_end)
-        test_rel = _relative_for_config(test_result.equity_curve, benchmarks, selected_cfg, test_result.metrics)
+        test_rel = _relative_for_config(test_result.equity_curve, benchmark_frame, selected_cfg, test_result.metrics)
         rows.append(
             {
                 "train_start": train_start,
@@ -166,6 +166,7 @@ def _candidate_config_and_targets(
     cache: dict[Candidate, tuple[AppConfig, pd.DataFrame]],
     factor_cache: dict[tuple[object, ...], pd.DataFrame],
     enriched: pd.DataFrame,
+    benchmarks: pd.DataFrame | None = None,
 ) -> tuple[AppConfig, pd.DataFrame]:
     if candidate in cache:
         return cache[candidate]
@@ -178,9 +179,67 @@ def _candidate_config_and_targets(
     cfg.factors.momentum_skip = candidate.momentum_skip
     cfg.report.make_plots = False
     factor_scores = _cached_factor_scores(cfg, bars, factor_cache)
-    targets = MultiFactorRotationStrategy(cfg).generate_targets(bars, factor_scores=factor_scores, enriched_bars=enriched)
+    strategy = MultiFactorRotationStrategy(cfg)
+    if benchmarks is not None:
+        strategy._benchmark_cache = benchmarks
+    targets = strategy.generate_targets(bars, factor_scores=factor_scores, enriched_bars=enriched)
     cache[candidate] = (cfg, targets)
     return cfg, targets
+
+
+def _run_train_candidate_jobs(
+    config: AppConfig,
+    bars: pd.DataFrame,
+    benchmarks: pd.DataFrame,
+    windows: list[tuple[pd.Timestamp, pd.Timestamp, pd.Timestamp, pd.Timestamp]],
+    target_cache: dict[Candidate, tuple[AppConfig, pd.DataFrame]],
+) -> pd.DataFrame:
+    if not windows or not target_cache:
+        return pd.DataFrame()
+    with SharedFrameStore(config.report.output_dir) as store:
+        bars_path = store.write("walk_forward_selection_bars", bars)
+        benchmarks_path = store.write("walk_forward_selection_benchmarks", benchmarks)
+        target_paths = {
+            candidate: store.write(f"walk_forward_selection_targets_{idx}", targets)
+            for idx, (candidate, (_, targets)) in enumerate(target_cache.items())
+        }
+        jobs = [
+            (
+                cfg,
+                candidate,
+                bars_path,
+                target_paths[candidate],
+                benchmarks_path,
+                pd.Timestamp(train_start),
+                pd.Timestamp(train_end),
+            )
+            for train_start, train_end, _, _ in windows
+            for candidate, (cfg, _) in target_cache.items()
+        ]
+        rows = process_map(jobs, _run_train_candidate_job, max_workers=config.report.parallel_workers)
+    return pd.DataFrame(rows)
+
+
+def _run_train_candidate_job(
+    job: tuple[AppConfig, Candidate, str, str, str, pd.Timestamp, pd.Timestamp],
+) -> dict[str, object]:
+    config, candidate, bars_path, targets_path, benchmarks_path, train_start, train_end = job
+    bars = read_shared_frame(bars_path)
+    targets = read_shared_frame(targets_path, cache=False)
+    benchmarks = read_shared_frame(benchmarks_path)
+    train_result = _run_window(config, bars, targets, train_start, train_end)
+    rel = _relative_for_config(train_result.equity_curve, benchmarks, config, train_result.metrics)
+    return {
+        "train_start": train_start,
+        "train_end": train_end,
+        "candidate": candidate,
+        "train_total_return": train_result.metrics["total_return"],
+        "train_sharpe": train_result.metrics["sharpe"],
+        "train_ir": rel.get("information_ratio", 0.0),
+        "train_calmar": train_result.metrics["calmar"],
+        "monthly_win_rate_vs_benchmark": rel.get("monthly_win_rate_vs_benchmark", 0.0),
+        "turnover_penalty": train_result.metrics.get("average_turnover", 0.0),
+    }
 
 
 def _cached_factor_scores(
@@ -210,6 +269,7 @@ def _run_window(
     cfg = copy.deepcopy(config)
     cfg.backtest.start_date = pd.Timestamp(start).strftime("%Y-%m-%d")
     cfg.backtest.end_date = pd.Timestamp(end).strftime("%Y-%m-%d")
+    cfg.backtest.save_positions = False
     return BacktestEngine(cfg).run(bars, targets)
 
 

@@ -131,6 +131,7 @@ def _run_grid_combo_job(
     cfg.factors.momentum_window = momentum_window
     cfg.factors.momentum_skip = skip_window
     cfg.report.make_plots = False
+    cfg.backtest.save_positions = False
 
     factor_scores = read_shared_frame(factor_paths[_factor_cache_key(apply_strategy_profile(cfg))], cache=False)
     strategy = MultiFactorRotationStrategy(cfg)

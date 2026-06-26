@@ -22,6 +22,8 @@ class DataConfig:
     max_symbols: int = 3000
     download_batch_size: int = 100
     download_workers: int = 1
+    download_retry: int = 2
+    download_sleep: float = 0.05
     prefer_eastmoney: bool = False
     start_date: str = "2022-01-01"
     end_date: str = "2023-12-31"
@@ -58,7 +60,7 @@ class FactorConfig:
 
 @dataclass
 class StrategyConfig:
-    name: str = "balanced_multi_factor"
+    name: str = "reversal_low_vol"
     rebalance_frequency: str = "M"
     top_k: int = 5
     weighting: str = "equal_weight"
@@ -83,6 +85,8 @@ class BacktestConfig:
     t_plus_one: bool = True
     trade_price: str = "open"
     lot_size: int = 100
+    save_positions: bool = True
+    position_frequency: str = "daily"
     start_date: str | None = None
     end_date: str | None = None
 

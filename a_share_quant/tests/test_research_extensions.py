@@ -135,7 +135,7 @@ def test_universe_diagnostics_flag_candidate_pool_capacity() -> None:
 
 def test_named_strategy_profiles_generate_targets() -> None:
     bars = load_real_cached_bars()
-    for strategy_name in ["defensive_low_vol", "offensive_momentum", "balanced_multi_factor"]:
+    for strategy_name in ["reversal_low_vol", "defensive_low_vol", "offensive_momentum", "balanced_multi_factor"]:
         config = _loose_config()
         config.strategy.name = strategy_name
         targets = MultiFactorRotationStrategy(config).generate_targets(bars)
@@ -146,7 +146,9 @@ def test_named_strategy_profiles_generate_targets() -> None:
 def test_strategy_profile_defaults_are_balanced_and_no_liquidity_alpha() -> None:
     config = _loose_config()
 
-    assert config.strategy.name == "balanced_multi_factor"
+    assert config.strategy.name == "reversal_low_vol"
+    assert get_strategy_profile("reversal_low_vol").factor_weights["short_term_reversal"] == 0.50
+    assert get_strategy_profile("reversal_low_vol").factor_weights["volatility"] == 0.30
     assert get_strategy_profile("offensive_momentum").factor_weights["liquidity"] == 0.0
     assert get_strategy_profile("offensive_momentum").factor_weights["industry_momentum"] == 0.80
 
@@ -218,6 +220,16 @@ def test_candidate_symbols_file_respects_max_symbols(tmp_path) -> None:
     assert symbols == ["000001.SZ", "600000.SH"]
 
 
+def test_storage_load_bars_supports_column_projection(tmp_path) -> None:
+    cache_path = tmp_path / "bars.sqlite"
+    SQLiteStorage(cache_path).save_bars(_minimal_bars(["000001.SZ", "000002.SZ"]))
+
+    bars = SQLiteStorage(cache_path).load_bars(columns=["date", "symbol", "close"], validate=False)
+
+    assert list(bars.columns) == ["date", "symbol", "close"]
+    assert set(bars["symbol"]) == {"000001.SZ", "000002.SZ"}
+
+
 def test_akshare_metadata_refresh_rebuilds_stale_candidate_file(monkeypatch, tmp_path) -> None:
     config = AppConfig()
     config.data.max_symbols = 3
@@ -278,6 +290,35 @@ def test_fetch_bars_in_batches_supports_parallel_workers() -> None:
         workers=2,
     )
 
+    assert set(bars["symbol"]) == set(symbols)
+
+
+def test_fetch_bars_in_batches_uses_symbol_level_parallel_when_available() -> None:
+    class FakeProvider:
+        def __init__(self) -> None:
+            self.parallel_calls: list[list[str]] = []
+
+        def fetch_bars(self, symbols, start_date, end_date, adjust="qfq"):
+            raise AssertionError("batch fetch should not be used")
+
+        def fetch_bars_parallel(self, symbols, start_date, end_date, adjust="qfq", max_workers=1, retry=0, sleep=0.0):
+            self.parallel_calls.append(list(symbols))
+            return _minimal_bars(list(symbols))
+
+    provider = FakeProvider()
+    symbols = ["000001.SZ", "000002.SZ", "000003.SZ"]
+
+    bars = _fetch_bars_in_batches(
+        provider,
+        symbols,
+        "2025-01-01",
+        "2025-01-31",
+        "qfq",
+        batch_size=100,
+        workers=2,
+    )
+
+    assert provider.parallel_calls == [symbols]
     assert set(bars["symbol"]) == set(symbols)
 
 

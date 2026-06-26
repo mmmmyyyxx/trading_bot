@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import logging
+import time
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
@@ -10,18 +13,24 @@ import pandas as pd
 from ashare_quant.data.base import DataProvider, ProviderUnavailable, validate_bars
 
 LOGGER = logging.getLogger(__name__)
+DEFAULT_METADATA_CACHE_PATH = Path("data/cache/akshare_metadata.parquet")
 
 
 class AKShareProvider(DataProvider):
     """Fetch daily A-share bars through AKShare when it is installed."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        metadata_cache_path: str | Path = DEFAULT_METADATA_CACHE_PATH,
+        refresh_metadata: bool = False,
+    ) -> None:
         try:
             import akshare as ak  # type: ignore
         except ImportError as exc:
             raise ProviderUnavailable("akshare is not installed in this environment.") from exc
         self._ak = ak
-        self._metadata = self._load_metadata()
+        self._metadata_cache_path = Path(metadata_cache_path)
+        self._metadata = self._load_metadata(refresh=refresh_metadata)
         self.prefer_eastmoney = False
 
     def fetch_bars(
@@ -38,25 +47,52 @@ class AKShareProvider(DataProvider):
         adjust_arg = "" if adjust in {"none", "raw", ""} else adjust
 
         for symbol in symbols:
-            fetchers = (
-                (self._fetch_eastmoney, self._fetch_daily)
-                if self.prefer_eastmoney
-                else (self._fetch_daily, self._fetch_eastmoney)
-            )
-            frame = pd.DataFrame()
-            for fetcher in fetchers:
-                try:
-                    frame = fetcher(symbol, start, end, adjust_arg)
-                    break
-                except Exception as exc:  # pragma: no cover - depends on network/API
-                    LOGGER.warning("AKShare %s failed for %s: %s", fetcher.__name__, symbol, exc)
-                    continue
+            frame = self._fetch_one_symbol(symbol, start, end, adjust_arg)
             if not frame.empty:
                 frames.append(frame)
 
         if not frames:
             raise ProviderUnavailable("AKShare returned no usable bars.")
 
+        return validate_bars(pd.concat(frames, ignore_index=True))
+
+    def fetch_bars_parallel(
+        self,
+        symbols: Iterable[str],
+        start_date: str,
+        end_date: str,
+        adjust: str = "qfq",
+        max_workers: int = 4,
+        retry: int = 2,
+        sleep: float = 0.05,
+    ) -> pd.DataFrame:
+        """Fetch one symbol per worker to avoid slow serial batches."""
+        symbol_list = list(symbols)
+        if not symbol_list:
+            raise ProviderUnavailable("No symbols provided.")
+
+        start = pd.Timestamp(start_date).strftime("%Y%m%d")
+        end = pd.Timestamp(end_date).strftime("%Y%m%d")
+        adjust_arg = "" if adjust in {"none", "raw", ""} else adjust
+
+        def fetch(symbol: str) -> pd.DataFrame | None:
+            for attempt in range(max(1, int(retry) + 1)):
+                frame = self._fetch_one_symbol(symbol, start, end, adjust_arg)
+                if not frame.empty:
+                    return frame
+                if sleep > 0 and attempt < retry:
+                    time.sleep(float(sleep))
+            LOGGER.warning("AKShare returned no usable bars for %s after retries.", symbol)
+            return None
+
+        workers = min(max(1, int(max_workers or 1)), len(symbol_list))
+        if workers <= 1:
+            frames = [frame for frame in (fetch(symbol) for symbol in symbol_list) if frame is not None]
+        else:
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                frames = [frame for frame in executor.map(fetch, symbol_list) if frame is not None]
+        if not frames:
+            raise ProviderUnavailable("AKShare returned no usable bars.")
         return validate_bars(pd.concat(frames, ignore_index=True))
 
     def enrich_bars(self, bars: pd.DataFrame) -> pd.DataFrame:
@@ -157,6 +193,20 @@ class AKShareProvider(DataProvider):
         )
         return self._standardize_frame(raw, symbol)
 
+    def _fetch_one_symbol(self, symbol: str, start: str, end: str, adjust_arg: str) -> pd.DataFrame:
+        fetchers = (
+            (self._fetch_eastmoney, self._fetch_daily)
+            if self.prefer_eastmoney
+            else (self._fetch_daily, self._fetch_eastmoney)
+        )
+        for fetcher in fetchers:
+            try:
+                return fetcher(symbol, start, end, adjust_arg)
+            except Exception as exc:  # pragma: no cover - depends on network/API
+                LOGGER.warning("AKShare %s failed for %s: %s", fetcher.__name__, symbol, exc)
+                continue
+        return pd.DataFrame()
+
     def _standardize_frame(self, raw: pd.DataFrame, symbol: str) -> pd.DataFrame:
         if raw.empty:
             return pd.DataFrame()
@@ -168,10 +218,17 @@ class AKShareProvider(DataProvider):
         frame["symbol"] = symbol
         return self.enrich_bars(frame)
 
-    def _load_metadata(self) -> dict[str, dict[str, object]]:
+    def _load_metadata(self, refresh: bool = False) -> dict[str, dict[str, object]]:
+        if not refresh:
+            cached = _read_metadata_cache(self._metadata_cache_path)
+            if cached:
+                LOGGER.info("Loaded %d AKShare metadata rows from %s.", len(cached), self._metadata_cache_path)
+                return cached
         metadata: dict[str, dict[str, object]] = {}
         self._merge_code_name_metadata(metadata)
         self._merge_exchange_metadata(metadata)
+        if metadata:
+            _write_metadata_cache(self._metadata_cache_path, metadata)
         return metadata
 
     def _merge_code_name_metadata(self, metadata: dict[str, dict[str, object]]) -> None:
@@ -256,6 +313,53 @@ class AKShareProvider(DataProvider):
 def enrich_bars_with_akshare_metadata(bars: pd.DataFrame) -> pd.DataFrame:
     """Attach AKShare metadata to already cached real bars."""
     return AKShareProvider().enrich_bars(bars)
+
+
+def _read_metadata_cache(path: Path) -> dict[str, dict[str, object]]:
+    if not path.exists():
+        return {}
+    try:
+        frame = pd.read_parquet(path, engine="pyarrow")
+    except Exception as exc:  # pragma: no cover - optional local cache
+        LOGGER.warning("Unable to read AKShare metadata cache %s: %s", path, exc)
+        return {}
+    metadata: dict[str, dict[str, object]] = {}
+    for _, row in frame.iterrows():
+        symbol = str(row.get("symbol", "")).strip()
+        if not symbol:
+            continue
+        entry: dict[str, object] = {}
+        name = row.get("name", "")
+        industry = row.get("industry", "")
+        list_date = pd.to_datetime(row.get("list_date"), errors="coerce")
+        entry["name"] = "" if pd.isna(name) else str(name)
+        entry["industry"] = "" if pd.isna(industry) else str(industry)
+        entry["is_st"] = bool(row.get("is_st", False))
+        if pd.notna(list_date):
+            entry["list_date"] = pd.Timestamp(list_date).normalize()
+        metadata[symbol] = entry
+    return metadata
+
+
+def _write_metadata_cache(path: Path, metadata: dict[str, dict[str, object]]) -> None:
+    rows = []
+    for symbol, entry in metadata.items():
+        rows.append(
+            {
+                "symbol": symbol,
+                "name": entry.get("name", ""),
+                "is_st": bool(entry.get("is_st", False)),
+                "industry": entry.get("industry", ""),
+                "list_date": entry.get("list_date"),
+            }
+        )
+    if not rows:
+        return
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(rows).to_parquet(path, index=False, engine="pyarrow")
+    except Exception as exc:  # pragma: no cover - optional local cache
+        LOGGER.warning("Unable to write AKShare metadata cache %s: %s", path, exc)
 
 
 def _find_column(frame: pd.DataFrame, keywords: list[str], fallback_index: int | None) -> str | None:

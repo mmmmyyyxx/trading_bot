@@ -74,7 +74,8 @@ def run_research_pipeline(config: AppConfig, refresh_data: bool = False) -> dict
     walk_forward_selection = run_walk_forward_selection(
         config,
         bars,
-        strategy_names=["defensive_low_vol", "offensive_momentum", "balanced_multi_factor"],
+        benchmarks=benchmarks,
+        strategy_names=["reversal_low_vol", "defensive_low_vol", "offensive_momentum", "balanced_multi_factor"],
         top_k_values=[30, 50],
         weighting_values=["equal_weight", "inverse_vol_weight"],
         rebalance_values=["M"],

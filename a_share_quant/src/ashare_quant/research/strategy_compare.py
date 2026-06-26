@@ -61,6 +61,7 @@ def _run_strategy_compare_job(
     if profile is not None:
         cfg.strategy.weighting = profile.default_weighting
     cfg.report.make_plots = False
+    cfg.backtest.save_positions = False
     factor_scores = read_shared_frame(factor_paths[_factor_cache_key(apply_strategy_profile(cfg))], cache=False)
     strategy = MultiFactorRotationStrategy(cfg)
     strategy._benchmark_cache = benchmark_frame

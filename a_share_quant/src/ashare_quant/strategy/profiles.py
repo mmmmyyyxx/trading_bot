@@ -21,6 +21,19 @@ class StrategyProfile:
 
 
 STRATEGY_PROFILES: dict[str, StrategyProfile] = {
+    "reversal_low_vol": StrategyProfile(
+        name="reversal_low_vol",
+        factor_weights={
+            "short_term_reversal": 0.50,
+            "volatility": 0.30,
+            "industry_momentum": 0.20,
+            "momentum": 0.0,
+            "trend": 0.0,
+            "liquidity": 0.0,
+        },
+        default_weighting="equal_weight",
+        objective="reversal_defensive_alpha",
+    ),
     "defensive_low_vol": StrategyProfile(
         name="defensive_low_vol",
         factor_weights={

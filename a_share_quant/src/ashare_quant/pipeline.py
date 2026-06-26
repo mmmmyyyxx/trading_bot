@@ -115,6 +115,8 @@ def load_market_data(config: AppConfig, refresh: bool = False, refresh_candidate
                     config.data.adjust,
                     config.data.download_batch_size,
                     config.data.download_workers,
+                    config.data.download_retry,
+                    config.data.download_sleep,
                 )
                 for start_date, end_date in missing_date_ranges
             ]
@@ -128,6 +130,8 @@ def load_market_data(config: AppConfig, refresh: bool = False, refresh_candidate
                 config.data.adjust,
                 config.data.download_batch_size,
                 config.data.download_workers,
+                config.data.download_retry,
+                config.data.download_sleep,
             )
     except ProviderUnavailable as exc:
         fallback_bars = cached_bars if cached_bars is not None and not cached_bars.empty else cached_bars_all
@@ -374,7 +378,21 @@ def _fetch_bars_in_batches(
     adjust: str,
     batch_size: int,
     workers: int = 1,
+    retry: int = 2,
+    sleep: float = 0.05,
 ) -> pd.DataFrame:
+    if workers and workers > 1 and hasattr(provider, "fetch_bars_parallel"):
+        LOGGER.info("Fetching %d symbols with symbol-level concurrency (%d workers).", len(symbols), workers)
+        return provider.fetch_bars_parallel(  # type: ignore[attr-defined]
+            symbols=symbols,
+            start_date=start_date,
+            end_date=end_date,
+            adjust=adjust,
+            max_workers=workers,
+            retry=retry,
+            sleep=sleep,
+        )
+
     frames: list[pd.DataFrame] = []
     effective_batch_size = max(1, int(batch_size or 1))
     total = len(symbols)

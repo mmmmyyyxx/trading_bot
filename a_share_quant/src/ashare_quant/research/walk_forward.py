@@ -71,6 +71,7 @@ def _run_window_job(
     cfg = copy.deepcopy(config)
     cfg.backtest.start_date = start.strftime("%Y-%m-%d")
     cfg.backtest.end_date = pd.Timestamp(end).strftime("%Y-%m-%d")
+    cfg.backtest.save_positions = False
     window_targets = _filter_targets(targets, start, end)
     result = BacktestEngine(cfg).run(bars, window_targets)
     if result.equity_curve.empty:

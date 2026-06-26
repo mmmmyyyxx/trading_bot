@@ -48,6 +48,8 @@ class BacktestEngine:
             data = _slice_date_window(data, start_date, end_date)
 
         target_by_date = {date: frame for date, frame in targets.groupby("date")}
+        save_positions = bool(getattr(self.config.backtest, "save_positions", True))
+        position_frequency = str(getattr(self.config.backtest, "position_frequency", "daily") or "daily").lower()
 
         for date, day_frame in _iter_sorted_date_slices(data):
             day_bars = day_frame.set_index("symbol")
@@ -82,7 +84,8 @@ class BacktestEngine:
                     "drawdown": 0.0,
                 }
             )
-            position_rows.extend(self._position_snapshot(date, book, day_bars, net_equity))
+            if save_positions and _should_save_positions(position_frequency, date, target_by_date):
+                position_rows.extend(self._position_snapshot(date, book, day_bars, net_equity))
             prev_net = net_equity
             prev_gross = gross_equity
 
@@ -249,3 +252,15 @@ def _slice_date_window(
     start_idx = 0 if start_date is None else int(np.searchsorted(date_values, np.datetime64(start_date), side="left"))
     end_idx = len(data) if end_date is None else int(np.searchsorted(date_values, np.datetime64(end_date), side="right"))
     return data.iloc[start_idx:end_idx]
+
+
+def _should_save_positions(
+    frequency: str,
+    date: pd.Timestamp,
+    target_by_date: dict[pd.Timestamp, pd.DataFrame],
+) -> bool:
+    if frequency in {"none", "false", "off"}:
+        return False
+    if frequency in {"rebalance", "rebalance_only"}:
+        return date in target_by_date
+    return True

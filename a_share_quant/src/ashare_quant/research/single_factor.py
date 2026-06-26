@@ -50,6 +50,7 @@ def _run_single_factor_job(job: tuple[AppConfig, str, float, str, str, str, str]
     cfg.strategy.name = "custom"
     cfg.factors.weights = {name: 0.0 for name in SINGLE_FACTORS}
     cfg.factors.weights[factor] = 1.0
+    cfg.backtest.save_positions = False
     factor_scores = recompute_composite_score(base_factors, cfg.factors.weights)
     strategy = MultiFactorRotationStrategy(cfg)
     strategy._benchmark_cache = benchmark_frame

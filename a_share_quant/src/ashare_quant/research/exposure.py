@@ -49,7 +49,7 @@ def build_exposure_reports(
     for key in BENCHMARKS:
         exposure[f"portfolio_beta_to_{key}"] = _rolling_beta(exposure, benchmarks, key)
 
-    stock_vol = _stock_volatility(bars)
+    stock_vol = _stock_volatility(bars, symbols=positions["symbol"].astype(str).unique().tolist())
     pos_with_vol = positions.merge(stock_vol, on=["date", "symbol"], how="left")
     exposure = exposure.merge(_weighted_mean(pos_with_vol, "stock_volatility", "avg_stock_volatility"), on="date", how="left")
 
@@ -113,8 +113,10 @@ def _rolling_beta(equity: pd.DataFrame, benchmarks: pd.DataFrame, key: str, wind
     return beta.astype(float).reindex(equity.index)
 
 
-def _stock_volatility(bars: pd.DataFrame, window: int = 60) -> pd.DataFrame:
+def _stock_volatility(bars: pd.DataFrame, window: int = 60, symbols: list[str] | None = None) -> pd.DataFrame:
     data = bars[["date", "symbol", "close"]].copy()
+    if symbols:
+        data = data[data["symbol"].astype(str).isin(set(symbols))]
     data["date"] = pd.to_datetime(data["date"])
     data = data.sort_values(["symbol", "date"])
     data["return"] = data.groupby("symbol")["close"].pct_change()

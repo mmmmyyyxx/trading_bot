@@ -21,8 +21,8 @@ class SQLiteStorage:
         """Save bars to the `bars` table."""
         to_store = self._prepare_for_storage(bars)
         mode = "replace" if replace else "append"
-        with sqlite3.connect(self.db_path) as conn:
-            to_store.to_sql("bars", conn, if_exists=mode, index=False)
+        with self._connect() as conn:
+            self._to_sql(to_store, "bars", conn, if_exists=mode)
             if replace:
                 self._ensure_indexes(conn)
 
@@ -34,14 +34,14 @@ class SQLiteStorage:
 
         columns = list(to_store.columns)
         column_sql = ", ".join(f'"{column}"' for column in columns)
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             if not self._table_exists(conn, "bars"):
-                to_store.to_sql("bars", conn, if_exists="replace", index=False)
+                self._to_sql(to_store, "bars", conn, if_exists="replace")
                 self._ensure_indexes(conn)
                 return
 
             self._ensure_schema(conn, columns)
-            to_store.to_sql("_bars_upsert", conn, if_exists="replace", index=False)
+            self._to_sql(to_store, "_bars_upsert", conn, if_exists="replace")
             self._ensure_indexes(conn)
             conn.execute(f"INSERT OR REPLACE INTO bars ({column_sql}) SELECT {column_sql} FROM _bars_upsert")
             conn.execute("DROP TABLE IF EXISTS _bars_upsert")
@@ -51,11 +51,14 @@ class SQLiteStorage:
         symbols: list[str] | None = None,
         start_date: str | None = None,
         end_date: str | None = None,
+        columns: list[str] | None = None,
+        validate: bool = True,
     ) -> pd.DataFrame:
         """Load cached bars, optionally filtering symbols and dates."""
         if not self.db_path.exists():
             raise FileNotFoundError(f"Cache does not exist: {self.db_path}")
 
+        selected_columns = _column_sql(columns)
         clauses: list[str] = []
         params: list[object] = []
         if symbols:
@@ -69,14 +72,21 @@ class SQLiteStorage:
             clauses.append("date <= ?")
             params.append(end_date)
 
-        query = "select * from bars"
+        query = f"select {selected_columns} from bars"
         if clauses:
             query += " where " + " and ".join(clauses)
         query += " order by date, symbol"
 
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             bars = pd.read_sql_query(query, conn, params=params)
-        return validate_bars(bars)
+        if validate:
+            return validate_bars(bars)
+        if "date" in bars.columns:
+            bars["date"] = pd.to_datetime(bars["date"])
+        if "symbol" in bars.columns:
+            bars["symbol"] = bars["symbol"].astype(str)
+        sort_cols = [column for column in ["date", "symbol"] if column in bars.columns]
+        return bars.sort_values(sort_cols).reset_index(drop=True) if sort_cols else bars
 
     def _prepare_for_storage(self, bars: pd.DataFrame) -> pd.DataFrame:
         normalized = validate_bars(bars).copy()
@@ -85,6 +95,30 @@ class SQLiteStorage:
         if "list_date" in normalized.columns:
             normalized["list_date"] = pd.to_datetime(normalized["list_date"], errors="coerce").dt.strftime("%Y-%m-%d")
         return normalized
+
+    def _connect(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA temp_store=MEMORY")
+        conn.execute("PRAGMA cache_size=-200000")
+        return conn
+
+    def _to_sql(
+        self,
+        frame: pd.DataFrame,
+        table_name: str,
+        conn: sqlite3.Connection,
+        if_exists: str,
+    ) -> None:
+        frame.to_sql(
+            table_name,
+            conn,
+            if_exists=if_exists,
+            index=False,
+            chunksize=_safe_insert_chunksize(conn, len(frame.columns)),
+            method="multi",
+        )
 
     def _ensure_indexes(self, conn: sqlite3.Connection) -> None:
         conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_bars_date_symbol ON bars(date, symbol)")
@@ -110,7 +144,7 @@ class SQLiteStorage:
         """Return lightweight cache statistics without loading the full table."""
         if not self.db_path.exists():
             return {"rows": 0, "symbols": 0, "start": None, "end": None}
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             row = conn.execute(
                 "SELECT COUNT(*), COUNT(DISTINCT symbol), MIN(date), MAX(date) FROM bars"
             ).fetchone()
@@ -123,4 +157,30 @@ class SQLiteStorage:
             "start": start,
             "end": end,
         }
+
+
+def _column_sql(columns: list[str] | None) -> str:
+    if not columns:
+        return "*"
+    return ", ".join(_quote_identifier(column) for column in columns)
+
+
+def _quote_identifier(value: str) -> str:
+    text = str(value)
+    if not text.replace("_", "").isalnum():
+        raise ValueError(f"Unsafe SQLite identifier: {value!r}")
+    return f'"{text}"'
+
+
+def _safe_insert_chunksize(conn: sqlite3.Connection, column_count: int, target_rows: int = 5000) -> int:
+    variable_limit = 999
+    try:
+        options = [str(row[0]) for row in conn.execute("PRAGMA compile_options").fetchall()]
+    except sqlite3.DatabaseError:
+        options = []
+    for option in options:
+        if option.startswith("MAX_VARIABLE_NUMBER="):
+            variable_limit = int(option.split("=", 1)[1])
+            break
+    return max(1, min(target_rows, variable_limit // max(1, column_count)))
 
