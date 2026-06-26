@@ -23,6 +23,7 @@ def main() -> None:
         bars_path=args.bars_path,
         benchmarks_path=args.benchmarks_path,
         qrun_log=args.qrun_log,
+        universe_diagnostics_path=args.universe_diagnostics,
         requested_symbols=requested_symbols,
     )
     print(f"Exported Alpha158 summary: {summary['outputs']['summary_md']}")
@@ -36,6 +37,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bars-path", default="data/alpha158_hs300_bars.parquet")
     parser.add_argument("--benchmarks-path", default="data/benchmarks.parquet")
     parser.add_argument("--qrun-log", default="reports/alpha158_hs300/qrun_alpha158.log")
+    parser.add_argument("--universe-diagnostics", default="reports/alpha158_hs300/universe_diagnostics.csv")
     parser.add_argument("--symbols-file", default=None)
     return parser.parse_args()
 

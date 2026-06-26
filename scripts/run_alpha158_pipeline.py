@@ -114,6 +114,7 @@ def main() -> None:
         bars_path=bars_path,
         benchmarks_path=benchmarks_path,
         qrun_log=log_path,
+        universe_diagnostics_path=diagnostics_path,
         requested_symbols=symbols,
     )
     print(f"Wrote Alpha158 summary: {summary['outputs']['summary_md']}")

@@ -1,1 +1,0 @@
-[{'class': 'ExpressionDFilter', 'module_path': 'qlib.data.filter', 'kwargs': {'rule_expression': '$selected > 0.5', 'fstart_time': '2020-01-01', 'fend_time': '2024-12-31', 'keep': False}}]

@@ -1,1 +1,0 @@
-[{'filter_type': 'ExpressionDFilter', 'rule_expression': '$selected > 0.5', 'filter_start_time': '2018-01-01', 'filter_end_time': '2024-12-31', 'keep': False}]

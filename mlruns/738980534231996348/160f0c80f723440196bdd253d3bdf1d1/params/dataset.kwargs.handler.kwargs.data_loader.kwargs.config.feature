@@ -1,1 +1,0 @@
-[['-1 * ($close / Ref($close, 20) - 1)', '-1 * Std($close / Ref($close, 1) - 1, 60)'], ['short_term_reversal', 'low_volatility']]

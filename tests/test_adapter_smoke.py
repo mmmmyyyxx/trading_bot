@@ -2,16 +2,19 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import yaml
 
 from ashare_adapter.akshare_downloader import validate_bars
 from ashare_adapter.benchmarks import dump_benchmarks_to_qlib
 from ashare_adapter.config import UniverseConfig
 from ashare_adapter.diagnostics import compute_group_returns, compute_ic, compute_turnover, split_oos
 from ashare_adapter.factors import reversal_lowvol_scores
+from ashare_adapter.manifest import build_run_manifest
 from ashare_adapter.metadata import limit_rate, normalize_symbol, to_qlib_symbol, write_metadata_sidecar
 from ashare_adapter.qlib_converter import dump_qlib_bin, prepare_qlib_frame
 from ashare_adapter.signal_mask import apply_selected_mask, to_qlib_signal_frame
 from ashare_adapter.universe import build_dynamic_universe, build_universe_diagnostics, selected_symbols_on
+from scripts.run_rolling_baselines import MODEL_SPECS, ROLLING_WINDOWS, build_workflow_config, parse_qrun_log
 
 
 def test_symbol_and_limit_rules() -> None:
@@ -119,6 +122,8 @@ def test_signal_mask_masks_non_selected_scores() -> None:
     )
 
     masked = apply_selected_mask(predictions, bars)
+    assert len(masked) == len(predictions)
+    assert int(masked["score"].isna().sum()) == 1
     kept = masked.loc[masked["symbol"] == "000001.SZ", "score"].iloc[0]
     blocked = masked.loc[masked["symbol"] == "000002.SZ", "score"].iloc[0]
     signal = to_qlib_signal_frame(masked)
@@ -127,6 +132,120 @@ def test_signal_mask_masks_non_selected_scores() -> None:
     assert pd.isna(blocked)
     assert signal.index.names == ["datetime", "instrument"]
     assert ("SZ000001" in signal.index.get_level_values("instrument"))
+
+
+def test_run_manifest_marks_eligible_only_when_top_n_is_absent(tmp_path) -> None:
+    summary_path = tmp_path / "summary.json"
+    runtime_config_path = tmp_path / "runtime.yaml"
+    diagnostics_path = tmp_path / "universe_diagnostics.csv"
+
+    summary_path.write_text(
+        """
+{
+  "run": {"run_id": "abc", "experiment_id": "1"},
+  "data": {
+    "bars_path": "data/bars.parquet",
+    "start": "2022-01-01",
+    "end": "2022-12-31",
+    "rows": 4,
+    "requested_symbols": 2,
+    "symbols": 2,
+    "missing_symbols": [],
+    "benchmarks": ["hs300"]
+  }
+}
+""".strip(),
+        encoding="utf-8",
+    )
+    runtime_config_path.write_text(
+        yaml.safe_dump(
+            {
+                "benchmark": "SH000300",
+                "task": {
+                    "dataset": {
+                        "kwargs": {
+                            "handler": {
+                                "kwargs": {
+                                    "filter_pipe": [
+                                        {
+                                            "filter_type": "ExpressionDFilter",
+                                            "rule_expression": "$selected > 0.5",
+                                        }
+                                    ]
+                                }
+                            },
+                            "segments": {
+                                "train": ["2020-01-01", "2020-12-31"],
+                                "valid": ["2021-01-01", "2021-12-31"],
+                                "test": ["2022-01-01", "2022-12-31"],
+                            },
+                        }
+                    },
+                    "record": [
+                        {
+                            "class": "PortAnaRecord",
+                            "kwargs": {
+                                "config": {
+                                    "strategy": {"kwargs": {"topk": 50, "n_drop": 10}},
+                                    "backtest": {
+                                        "account": 100000000,
+                                        "exchange_kwargs": {
+                                            "open_cost": 0.00031,
+                                            "close_cost": 0.00081,
+                                            "min_cost": 5.0,
+                                            "limit_threshold": 0.095,
+                                            "deal_price": "close",
+                                        },
+                                    },
+                                }
+                            },
+                        }
+                    ],
+                },
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    pd.DataFrame(
+        {
+            "date": pd.date_range("2022-01-01", periods=2),
+            "selected_universe_count": [2, 1],
+            "configured_top_n": [0, 0],
+        }
+    ).to_csv(diagnostics_path, index=False)
+
+    manifest = build_run_manifest(summary_path, runtime_config_path, diagnostics_path, symbols_file="symbols.txt")
+
+    assert manifest["universe"]["dynamic_liquidity_top_n"] is None
+    assert manifest["universe"]["selected_mode"] == "eligible_only"
+    assert manifest["universe"]["selected_filter"] == "$selected > 0.5"
+    assert manifest["universe"]["avg_selected_universe_count"] == 1.5
+
+
+def test_rolling_config_yaml_and_log_parse() -> None:
+    config = build_workflow_config(
+        provider_uri="data/qlib_alpha158_hs300_full",
+        market="all",
+        benchmark="SH000300",
+        window=ROLLING_WINDOWS[0],
+        spec=MODEL_SPECS["alpha158_lgb"],
+        topk=50,
+        n_drop=10,
+        account=100000000,
+        open_cost=0.00031,
+        close_cost=0.00081,
+        min_cost=5.0,
+        limit_threshold=0.095,
+        num_threads=2,
+    )
+    loaded = yaml.safe_load(yaml.safe_dump(config, sort_keys=False))
+    filter_pipe = loaded["task"]["dataset"]["kwargs"]["handler"]["kwargs"]["filter_pipe"]
+    parsed = parse_qrun_log("Experiment 123 starts running\nRecorder abcdef123 starts running under Experiment 123")
+
+    assert loaded["task"]["dataset"]["kwargs"]["segments"]["test"] == ["2022-01-01", "2022-12-31"]
+    assert filter_pipe[0]["rule_expression"] == "$selected > 0.5"
+    assert parsed == {"experiment_id": "123", "run_id": "abcdef123"}
 
 
 def test_metadata_sidecar_writes_industry_and_list_date(tmp_path) -> None:

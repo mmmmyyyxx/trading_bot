@@ -1,0 +1,69 @@
+{
+  "git_commit": "a76c43bdaf5bc2b493a5496fd887aeb97b1ec39b",
+  "run_time": "2026-06-26T16:31:43+08:00",
+  "run": {
+    "experiment_id": "738980534231996348",
+    "run_id": "8756edcaea7b4954b9bab69f059436f5",
+    "run_dir": "mlruns\\738980534231996348\\8756edcaea7b4954b9bab69f059436f5",
+    "status": "3",
+    "qrun_log": "reports\\alpha158_hs300_full\\qrun_alpha158.log"
+  },
+  "data": {
+    "bars_path": "data\\alpha158_hs300_full_bars.parquet",
+    "data_start": "2018-01-02",
+    "data_end": "2024-12-31",
+    "rows": 461752
+  },
+  "segments": {
+    "train": [
+      "2018-01-01",
+      "2021-12-31"
+    ],
+    "valid": [
+      "2022-01-01",
+      "2022-12-31"
+    ],
+    "test": [
+      "2023-01-01",
+      "2024-12-31"
+    ]
+  },
+  "universe": {
+    "symbols_file": "data\\cache\\hs300_symbols_full.txt",
+    "requested_symbols": 300,
+    "actual_symbols": 298,
+    "missing_symbols": [
+      "001280.SZ",
+      "600930.SH"
+    ],
+    "dynamic_liquidity_top_n": null,
+    "selected_mode": "eligible_only",
+    "selected_filter": "$selected > 0.5",
+    "avg_selected_universe_count": 268.56621542083576,
+    "min_selected_universe_count": 222,
+    "max_selected_universe_count": 297
+  },
+  "benchmarks": [
+    "csi1000",
+    "csi500",
+    "hs300"
+  ],
+  "portfolio": {
+    "benchmark": "SH000300",
+    "topk": 50,
+    "n_drop": 10,
+    "account": 100000000,
+    "cost": {
+      "open_cost": 0.00031,
+      "close_cost": 0.00081,
+      "min_cost": 5.0
+    },
+    "limit_model": "qlib_uniform_limit_threshold_0.095",
+    "deal_price": "close"
+  },
+  "caveats": [
+    "Current constituent universe is used historically, so constituent survivorship bias remains.",
+    "Qlib backtest uses a uniform limit_threshold, not full per-stock A-share board/ST limit rules.",
+    "IC and portfolio excess performance should be reconciled through exposure and rolling diagnostics before claiming strategy validity."
+  ]
+}

@@ -20,6 +20,7 @@ def export_alpha158_results(
     bars_path: str | Path | None = None,
     benchmarks_path: str | Path | None = None,
     qrun_log: str | Path | None = None,
+    universe_diagnostics_path: str | Path | None = None,
     requested_symbols: list[str] | None = None,
 ) -> dict[str, Any]:
     """Export Qlib run artifacts and return the summary dictionary."""
@@ -58,6 +59,7 @@ def export_alpha158_results(
     group_summary.to_csv(out / "factor_group_summary.csv")
 
     bars_summary = _summarize_bars(bars_path)
+    universe_summary = _summarize_universe(universe_diagnostics_path)
     requested = requested_symbols or _read_requested_symbols(None)
     if requested and bars_summary.get("symbols_list"):
         missing = sorted(set(requested) - set(bars_summary["symbols_list"]))
@@ -83,6 +85,7 @@ def export_alpha158_results(
             "missing_symbols": missing,
             "benchmarks": benchmark_summary,
         },
+        "universe": universe_summary,
         "model": {
             "name": "Alpha158 + LightGBM",
             "best_iteration": _parse_best_iteration(qrun_log),
@@ -201,6 +204,28 @@ def _summarize_benchmarks(path: str | Path | None) -> list[str]:
     return sorted(frame["benchmark"].dropna().astype(str).unique().tolist())
 
 
+def _summarize_universe(path: str | Path | None) -> dict[str, Any]:
+    if not path or not Path(path).exists():
+        return {
+            "dynamic_liquidity_top_n": None,
+            "selected_mode": "unknown",
+            "avg_selected_universe_count": None,
+            "min_selected_universe_count": None,
+            "max_selected_universe_count": None,
+        }
+    data = pd.read_csv(path)
+    configured = pd.to_numeric(data.get("configured_top_n", pd.Series(dtype=float)), errors="coerce").fillna(0)
+    top_n = int(configured.max()) if not configured.empty and configured.max() > 0 else None
+    selected = pd.to_numeric(data.get("selected_universe_count", pd.Series(dtype=float)), errors="coerce").dropna()
+    return {
+        "dynamic_liquidity_top_n": top_n,
+        "selected_mode": f"dynamic_liquidity_top_{top_n}" if top_n else "eligible_only",
+        "avg_selected_universe_count": float(selected.mean()) if not selected.empty else None,
+        "min_selected_universe_count": int(selected.min()) if not selected.empty else None,
+        "max_selected_universe_count": int(selected.max()) if not selected.empty else None,
+    }
+
+
 def _summarize_report(
     report: pd.DataFrame,
     indicators: pd.DataFrame | None,
@@ -300,11 +325,13 @@ def _render_markdown(summary: dict[str, Any]) -> str:
     portfolio = summary["portfolio"]
     signal = summary["signal"]
     data = summary["data"]
+    universe = summary.get("universe", {})
     lines = [
         "# Alpha158 LightGBM Baseline",
         "",
         f"Run: `{summary['run']['run_id']}`  ",
         f"Data: {data.get('symbols')} symbols, {data.get('rows')} rows, {data.get('start')} to {data.get('end')}",
+        f"Universe: {universe.get('selected_mode', 'unknown')}; selected filter: `$selected > 0.5`",
         "",
         "## Signal",
         "",
@@ -349,6 +376,7 @@ def _render_markdown(summary: dict[str, Any]) -> str:
             "## Notes",
             "",
             f"- Requested symbols: {data.get('requested_symbols')}; downloaded symbols: {data.get('symbols')}; missing: {', '.join(missing) if missing else 'none'}.",
+            f"- Selected universe count: avg {_num(universe.get('avg_selected_universe_count'), 2)}, min {_num(universe.get('min_selected_universe_count'), 0)}, max {_num(universe.get('max_selected_universe_count'), 0)}.",
             "- This is a baseline research backtest result, not investment advice.",
             "",
         ]

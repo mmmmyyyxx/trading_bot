@@ -33,6 +33,9 @@ scripts/
   export_alpha158_results.py
   export_qlib_records.py
   apply_signal_mask.py
+  write_run_manifest.py
+  run_exposure_diagnostics.py
+  run_rolling_baselines.py
   run_diagnostics.py
 ashare_adapter/
   akshare_downloader.py
@@ -40,8 +43,10 @@ ashare_adapter/
   config.py
   cost.py
   diagnostics.py
+  exposure.py
   factors.py
   filters.py
+  manifest.py
   metadata.py
   qlib_converter.py
   signal_mask.py
@@ -125,6 +130,17 @@ python scripts/run_alpha158_pipeline.py `
   --output-dir reports/alpha158_hs300_full
 ```
 
+Write a lightweight run manifest for a completed baseline:
+
+```powershell
+python scripts/write_run_manifest.py `
+  --summary reports/alpha158_hs300_full/summary.json `
+  --runtime-config reports/alpha158_hs300_full/alpha158_lgb_runtime.yaml `
+  --universe-diagnostics reports/alpha158_hs300_full/universe_diagnostics.csv `
+  --symbols-file data/cache/hs300_symbols_full.txt `
+  --output reports/run_manifest.json
+```
+
 Export a completed Qlib recorder and run local diagnostics:
 
 ```powershell
@@ -137,6 +153,29 @@ python scripts/export_qlib_records.py `
   --run-diagnostics
 ```
 
+Run exposure diagnostics from exported Qlib records:
+
+```powershell
+python scripts/run_exposure_diagnostics.py `
+  --bars data/alpha158_hs300_full_bars.parquet `
+  --equity reports/alpha158_hs300_full/qlib_records/equity.csv `
+  --positions reports/alpha158_hs300_full/qlib_records/positions.csv `
+  --benchmarks data/benchmarks.parquet `
+  --benchmark-symbols-file data/cache/hs300_symbols_full.txt `
+  --output-dir reports/alpha158_hs300_full/exposure
+```
+
+Generate rolling out-of-sample configs and a dry-run comparison table:
+
+```powershell
+python scripts/run_rolling_baselines.py
+```
+
+Add `--execute` to actually run all rolling Qlib workflows. The generated
+configs cover 2018-2020/2021/2022, 2019-2021/2022/2023, and
+2020-2022/2023/2024 train/valid/test windows for Alpha158 + LightGBM and the
+reversal + low-volatility 1d/5d/20d baselines.
+
 ## A-share Data Notes
 
 Qlib binary features are numeric.  The converter writes numeric fields such as
@@ -146,15 +185,21 @@ Qlib binary features are numeric.  The converter writes numeric fields such as
 Non-numeric metadata such as `industry` and original `list_date` are preserved
 under `metadata/instruments.parquet` or `metadata/instruments.csv`.
 
-The universe filters are backward-looking.  Dynamic liquidity uses rolling
-average amount computed per symbol up to the current date, then selects the
-top-N eligible names cross-sectionally on that same signal date.
+The universe filters are backward-looking.  `eligible` is the base A-share
+tradability filter: ST, paused, listing age, amount, and optional limit-buy
+rules.  `selected` equals `eligible` when `dynamic_liquidity_top_n` is not set.
+When `--dynamic-liquidity-top-n N` is provided, `selected` is further narrowed
+to the top-N eligible names by rolling average amount on that signal date.
+
+The current full HS300 baseline is `selected_mode=eligible_only` because
+`dynamic_liquidity_top_n` was not enabled for that run.  Treat dynamic top-N
+results separately in reports and manifests.
 
 The Qlib configs and generated runtime configs use `ExpressionDFilter` with
-`$selected > 0.5`, so the dynamic A-share universe is applied during dataset
-loading.  `apply_signal_mask.py` and `export_qlib_records.py --apply-mask`
-provide a second diagnostics-layer check by masking any non-selected prediction
-scores to `NaN`.
+`$selected > 0.5`, so the chosen A-share universe mode is applied during
+dataset loading.  `apply_signal_mask.py` and `export_qlib_records.py
+--apply-mask` provide a second diagnostics-layer check by masking any
+non-selected prediction scores to `NaN`.
 
 Current Qlib backtests still use Qlib's simplified `limit_threshold` exchange
 setting.  The per-stock `limit_up`/`limit_down` fields are written into Qlib
