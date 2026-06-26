@@ -176,6 +176,53 @@ configs cover 2018-2020/2021/2022, 2019-2021/2022/2023, and
 2020-2022/2023/2024 train/valid/test windows for Alpha158 + LightGBM and the
 reversal + low-volatility 1d/5d/20d baselines.
 
+## Expanded 2018-2026 Validation
+
+The next validation layer keeps the old 2018-2024 reports intact and writes new
+outputs under separate names. Start with HS300 current constituents, then expand
+to CSI800, CSI1800, and dynamic liquidity universes.
+
+Build or refresh a symbol file:
+
+```powershell
+python scripts/build_expanded_universe.py `
+  --universe-name hs300_current `
+  --output-dir data/cache/expanded_universes
+```
+
+Run one Alpha158 universe expansion. This reuses existing bars when possible and
+only fetches missing date ranges:
+
+```powershell
+python scripts/run_universe_expansion.py `
+  --universe-name hs300_current_2018_2026 `
+  --universe-mode current_constituent `
+  --selected-mode eligible_only `
+  --symbols-file data/cache/expanded_universes/hs300_current_symbols.txt `
+  --existing-bars data/alpha158_hs300_full_bars.parquet `
+  --bars-path data/hs300_current_2018_2026_bars.parquet `
+  --qlib-dir data/qlib_hs300_2018_2026 `
+  --output-dir reports/alpha158_hs300_2018_2026 `
+  --start-date 2018-01-01 `
+  --end-date 2026-06-24
+```
+
+Generate or execute the five-window 2018-2026 rolling OOS validation:
+
+```powershell
+python scripts/run_rolling_baselines_2018_2026.py `
+  --provider-uri data/qlib_hs300_2018_2026 `
+  --universe-name hs300_current_2018_2026 `
+  --universe-mode current_constituent `
+  --selected-mode eligible_only `
+  --universe-diagnostics reports/alpha158_hs300_2018_2026/universe_diagnostics.csv
+```
+
+Add `--execute` to run Qlib. The fifth window is 2026 YTD and must not be
+reported as a complete calendar year. Large artifacts remain ignored:
+`mlruns/`, Qlib binary data, large predictions, and positions should not be
+committed.
+
 ## A-share Data Notes
 
 Qlib binary features are numeric.  The converter writes numeric fields such as
@@ -205,6 +252,10 @@ Current Qlib backtests still use Qlib's simplified `limit_threshold` exchange
 setting.  The per-stock `limit_up`/`limit_down` fields are written into Qlib
 data for later custom exchange or order-filter work, but they are not yet a
 full replacement for A-share board-specific trading constraints.
+
+Expanded-universe reports must keep these caveats visible: current-constituent
+or current-listed survivorship bias, `eligible_only` versus dynamic top-N,
+2026 YTD windows, simplified `limit_threshold`, and industry metadata coverage.
 
 ## References
 

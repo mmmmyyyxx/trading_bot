@@ -12,6 +12,8 @@ from typing import Any
 import pandas as pd
 import yaml
 
+from ashare_adapter.sufficiency import assess_data_sufficiency, data_sufficiency_caveats
+
 
 def export_alpha158_results(
     run_dir: str | Path | None = None,
@@ -22,6 +24,7 @@ def export_alpha158_results(
     qrun_log: str | Path | None = None,
     universe_diagnostics_path: str | Path | None = None,
     requested_symbols: list[str] | None = None,
+    caveats: list[str] | None = None,
 ) -> dict[str, Any]:
     """Export Qlib run artifacts and return the summary dictionary."""
 
@@ -66,6 +69,14 @@ def export_alpha158_results(
     else:
         missing = []
     benchmark_summary = _summarize_benchmarks(benchmarks_path)
+    data_summary = {
+        **bars_summary,
+        "requested_symbols": len(requested) if requested else None,
+        "missing_symbols": missing,
+        "benchmarks": benchmark_summary,
+    }
+    sufficiency = assess_data_sufficiency(data_summary, universe_summary)
+    default_caveats = _default_caveats(data_summary, universe_summary, sufficiency)
 
     benchmark_risk = _parse_benchmark_risk(qrun_log)
     if not benchmark_risk:
@@ -79,13 +90,9 @@ def export_alpha158_results(
             "status": _run_status(run),
             "qrun_log": str(qrun_log) if qrun_log else None,
         },
-        "data": {
-            **bars_summary,
-            "requested_symbols": len(requested) if requested else None,
-            "missing_symbols": missing,
-            "benchmarks": benchmark_summary,
-        },
+        "data": data_summary,
         "universe": universe_summary,
+        "data_sufficiency": sufficiency,
         "model": {
             "name": "Alpha158 + LightGBM",
             "best_iteration": _parse_best_iteration(qrun_log),
@@ -114,6 +121,7 @@ def export_alpha158_results(
             **_summarize_report(report, indicators, indicator, positions),
         },
         "group_returns": group_summary.to_dict(orient="index"),
+        "caveats": _dedupe([*(caveats or []), *default_caveats]) if caveats else default_caveats,
         "outputs": {
             "summary_json": str(out / "summary.json"),
             "summary_md": str(out / "summary.md"),
@@ -192,6 +200,8 @@ def _summarize_bars(path: str | Path | None) -> dict[str, Any]:
         "rows": int(len(bars)),
         "start": str(dates.min().date()),
         "end": str(dates.max().date()),
+        "data_sources": _value_counts(bars, "data_source"),
+        "amount_estimated_rows": _bool_column_sum(bars, "amount_estimated"),
     }
 
 
@@ -326,6 +336,7 @@ def _render_markdown(summary: dict[str, Any]) -> str:
     signal = summary["signal"]
     data = summary["data"]
     universe = summary.get("universe", {})
+    sufficiency = summary.get("data_sufficiency", {})
     lines = [
         "# Alpha158 LightGBM Baseline",
         "",
@@ -369,19 +380,84 @@ def _render_markdown(summary: dict[str, Any]) -> str:
     ]
     for key, row in summary.get("group_returns", {}).items():
         lines.append(f"| {key} | {_pct(row.get('mean_daily_return'))} | {_pct(row.get('annualized_return_simple'))} |")
+    if sufficiency:
+        lines.extend(
+            [
+                "",
+                "## Data Sufficiency",
+                "",
+                "| Check | Value |",
+                "|---|---:|",
+                f"| Candidate coverage | {_pct(sufficiency.get('candidate_symbol_coverage'))} |",
+                f"| Dynamic liquidity top-N | {_num(sufficiency.get('dynamic_liquidity_top_n'), 0)} |",
+                f"| Max selected universe count | {_num(sufficiency.get('max_selected_universe_count'), 0)} |",
+                f"| Selected count reached top-N | {_bool_text(sufficiency.get('selected_top_n_reached'))} |",
+                f"| Data sufficient for dynamic top-N | {_bool_text(sufficiency.get('data_sufficient_for_dynamic_top_n'))} |",
+                "",
+                f"{sufficiency.get('note') or ''}",
+            ]
+        )
     missing = data.get("missing_symbols") or []
     lines.extend(
         [
             "",
             "## Notes",
             "",
-            f"- Requested symbols: {data.get('requested_symbols')}; downloaded symbols: {data.get('symbols')}; missing: {', '.join(missing) if missing else 'none'}.",
+            f"- Requested symbols: {data.get('requested_symbols')}; downloaded symbols: {data.get('symbols')}; missing: {_missing_symbols_text(missing)}.",
             f"- Selected universe count: avg {_num(universe.get('avg_selected_universe_count'), 2)}, min {_num(universe.get('min_selected_universe_count'), 0)}, max {_num(universe.get('max_selected_universe_count'), 0)}.",
+            f"- Bar data sources: {_data_sources_text(data.get('data_sources'))}; amount-estimated rows: {data.get('amount_estimated_rows', 0)}.",
             "- This is a baseline research backtest result, not investment advice.",
-            "",
         ]
     )
+    caveats = summary.get("caveats") or []
+    if caveats:
+        lines.extend(["", "## Caveats", ""])
+        lines.extend(f"- {caveat}" for caveat in caveats)
+    lines.append("")
     return "\n".join(lines)
+
+
+def _default_caveats(
+    data: dict[str, Any],
+    universe: dict[str, Any],
+    sufficiency: dict[str, Any] | None = None,
+) -> list[str]:
+    selected_mode = str(universe.get("selected_mode") or "unknown")
+    caveats = [
+        "Results inherit the survivorship properties of the supplied symbol universe; current-constituent or current-listed universes are not historical membership backtests.",
+    ]
+    if selected_mode == "eligible_only":
+        caveats.append("selected_mode=eligible_only; no dynamic liquidity top-N filter was applied.")
+    elif selected_mode.startswith("dynamic_liquidity_top_"):
+        caveats.append(f"selected_mode={selected_mode}; verify the candidate universe construction separately.")
+
+    end = str(data.get("end") or "")
+    if end.startswith("2026-") and not end.endswith("12-31"):
+        caveats.append("The 2026 period is year-to-date, not a complete calendar year.")
+
+    caveats.extend(
+        [
+            "Qlib baseline backtests use the configured uniform limit_threshold and do not fully enforce per-stock A-share board/ST limit rules.",
+            "Industry and active-exposure diagnostics depend on metadata coverage; inspect unknown industry weight before using industry conclusions.",
+        ]
+    )
+    if sufficiency:
+        caveats.extend(data_sufficiency_caveats(sufficiency))
+    sources = data.get("data_sources") or {}
+    if isinstance(sources, dict) and len([value for value in sources.values() if value]) > 1:
+        caveats.append("Bar data uses mixed sources; verify source-specific price/volume/amount conventions before interpreting liquidity-sensitive results.")
+    return caveats
+
+
+def _dedupe(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        result.append(value)
+    return result
 
 
 def _read_metrics(path: Path) -> dict[str, float]:
@@ -492,3 +568,40 @@ def _num(value: Any, digits: int = 6) -> str:
     if value is None:
         return "n/a"
     return f"{float(value):.{digits}f}"
+
+
+def _bool_text(value: Any) -> str:
+    if value is None:
+        return "n/a"
+    return "yes" if bool(value) else "no"
+
+
+def _missing_symbols_text(missing: list[str], limit: int = 30) -> str:
+    if not missing:
+        return "none"
+    shown = ", ".join(missing[:limit])
+    remaining = len(missing) - limit
+    if remaining > 0:
+        return f"{shown}, ... (+{remaining} more)"
+    return shown
+
+
+def _value_counts(frame: pd.DataFrame, column: str) -> dict[str, int]:
+    if frame.empty or column not in frame.columns:
+        return {}
+    return {
+        str(key): int(value)
+        for key, value in frame[column].fillna("unknown").astype(str).value_counts().sort_index().items()
+    }
+
+
+def _bool_column_sum(frame: pd.DataFrame, column: str) -> int:
+    if frame.empty or column not in frame.columns:
+        return 0
+    return int(frame[column].astype("boolean").fillna(False).astype(bool).sum())
+
+
+def _data_sources_text(sources: Any) -> str:
+    if not isinstance(sources, dict) or not sources:
+        return "unknown"
+    return ", ".join(f"{key}={value}" for key, value in sources.items())

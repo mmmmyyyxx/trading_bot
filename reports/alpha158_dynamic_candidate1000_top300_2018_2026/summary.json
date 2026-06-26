@@ -1,0 +1,208 @@
+{
+  "run": {
+    "experiment_id": "738980534231996348",
+    "run_id": "d3c5cf1f39214c238213403312b9c2d7",
+    "run_dir": "mlruns\\738980534231996348\\d3c5cf1f39214c238213403312b9c2d7",
+    "status": "3",
+    "qrun_log": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\qrun_alpha158.log"
+  },
+  "data": {
+    "bars_path": "data\\dynamic_candidate1000_top300_2018_2026_bars.parquet",
+    "symbols": 940,
+    "rows": 1583002,
+    "start": "2018-01-02",
+    "end": "2026-06-24",
+    "data_sources": {
+      "tencent_tx": 1296978,
+      "unknown": 286024
+    },
+    "amount_estimated_rows": 0,
+    "requested_symbols": 1000,
+    "missing_symbols": [
+      "920000.BJ",
+      "920002.BJ",
+      "920009.BJ",
+      "920035.BJ",
+      "920036.BJ",
+      "920057.BJ",
+      "920060.BJ",
+      "920062.BJ",
+      "920069.BJ",
+      "920076.BJ",
+      "920087.BJ",
+      "920091.BJ",
+      "920139.BJ",
+      "920158.BJ",
+      "920160.BJ",
+      "920171.BJ",
+      "920180.BJ",
+      "920186.BJ",
+      "920206.BJ",
+      "920208.BJ",
+      "920211.BJ",
+      "920225.BJ",
+      "920239.BJ",
+      "920260.BJ",
+      "920267.BJ",
+      "920274.BJ",
+      "920284.BJ",
+      "920339.BJ",
+      "920371.BJ",
+      "920394.BJ",
+      "920395.BJ",
+      "920396.BJ",
+      "920419.BJ",
+      "920493.BJ",
+      "920508.BJ",
+      "920564.BJ",
+      "920576.BJ",
+      "920580.BJ",
+      "920634.BJ",
+      "920675.BJ",
+      "920685.BJ",
+      "920699.BJ",
+      "920701.BJ",
+      "920703.BJ",
+      "920718.BJ",
+      "920726.BJ",
+      "920748.BJ",
+      "920751.BJ",
+      "920770.BJ",
+      "920792.BJ",
+      "920826.BJ",
+      "920837.BJ",
+      "920855.BJ",
+      "920856.BJ",
+      "920866.BJ",
+      "920895.BJ",
+      "920932.BJ",
+      "920953.BJ",
+      "920961.BJ",
+      "920971.BJ"
+    ],
+    "benchmarks": [
+      "csi1000",
+      "csi500",
+      "hs300"
+    ]
+  },
+  "universe": {
+    "dynamic_liquidity_top_n": 300,
+    "selected_mode": "dynamic_liquidity_top_300",
+    "avg_selected_universe_count": 290.2039922103213,
+    "min_selected_universe_count": 268,
+    "max_selected_universe_count": 300
+  },
+  "data_sufficiency": {
+    "requested_symbols": 1000,
+    "actual_symbols": 940,
+    "candidate_symbol_coverage": 0.94,
+    "candidate_coverage_threshold": 0.8,
+    "candidate_coverage_ok": true,
+    "dynamic_liquidity_top_n": 300,
+    "avg_selected_universe_count": 290.2039922103213,
+    "min_selected_universe_count": 268,
+    "max_selected_universe_count": 300,
+    "selected_top_n_reached": true,
+    "data_sufficient_for_dynamic_top_n": true,
+    "note": "dynamic top300 selected count reached the configured target."
+  },
+  "model": {
+    "name": "Alpha158 + LightGBM",
+    "best_iteration": 74,
+    "l2_train": 0.9781205298006685,
+    "l2_valid": 0.9948737374264899
+  },
+  "signal": {
+    "IC": 0.04445420908449214,
+    "ICIR": 0.32983045352570345,
+    "Rank IC": 0.0562828171925283,
+    "Rank ICIR": 0.5020170861152683,
+    "test_days": 353
+  },
+  "portfolio": {
+    "benchmark_mean": 0.001323,
+    "benchmark_std": 0.013944,
+    "benchmark_annualized_return": 0.314876,
+    "benchmark_information_ratio": 1.463749,
+    "benchmark_max_drawdown": -0.148604,
+    "excess_without_cost_mean": 0.0016130912669909115,
+    "excess_without_cost_std": 0.007993710668532182,
+    "excess_without_cost_annualized_return": 0.3839157215438369,
+    "excess_without_cost_information_ratio": 3.1131424510342733,
+    "excess_without_cost_max_drawdown": -0.10494487483505266,
+    "excess_with_cost_mean": 0.0013890671068878865,
+    "excess_with_cost_std": 0.00799353820395168,
+    "excess_with_cost_annualized_return": 0.33059797143931696,
+    "excess_with_cost_information_ratio": 2.6808508399924666,
+    "excess_with_cost_max_drawdown": -0.10981653213199538,
+    "account_total_return": 1.4817953008651412,
+    "benchmark_total_return": 0.5444204807281494,
+    "avg_daily_turnover": 0.4011740276976818,
+    "avg_daily_total_turnover": 9864892216.296497,
+    "total_cost_sum": 1952933658.0700321,
+    "avg_daily_cost": 0.00022402416010302507,
+    "avg_positions": 49.926760563380284,
+    "max_positions": 51,
+    "ffr": 1.0,
+    "pa": 0.0,
+    "pos": 0.0
+  },
+  "group_returns": {
+    "group_1": {
+      "mean_daily_return": -0.00044750189408659935,
+      "annualized_return_simple": -0.11277047544717789,
+      "volatility_daily": 0.0196189284324646,
+      "count_days": 353.0
+    },
+    "group_2": {
+      "mean_daily_return": 0.0007464735535904765,
+      "annualized_return_simple": 0.1881113350391388,
+      "volatility_daily": 0.015078836120665073,
+      "count_days": 353.0
+    },
+    "group_3": {
+      "mean_daily_return": 0.0014646867057308555,
+      "annualized_return_simple": 0.36910104751586914,
+      "volatility_daily": 0.014928149059414864,
+      "count_days": 353.0
+    },
+    "group_4": {
+      "mean_daily_return": 0.0014986261958256364,
+      "annualized_return_simple": 0.3776538074016571,
+      "volatility_daily": 0.015506365336477757,
+      "count_days": 353.0
+    },
+    "group_5": {
+      "mean_daily_return": 0.002875247737392783,
+      "annualized_return_simple": 0.724562406539917,
+      "volatility_daily": 0.01696801371872425,
+      "count_days": 353.0
+    },
+    "group_5_minus_1": {
+      "mean_daily_return": 0.003322749165818095,
+      "annualized_return_simple": 0.8373327851295471,
+      "volatility_daily": 0.011122562922537327,
+      "count_days": 353.0
+    }
+  },
+  "caveats": [
+    "Results inherit the survivorship properties of the supplied symbol universe; current-constituent or current-listed universes are not historical membership backtests.",
+    "selected_mode=dynamic_liquidity_top_300; verify the candidate universe construction separately.",
+    "The 2026 period is year-to-date, not a complete calendar year.",
+    "Qlib baseline backtests use the configured uniform limit_threshold and do not fully enforce per-stock A-share board/ST limit rules.",
+    "Industry and active-exposure diagnostics depend on metadata coverage; inspect unknown industry weight before using industry conclusions.",
+    "Bar data uses mixed sources; verify source-specific price/volume/amount conventions before interpreting liquidity-sensitive results."
+  ],
+  "outputs": {
+    "summary_json": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\summary.json",
+    "summary_md": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\summary.md",
+    "port_analysis_csv": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\port_analysis_1day.csv",
+    "report_csv": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\report_normal_1day.csv",
+    "indicator_analysis_csv": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\indicator_analysis_1day.csv",
+    "ic_daily_csv": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\ic_daily.csv",
+    "rank_ic_daily_csv": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\rank_ic_daily.csv",
+    "group_daily_csv": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\factor_group_returns_daily.csv",
+    "group_summary_csv": "reports\\alpha158_dynamic_candidate1000_top300_2018_2026\\factor_group_summary.csv"
+  }
+}

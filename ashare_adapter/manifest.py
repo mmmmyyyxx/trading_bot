@@ -11,6 +11,8 @@ from typing import Any
 import pandas as pd
 import yaml
 
+from ashare_adapter.sufficiency import assess_data_sufficiency, data_sufficiency_caveats
+
 
 def build_run_manifest(
     summary_path: str | Path,
@@ -30,6 +32,11 @@ def build_run_manifest(
     port_config = _find_port_analysis_config(task.get("record", []))
     strategy_kwargs = port_config.get("strategy", {}).get("kwargs", {})
     exchange_kwargs = port_config.get("backtest", {}).get("exchange_kwargs", {})
+    data_for_sufficiency = {
+        "requested_symbols": summary.get("data", {}).get("requested_symbols"),
+        "symbols": summary.get("data", {}).get("symbols"),
+    }
+    sufficiency = assess_data_sufficiency(data_for_sufficiency, universe)
 
     manifest = {
         "git_commit": _git_commit(),
@@ -40,6 +47,8 @@ def build_run_manifest(
             "data_start": summary.get("data", {}).get("start"),
             "data_end": summary.get("data", {}).get("end"),
             "rows": summary.get("data", {}).get("rows"),
+            "data_sources": summary.get("data", {}).get("data_sources", {}),
+            "amount_estimated_rows": summary.get("data", {}).get("amount_estimated_rows"),
         },
         "segments": {
             "train": segments.get("train"),
@@ -57,7 +66,11 @@ def build_run_manifest(
             "avg_selected_universe_count": universe["avg_selected_universe_count"],
             "min_selected_universe_count": universe["min_selected_universe_count"],
             "max_selected_universe_count": universe["max_selected_universe_count"],
+            "candidate_symbol_coverage": sufficiency["candidate_symbol_coverage"],
+            "selected_top_n_reached": sufficiency["selected_top_n_reached"],
+            "data_sufficient_for_dynamic_top_n": sufficiency["data_sufficient_for_dynamic_top_n"],
         },
+        "data_sufficiency": sufficiency,
         "benchmarks": summary.get("data", {}).get("benchmarks", []),
         "portfolio": {
             "benchmark": config.get("benchmark"),
@@ -72,11 +85,17 @@ def build_run_manifest(
             "limit_model": f"qlib_uniform_limit_threshold_{exchange_kwargs.get('limit_threshold')}",
             "deal_price": exchange_kwargs.get("deal_price"),
         },
-        "caveats": [
-            "Current constituent universe is used historically, so constituent survivorship bias remains.",
-            "Qlib backtest uses a uniform limit_threshold, not full per-stock A-share board/ST limit rules.",
-            "IC and portfolio excess performance should be reconciled through exposure and rolling diagnostics before claiming strategy validity.",
-        ],
+        "caveats": _dedupe(
+            [
+                "The supplied universe may carry current-constituent or current-listed survivorship bias unless historical membership is provided.",
+                _selected_mode_caveat(universe),
+                _test_period_caveat(segments.get("test")),
+                "Qlib backtest uses a uniform limit_threshold, not full per-stock A-share board/ST limit rules.",
+                "Industry metadata coverage should be checked before relying on industry attribution.",
+                "IC and portfolio excess performance should be reconciled through exposure and rolling diagnostics before claiming strategy validity.",
+                *data_sufficiency_caveats(sufficiency),
+            ]
+        ),
     }
     if output_path:
         target = Path(output_path)
@@ -128,3 +147,32 @@ def _git_commit() -> str | None:
         return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     except Exception:
         return None
+
+
+def _selected_mode_caveat(universe: dict[str, Any]) -> str:
+    mode = universe.get("selected_mode")
+    if mode == "eligible_only":
+        return "selected_mode=eligible_only; no dynamic liquidity top-N filter was applied."
+    if isinstance(mode, str) and mode.startswith("dynamic_liquidity_top_"):
+        return f"selected_mode={mode}; verify the candidate universe and backward-looking liquidity window."
+    return "selected universe mode is unknown; verify universe diagnostics before interpreting results."
+
+
+def _test_period_caveat(test_segment: list[str] | tuple[str, str] | None) -> str:
+    if not test_segment or len(test_segment) < 2:
+        return "test period is not available in the runtime config."
+    end = str(test_segment[1])
+    if end.startswith("2026-") and not end.endswith("12-31"):
+        return "The 2026 test period is year-to-date, not a complete calendar year."
+    return "The test period is a completed calendar window."
+
+
+def _dedupe(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        result.append(value)
+    return result

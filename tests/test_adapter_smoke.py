@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import numpy as np
 import pandas as pd
 import yaml
 
+from ashare_adapter.active_exposure import active_holdings, up_down_market_performance
 from ashare_adapter.akshare_downloader import validate_bars
 from ashare_adapter.benchmarks import dump_benchmarks_to_qlib
 from ashare_adapter.config import UniverseConfig
@@ -13,8 +16,11 @@ from ashare_adapter.manifest import build_run_manifest
 from ashare_adapter.metadata import limit_rate, normalize_symbol, to_qlib_symbol, write_metadata_sidecar
 from ashare_adapter.qlib_converter import dump_qlib_bin, prepare_qlib_frame
 from ashare_adapter.signal_mask import apply_selected_mask, to_qlib_signal_frame
+from ashare_adapter.sufficiency import assess_data_sufficiency, data_sufficiency_caveats
 from ashare_adapter.universe import build_dynamic_universe, build_universe_diagnostics, selected_symbols_on
+from scripts.build_expanded_universe import build_universe
 from scripts.run_rolling_baselines import MODEL_SPECS, ROLLING_WINDOWS, build_workflow_config, parse_qrun_log
+from scripts.run_rolling_baselines_2018_2026 import ROLLING_WINDOWS_2018_2026, _caveats, _merge_comparison
 
 
 def test_symbol_and_limit_rules() -> None:
@@ -221,6 +227,25 @@ def test_run_manifest_marks_eligible_only_when_top_n_is_absent(tmp_path) -> None
     assert manifest["universe"]["selected_mode"] == "eligible_only"
     assert manifest["universe"]["selected_filter"] == "$selected > 0.5"
     assert manifest["universe"]["avg_selected_universe_count"] == 1.5
+    assert manifest["universe"]["data_sufficient_for_dynamic_top_n"] is None
+
+
+def test_dynamic_top_n_sufficiency_marks_underfilled_candidate_pool() -> None:
+    assessment = assess_data_sufficiency(
+        data={"requested_symbols": 1000, "symbols": 158},
+        universe={
+            "dynamic_liquidity_top_n": 300,
+            "avg_selected_universe_count": 137.35,
+            "min_selected_universe_count": 102,
+            "max_selected_universe_count": 158,
+        },
+    )
+    caveats = data_sufficiency_caveats(assessment)
+
+    assert assessment["candidate_symbol_coverage"] == 0.158
+    assert assessment["selected_top_n_reached"] is False
+    assert assessment["data_sufficient_for_dynamic_top_n"] is False
+    assert any("below 300" in caveat for caveat in caveats)
 
 
 def test_rolling_config_yaml_and_log_parse() -> None:
@@ -246,6 +271,97 @@ def test_rolling_config_yaml_and_log_parse() -> None:
     assert loaded["task"]["dataset"]["kwargs"]["segments"]["test"] == ["2022-01-01", "2022-12-31"]
     assert filter_pipe[0]["rule_expression"] == "$selected > 0.5"
     assert parsed == {"experiment_id": "123", "run_id": "abcdef123"}
+
+
+def test_rolling_2018_2026_windows_mark_ytd() -> None:
+    assert len(ROLLING_WINDOWS_2018_2026) == 5
+    assert ROLLING_WINDOWS_2018_2026[-1]["name"] == "2022_2026_ytd"
+    assert ROLLING_WINDOWS_2018_2026[-1]["is_ytd"] is True
+
+
+def test_rolling_2018_2026_comparison_merge_keeps_other_universes(tmp_path) -> None:
+    path = tmp_path / "rolling.csv"
+    pd.DataFrame(
+        [
+            {
+                "universe_name": "hs300_current_2018_2026",
+                "model_key": "alpha158_lgb",
+                "benchmark": "SH000300",
+                "train_start": "2018-01-01",
+                "train_end": "2020-12-31",
+                "valid_start": "2021-01-01",
+                "valid_end": "2021-12-31",
+                "test_start": "2022-01-01",
+                "test_end": "2022-12-31",
+                "IC": 0.1,
+            }
+        ]
+    ).to_csv(path, index=False)
+
+    merged = _merge_comparison(
+        path,
+        [
+            {
+                "universe_name": "csi800_current_2018_2026",
+                "model_key": "alpha158_lgb",
+                "benchmark": "SH000905",
+                "train_start": "2018-01-01",
+                "train_end": "2020-12-31",
+                "valid_start": "2021-01-01",
+                "valid_end": "2021-12-31",
+                "test_start": "2022-01-01",
+                "test_end": "2022-12-31",
+                "IC": 0.2,
+            }
+        ],
+    )
+
+    assert set(merged["universe_name"]) == {"hs300_current_2018_2026", "csi800_current_2018_2026"}
+
+
+def test_rolling_2018_2026_caveats_mark_only_ytd_window() -> None:
+    args = SimpleNamespace(universe_mode="current_constituent", selected_mode="eligible_only", limit_threshold=0.095)
+
+    first = _caveats(args, ROLLING_WINDOWS_2018_2026[0])
+    last = _caveats(args, ROLLING_WINDOWS_2018_2026[-1])
+
+    assert "complete_calendar_test_window" in first
+    assert "2026_ytd_window" not in first
+    assert "2026_ytd_window" in last
+
+
+def test_build_expanded_universe_from_current_listed_metadata(tmp_path) -> None:
+    metadata_path = tmp_path / "metadata.parquet"
+    pd.DataFrame(
+        {
+            "symbol": ["000001.SZ", "000002.SZ", "000003.SZ"],
+            "name": ["a", "b", "c"],
+            "is_st": [False, True, False],
+            "industry": ["bank", "tech", "energy"],
+            "list_date": pd.to_datetime(["1991-01-01", "1992-01-01", "1993-01-01"]),
+        }
+    ).to_parquet(metadata_path, index=False)
+
+    meta = build_universe(
+        "dynamic_candidate2_top1_2018_2026",
+        output_dir=tmp_path / "universes",
+        metadata_cache=metadata_path,
+        candidate_pool_size=2,
+    )
+    symbols = (tmp_path / "universes" / "dynamic_candidate2_top1_2018_2026_symbols.txt").read_text(encoding="utf-8").splitlines()
+
+    assert meta["universe_mode"] == "current_listed_candidate"
+    assert symbols == ["000001.SZ", "000003.SZ"]
+
+
+def test_active_exposure_smoke() -> None:
+    positions = _make_positions()
+    benchmarks = _make_benchmarks()
+    holdings = active_holdings(positions, ["000001.SZ", "000002.SZ"])
+    up_down = up_down_market_performance(_make_equity(), benchmarks)
+
+    assert {"portfolio_weight", "benchmark_weight", "active_weight"}.issubset(holdings.columns)
+    assert not up_down.empty
 
 
 def test_metadata_sidecar_writes_industry_and_list_date(tmp_path) -> None:

@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Iterable
+import json
 
 import pandas as pd
+import requests
 
 from ashare_adapter.metadata import (
     is_st_name,
@@ -39,6 +42,8 @@ BAR_COLUMNS = [
     "industry",
 ]
 
+TRUTHY_ENV = {"1", "true", "TRUE", "yes"}
+
 
 class AKShareDownloader:
     """Fetch daily A-share bars and enrich them with tradability fields."""
@@ -49,6 +54,9 @@ class AKShareDownloader:
         refresh_metadata: bool = False,
         load_metadata: bool = True,
     ) -> None:
+        if os.environ.get("ASHARE_USE_SYSTEM_PROXY", "").strip() not in {"1", "true", "TRUE", "yes"}:
+            os.environ.setdefault("NO_PROXY", "*")
+            os.environ.setdefault("no_proxy", "*")
         try:
             import akshare as ak  # type: ignore
         except ImportError as exc:
@@ -172,7 +180,7 @@ class AKShareDownloader:
         return metadata
 
     def _fetch_one_symbol(self, symbol: str, start: str, end: str, adjust_arg: str) -> pd.DataFrame:
-        fetchers = [self._fetch_daily, self._fetch_eastmoney]
+        fetchers = self._bar_fetchers()
         for fetcher in fetchers:
             try:
                 frame = fetcher(symbol, start, end, adjust_arg)
@@ -182,6 +190,18 @@ class AKShareDownloader:
                 LOGGER.warning("%s failed for %s: %s", fetcher.__name__, symbol, exc)
         return pd.DataFrame()
 
+    def _bar_fetchers(self) -> list:
+        source = os.environ.get("ASHARE_BAR_SOURCE", "eastmoney").strip().lower()
+        if source == "tencent":
+            fetchers = [self._fetch_tencent]
+        elif source == "ak_daily":
+            fetchers = [self._fetch_daily]
+        else:
+            fetchers = [self._fetch_eastmoney, self._fetch_tencent]
+        if os.environ.get("ASHARE_ENABLE_AK_DAILY_FALLBACK", "").strip() in TRUTHY_ENV:
+            fetchers.append(self._fetch_daily)
+        return fetchers
+
     def _fetch_daily(self, symbol: str, start: str, end: str, adjust_arg: str) -> pd.DataFrame:
         raw = self._ak.stock_zh_a_daily(
             symbol=to_ak_daily_symbol(symbol),
@@ -189,7 +209,7 @@ class AKShareDownloader:
             end_date=end,
             adjust=adjust_arg,
         )
-        return self._standardize_frame(raw, symbol)
+        return self._standardize_frame(raw, symbol, source="ak_daily")
 
     def _fetch_eastmoney(self, symbol: str, start: str, end: str, adjust_arg: str) -> pd.DataFrame:
         raw = self._ak.stock_zh_a_hist(
@@ -210,9 +230,19 @@ class AKShareDownloader:
                 "\u6210\u4ea4\u989d": "amount",
             }
         )
-        return self._standardize_frame(renamed, symbol)
+        return self._standardize_frame(renamed, symbol, source="eastmoney")
 
-    def _standardize_frame(self, raw: pd.DataFrame, symbol: str) -> pd.DataFrame:
+    def _fetch_tencent(self, symbol: str, start: str, end: str, adjust_arg: str) -> pd.DataFrame:
+        raw = _fetch_tencent_raw(to_ak_daily_symbol(symbol), start, end, adjust_arg)
+        return self._standardize_frame(raw, symbol, source="tencent_tx")
+
+    def _standardize_frame(
+        self,
+        raw: pd.DataFrame,
+        symbol: str,
+        source: str = "",
+        amount_estimated: bool = False,
+    ) -> pd.DataFrame:
         if raw.empty:
             return pd.DataFrame()
         required = ["date", "open", "high", "low", "close", "volume", "amount"]
@@ -221,6 +251,14 @@ class AKShareDownloader:
             raise ValueError(f"AKShare data for {symbol} missing columns: {missing}")
         frame = raw[required].copy()
         frame["symbol"] = normalize_symbol(symbol)
+        if source and "data_source" not in raw.columns:
+            frame["data_source"] = source
+        elif "data_source" in raw.columns:
+            frame["data_source"] = raw["data_source"].astype(str)
+        if "amount_estimated" in raw.columns:
+            frame["amount_estimated"] = raw["amount_estimated"].fillna(False).astype(bool)
+        else:
+            frame["amount_estimated"] = bool(amount_estimated)
         return self.enrich_bars(frame)
 
     def _merge_code_name_metadata(self, metadata: dict[str, dict[str, object]]) -> None:
@@ -328,8 +366,90 @@ def validate_bars(bars: pd.DataFrame) -> pd.DataFrame:
         data[column] = data[column].fillna(False).astype(bool)
     data["list_date"] = pd.to_datetime(data["list_date"], errors="coerce")
     data["industry"] = data["industry"].fillna("").astype(str)
+    if "data_source" in data.columns:
+        data["data_source"] = data["data_source"].fillna("").astype(str)
+    if "amount_estimated" in data.columns:
+        data["amount_estimated"] = data["amount_estimated"].astype("boolean").fillna(False).astype(bool)
     data = data.dropna(subset=["date", "symbol", "open", "high", "low", "close"])
     return data.sort_values(["date", "symbol"]).reset_index(drop=True)
+
+
+def _fetch_tencent_raw(symbol: str, start: str, end: str, adjust_arg: str) -> pd.DataFrame:
+    if symbol[:2].lower() not in {"sh", "sz"}:
+        return pd.DataFrame()
+    url = "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/newfqkline/get"
+    start_year = int(start[:4])
+    end_year = int(end[:4])
+    frames = []
+    session = requests.Session()
+    session.trust_env = False
+    for year in range(start_year, end_year + 1):
+        params = {
+            "_var": f"kline_day{adjust_arg}{year}",
+            "param": f"{symbol},day,{year}-01-01,{year + 1}-12-31,640,{adjust_arg}",
+            "r": "0.8205512681390605",
+        }
+        response = session.get(url, params=params, timeout=20)
+        response.raise_for_status()
+        payload = _decode_tencent_payload(response.text, symbol)
+        if not payload:
+            continue
+        frames.append(_standardize_tencent_rows(payload, symbol))
+    if not frames:
+        return pd.DataFrame()
+    data = pd.concat(frames, ignore_index=True)
+    data = data.drop_duplicates("date", keep="last")
+    data["date"] = pd.to_datetime(data["date"])
+    data = data[(data["date"] >= pd.Timestamp(start)) & (data["date"] <= pd.Timestamp(end))]
+    return data.sort_values("date").reset_index(drop=True)
+
+
+def _decode_tencent_payload(text: str, symbol: str) -> list:
+    marker = text.find("={")
+    if marker < 0:
+        return []
+    data = json.loads(text[marker + 1 :]).get("data", {}).get(symbol, {})
+    for key in ["qfqday", "hfqday", "day"]:
+        if key in data:
+            return data[key]
+    return []
+
+
+def _standardize_tencent_rows(rows: list, symbol: str) -> pd.DataFrame:
+    records = []
+    for row in rows:
+        if len(row) < 6:
+            continue
+        volume_lots = _to_float(row[5])
+        amount_10k = _to_float(row[8]) if len(row) > 8 else None
+        close = _to_float(row[2])
+        volume = volume_lots * 100.0 if volume_lots is not None else None
+        amount_estimated = amount_10k is None
+        amount = amount_10k * 10_000.0 if amount_10k is not None else None
+        if amount is None and close is not None and volume is not None:
+            amount = close * volume
+        records.append(
+            {
+                "date": row[0],
+                "open": row[1],
+                "close": row[2],
+                "high": row[3],
+                "low": row[4],
+                "volume": volume,
+                "amount": amount,
+                "data_source": "tencent_tx",
+                "amount_estimated": amount_estimated,
+                "symbol": normalize_symbol(symbol),
+            }
+        )
+    return pd.DataFrame(records)
+
+
+def _to_float(value: object) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _find_column(frame: pd.DataFrame, keywords: list[str], fallback_index: int | None) -> str | None:

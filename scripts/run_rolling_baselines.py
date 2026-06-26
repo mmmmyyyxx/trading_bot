@@ -299,17 +299,28 @@ def read_run_metrics(run_dir: Path) -> dict[str, Any]:
         if lines:
             metrics[metric_file.name] = float(lines[-1][1])
     report_path = run_dir / "artifacts" / "portfolio_analysis" / "report_normal_1day.pkl"
-    turnover = cost = None
+    turnover = cost = account_total_return = benchmark_total_return = None
     if report_path.exists():
         report = pd.read_pickle(report_path)
         turnover = float(pd.to_numeric(report.get("turnover"), errors="coerce").dropna().mean())
         cost = float(pd.to_numeric(report.get("total_cost"), errors="coerce").dropna().sum())
+        if "account" in report.columns and len(report):
+            account = pd.to_numeric(report["account"], errors="coerce").dropna()
+            if len(account) >= 2 and account.iloc[0] != 0:
+                account_total_return = float(account.iloc[-1] / account.iloc[0] - 1.0)
+        if "bench" in report.columns:
+            bench = pd.to_numeric(report["bench"], errors="coerce").fillna(0.0)
+            benchmark_total_return = float((1.0 + bench).prod() - 1.0)
     return {
         "IC": metrics.get("IC"),
+        "ICIR": metrics.get("ICIR"),
         "RankIC": metrics.get("Rank IC"),
+        "RankICIR": metrics.get("Rank ICIR"),
         "excess_annualized_return_with_cost": metrics.get("1day.excess_return_with_cost.annualized_return"),
         "excess_information_ratio_with_cost": metrics.get("1day.excess_return_with_cost.information_ratio"),
         "excess_max_drawdown_with_cost": metrics.get("1day.excess_return_with_cost.max_drawdown"),
+        "account_total_return": account_total_return,
+        "benchmark_total_return": benchmark_total_return,
         "turnover": turnover,
         "cost": cost,
     }

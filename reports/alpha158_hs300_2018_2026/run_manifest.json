@@ -1,0 +1,69 @@
+{
+  "git_commit": "b56d39071a78149c2d99a7b285b11e56107e3b85",
+  "run_time": "2026-06-26T18:27:18+08:00",
+  "run": {
+    "experiment_id": "738980534231996348",
+    "run_id": "1b56b291d90f46d1959ddf2a33c781d3",
+    "run_dir": "mlruns\\738980534231996348\\1b56b291d90f46d1959ddf2a33c781d3",
+    "status": "3",
+    "qrun_log": "reports\\alpha158_hs300_2018_2026\\qrun_alpha158.log"
+  },
+  "data": {
+    "bars_path": "data\\hs300_current_2018_2026_bars.parquet",
+    "data_start": "2018-01-02",
+    "data_end": "2026-06-24",
+    "rows": 567733
+  },
+  "segments": {
+    "train": [
+      "2018-01-01",
+      "2022-12-31"
+    ],
+    "valid": [
+      "2023-01-01",
+      "2024-12-31"
+    ],
+    "test": [
+      "2025-01-01",
+      "2026-06-24"
+    ]
+  },
+  "universe": {
+    "symbols_file": "data\\cache\\expanded_universes\\hs300_current_symbols.txt",
+    "requested_symbols": 300,
+    "actual_symbols": 300,
+    "missing_symbols": [],
+    "dynamic_liquidity_top_n": null,
+    "selected_mode": "eligible_only",
+    "selected_filter": "$selected > 0.5",
+    "avg_selected_universe_count": 273.63242453748785,
+    "min_selected_universe_count": 222,
+    "max_selected_universe_count": 300
+  },
+  "benchmarks": [
+    "csi1000",
+    "csi500",
+    "hs300"
+  ],
+  "portfolio": {
+    "benchmark": "SH000300",
+    "topk": 50,
+    "n_drop": 10,
+    "account": 100000000,
+    "cost": {
+      "open_cost": 0.00031,
+      "close_cost": 0.00081,
+      "min_cost": 5.0
+    },
+    "limit_model": "qlib_uniform_limit_threshold_0.095",
+    "deal_price": "close"
+  },
+  "caveats": [
+    "The supplied universe may carry current-constituent or current-listed survivorship bias unless historical membership is provided.",
+    "selected_mode=eligible_only; no dynamic liquidity top-N filter was applied.",
+    "The 2026 test period is year-to-date, not a complete calendar year.",
+    "Qlib backtest uses a uniform limit_threshold, not full per-stock A-share board/ST limit rules.",
+    "Industry metadata coverage should be checked before relying on industry attribution.",
+    "IC and portfolio excess performance should be reconciled through exposure and rolling diagnostics before claiming strategy validity."
+  ]
+}
