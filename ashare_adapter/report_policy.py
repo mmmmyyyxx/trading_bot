@@ -23,6 +23,10 @@ def is_formal_report_path(path: str | Path) -> bool:
         "reports/baseline_comparison.md",
         "reports/universe_expansion_comparison.csv",
         "reports/universe_expansion_comparison.md",
+        "reports/turnover_sensitivity_comparison_real.csv",
+        "reports/turnover_sensitivity_comparison_real.md",
+        "reports/exchange_comparison_real.csv",
+        "reports/exchange_comparison_real.md",
     }:
         return True
     if normalized.startswith("reports/rolling_baseline_comparison"):

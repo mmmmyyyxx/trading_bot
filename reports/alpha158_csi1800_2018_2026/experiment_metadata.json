@@ -1,0 +1,289 @@
+{
+  "data_type": "real_akshare",
+  "synthetic_data": false,
+  "mock_data": false,
+  "download_source": "akshare",
+  "universe": {
+    "universe_name": "csi1800_current_2018_2026",
+    "universe_mode": "current_constituent",
+    "selected_mode": "eligible_only",
+    "candidate_pool_size": 1800,
+    "dynamic_liquidity_top_n": null,
+    "requested_symbols": 1800,
+    "symbols_file": "data\\cache\\expanded_universes\\csi1800_current_symbols.txt",
+    "metadata_file": null,
+    "caveats": [
+      "Symbols were supplied from an existing file; verify its construction separately."
+    ]
+  },
+  "cache": {
+    "universe_name": "csi1800_current_2018_2026",
+    "symbols_file": "data\\cache\\expanded_universes\\csi1800_current_symbols.txt",
+    "output_bars": "data\\csi1800_current_2018_2026_bars.parquet",
+    "existing_bars": "data/csi1800_current_2018_2026_bars.parquet",
+    "start_date": "2018-01-01",
+    "end_date": "2026-06-24",
+    "requested_symbols": 1800,
+    "actual_symbols": 1800,
+    "missing_symbols": [],
+    "rows": 3200983,
+    "data_start": "2018-01-02",
+    "data_end": "2026-06-24",
+    "fetch_jobs": [],
+    "fetch_attempts": [],
+    "universe": {
+      "min_listed_days": 120,
+      "min_amount": 10000000.0,
+      "liquidity_window": 20,
+      "dynamic_liquidity_top_n": null,
+      "selected_mode": "eligible_only"
+    },
+    "caveats": [
+      "Current universe symbols are used historically unless historical membership data is supplied.",
+      "Missing or failed symbols are recorded and do not stop the pipeline when usable data remains."
+    ],
+    "data_type": "real_akshare",
+    "synthetic_data": false,
+    "mock_data": false,
+    "download_source": "akshare"
+  },
+  "manifest": {
+    "git_commit": "73890911e633719d203360a172db3f97f344b5e3",
+    "run_time": "2026-06-28T18:19:03+08:00",
+    "run": {
+      "experiment_id": "298310488399560478",
+      "run_id": "5db8734e009043579bc3daa0dfa35894",
+      "run_dir": "mlruns\\298310488399560478\\5db8734e009043579bc3daa0dfa35894",
+      "status": "3",
+      "qrun_log": "reports\\alpha158_csi1800_2018_2026\\qrun_alpha158.log"
+    },
+    "data": {
+      "data_type": "real_akshare",
+      "synthetic_data": false,
+      "mock_data": false,
+      "download_source": "akshare",
+      "bars_path": "data\\csi1800_current_2018_2026_bars.parquet",
+      "data_start": "2018-01-02",
+      "data_end": "2026-06-24",
+      "rows": 3200983,
+      "data_sources": {
+        "eastmoney": 3200983
+      },
+      "amount_estimated_rows": 0,
+      "benchmark_sources": {
+        "csi1000": "akshare",
+        "csi500": "akshare",
+        "hs300": "akshare"
+      }
+    },
+    "segments": {
+      "train": [
+        "2018-01-01",
+        "2022-12-31"
+      ],
+      "valid": [
+        "2023-01-01",
+        "2024-12-31"
+      ],
+      "test": [
+        "2025-01-01",
+        "2026-06-24"
+      ]
+    },
+    "universe": {
+      "symbols_file": "data\\cache\\expanded_universes\\csi1800_current_symbols.txt",
+      "requested_symbols": 1800,
+      "actual_symbols": 1800,
+      "missing_symbols": [],
+      "dynamic_liquidity_top_n": null,
+      "selected_mode": "eligible_only",
+      "selected_filter": "$selected > 0.5",
+      "avg_selected_universe_count": 1529.1178188899707,
+      "min_selected_universe_count": 1124,
+      "max_selected_universe_count": 1800,
+      "candidate_symbol_coverage": 1.0,
+      "selected_top_n_reached": null,
+      "data_sufficient_for_dynamic_top_n": null
+    },
+    "data_sufficiency": {
+      "requested_symbols": 1800,
+      "actual_symbols": 1800,
+      "candidate_symbol_coverage": 1.0,
+      "candidate_coverage_threshold": 0.8,
+      "candidate_coverage_ok": true,
+      "dynamic_liquidity_top_n": null,
+      "avg_selected_universe_count": 1529.1178188899707,
+      "min_selected_universe_count": 1124,
+      "max_selected_universe_count": 1800,
+      "selected_top_n_reached": null,
+      "data_sufficient_for_dynamic_top_n": null,
+      "note": "eligible_only universe; dynamic liquidity top-N was not requested."
+    },
+    "data_quality": {
+      "rows": 3200983,
+      "symbols": 1800,
+      "start_date": "2018-01-02",
+      "end_date": "2026-06-24",
+      "unknown_source_ratio": 0.0,
+      "selected_unknown_source_ratio": 0.0,
+      "amount_estimated_ratio": 0.0,
+      "invalid_ohlc_ratio": 0.0012521153658110649,
+      "invalid_amount_ratio": 0.0,
+      "invalid_limit_ratio": 0.015911049824382073,
+      "invalid_volume_ratio": 0.0,
+      "pause_flag_mismatch_ratio": 0.0,
+      "vwap_unit_outlier_ratio": 0.008399294841615841,
+      "extreme_amount_jump_ratio": 0.00022524330807130184,
+      "duplicate_rows": 0,
+      "missing_required_fields": [],
+      "missing_bars_estimate": 11504,
+      "quality_status": "warning",
+      "reports": {
+        "row_quality": "reports\\alpha158_csi1800_2018_2026\\data_quality\\row_quality.csv",
+        "data_quality_by_source": "reports\\alpha158_csi1800_2018_2026\\data_quality\\data_quality_by_source.csv",
+        "data_quality_by_date": "reports\\alpha158_csi1800_2018_2026\\data_quality\\data_quality_by_date.csv",
+        "data_quality_by_symbol": "reports\\alpha158_csi1800_2018_2026\\data_quality\\data_quality_by_symbol.csv",
+        "selected_universe_quality": "reports\\alpha158_csi1800_2018_2026\\data_quality\\selected_universe_quality.csv",
+        "missing_fields_summary": "reports\\alpha158_csi1800_2018_2026\\data_quality\\missing_fields_summary.csv",
+        "amount_vwap_unit_check": "reports\\alpha158_csi1800_2018_2026\\data_quality\\amount_vwap_unit_check.csv",
+        "limit_field_coverage": "reports\\alpha158_csi1800_2018_2026\\data_quality\\limit_field_coverage.csv",
+        "pause_st_coverage": "reports\\alpha158_csi1800_2018_2026\\data_quality\\pause_st_coverage.csv",
+        "duplicate_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\duplicate_rows.csv",
+        "extreme_return_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\extreme_return_rows.csv",
+        "extreme_amount_jump_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\extreme_amount_jump_rows.csv",
+        "invalid_ohlc_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\invalid_ohlc_rows.csv",
+        "invalid_limit_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\invalid_limit_rows.csv",
+        "vwap_unit_outlier_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\vwap_unit_outlier_rows.csv",
+        "selected_quality_by_year": "reports\\alpha158_csi1800_2018_2026\\data_quality\\selected_quality_by_year.csv",
+        "summary": "reports\\alpha158_csi1800_2018_2026\\data_quality\\data_quality_summary.json"
+      }
+    },
+    "industry_quality": {
+      "symbol_level_coverage": 1.0,
+      "row_level_coverage": 1.0,
+      "selected_universe_coverage": 1.0,
+      "position_weighted_coverage": 0.9994912507460512,
+      "unknown_symbol_count": 0,
+      "unknown_selected_avg_ratio": 0.0,
+      "unknown_position_weight_avg": 0.0005087492539488762,
+      "industry_source_distribution": {
+        "akshare_metadata_cache": 2878169,
+        "eastmoney_board_industry": 322814
+      },
+      "industry_source_top": "akshare_metadata_cache",
+      "industry_quality_status": "passed",
+      "quality_status": "passed",
+      "reports": {
+        "industry_metadata_coverage": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_metadata_coverage.csv",
+        "industry_source_distribution": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_source_distribution.csv",
+        "industry_unknown_by_date": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_unknown_by_date.csv",
+        "industry_unknown_by_selected_universe": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_unknown_by_selected_universe.csv",
+        "industry_unknown_by_position": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_unknown_by_position.csv",
+        "summary": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_coverage_summary.json"
+      }
+    },
+    "benchmarks": [
+      "csi1000",
+      "csi500",
+      "hs300"
+    ],
+    "portfolio": {
+      "benchmark": "SH000852",
+      "topk": 50,
+      "n_drop": 10,
+      "account": 100000000,
+      "cost": {
+        "open_cost": 0.00031,
+        "close_cost": 0.00081,
+        "min_cost": 5.0
+      },
+      "limit_model": "qlib_uniform_limit_threshold_0.095",
+      "deal_price": "close"
+    },
+    "caveats": [
+      "The supplied universe may carry current-constituent or current-listed survivorship bias unless historical membership is provided.",
+      "selected_mode=eligible_only; no dynamic liquidity top-N filter was applied.",
+      "The 2026 test period is year-to-date, not a complete calendar year.",
+      "Qlib backtest uses a uniform limit_threshold, not full per-stock A-share board/ST limit rules.",
+      "Industry metadata coverage should be checked before relying on industry attribution.",
+      "IC and portfolio excess performance should be reconciled through exposure and rolling diagnostics before claiming strategy validity."
+    ]
+  },
+  "data_quality": {
+    "rows": 3200983,
+    "symbols": 1800,
+    "start_date": "2018-01-02",
+    "end_date": "2026-06-24",
+    "unknown_source_ratio": 0.0,
+    "selected_unknown_source_ratio": 0.0,
+    "amount_estimated_ratio": 0.0,
+    "invalid_ohlc_ratio": 0.0012521153658110649,
+    "invalid_amount_ratio": 0.0,
+    "invalid_limit_ratio": 0.015911049824382073,
+    "invalid_volume_ratio": 0.0,
+    "pause_flag_mismatch_ratio": 0.0,
+    "vwap_unit_outlier_ratio": 0.008399294841615841,
+    "extreme_amount_jump_ratio": 0.00022524330807130184,
+    "duplicate_rows": 0,
+    "missing_required_fields": [],
+    "missing_bars_estimate": 11504,
+    "quality_status": "warning",
+    "reports": {
+      "row_quality": "reports\\alpha158_csi1800_2018_2026\\data_quality\\row_quality.csv",
+      "data_quality_by_source": "reports\\alpha158_csi1800_2018_2026\\data_quality\\data_quality_by_source.csv",
+      "data_quality_by_date": "reports\\alpha158_csi1800_2018_2026\\data_quality\\data_quality_by_date.csv",
+      "data_quality_by_symbol": "reports\\alpha158_csi1800_2018_2026\\data_quality\\data_quality_by_symbol.csv",
+      "selected_universe_quality": "reports\\alpha158_csi1800_2018_2026\\data_quality\\selected_universe_quality.csv",
+      "missing_fields_summary": "reports\\alpha158_csi1800_2018_2026\\data_quality\\missing_fields_summary.csv",
+      "amount_vwap_unit_check": "reports\\alpha158_csi1800_2018_2026\\data_quality\\amount_vwap_unit_check.csv",
+      "limit_field_coverage": "reports\\alpha158_csi1800_2018_2026\\data_quality\\limit_field_coverage.csv",
+      "pause_st_coverage": "reports\\alpha158_csi1800_2018_2026\\data_quality\\pause_st_coverage.csv",
+      "duplicate_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\duplicate_rows.csv",
+      "extreme_return_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\extreme_return_rows.csv",
+      "extreme_amount_jump_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\extreme_amount_jump_rows.csv",
+      "invalid_ohlc_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\invalid_ohlc_rows.csv",
+      "invalid_limit_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\invalid_limit_rows.csv",
+      "vwap_unit_outlier_rows": "reports\\alpha158_csi1800_2018_2026\\data_quality\\vwap_unit_outlier_rows.csv",
+      "selected_quality_by_year": "reports\\alpha158_csi1800_2018_2026\\data_quality\\selected_quality_by_year.csv",
+      "summary": "reports\\alpha158_csi1800_2018_2026\\data_quality\\data_quality_summary.json"
+    }
+  },
+  "industry_quality": {
+    "symbol_level_coverage": 1.0,
+    "row_level_coverage": 1.0,
+    "selected_universe_coverage": 1.0,
+    "position_weighted_coverage": 0.9994912507460512,
+    "unknown_symbol_count": 0,
+    "unknown_selected_avg_ratio": 0.0,
+    "unknown_position_weight_avg": 0.0005087492539488762,
+    "industry_source_distribution": {
+      "akshare_metadata_cache": 2878169,
+      "eastmoney_board_industry": 322814
+    },
+    "industry_source_top": "akshare_metadata_cache",
+    "industry_quality_status": "passed",
+    "quality_status": "passed",
+    "reports": {
+      "industry_metadata_coverage": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_metadata_coverage.csv",
+      "industry_source_distribution": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_source_distribution.csv",
+      "industry_unknown_by_date": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_unknown_by_date.csv",
+      "industry_unknown_by_selected_universe": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_unknown_by_selected_universe.csv",
+      "industry_unknown_by_position": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_unknown_by_position.csv",
+      "summary": "reports\\alpha158_csi1800_2018_2026\\industry\\industry_coverage_summary.json"
+    }
+  },
+  "run": {
+    "execute": true,
+    "model": "Alpha158 + LightGBM",
+    "benchmark_key": "csi1000",
+    "benchmark_symbol": "SH000852",
+    "topk": 50,
+    "n_drop": 10
+  },
+  "caveats": [
+    "Do not interpret current-constituent experiments as historical constituent backtests.",
+    "Do not interpret eligible_only as dynamic liquidity top-N.",
+    "Qlib uses a simplified uniform limit_threshold, not full A-share trading constraints.",
+    "Industry metadata coverage must be checked before industry attribution is trusted."
+  ]
+}

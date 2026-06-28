@@ -1,0 +1,100 @@
+{
+  "universe_name": "dynamic_candidate2000_top500_2018_2026",
+  "symbols_file": "data\\cache\\expanded_universes\\dynamic_candidate2000_top500_2018_2026_symbols.txt",
+  "output_bars": "data\\dynamic_candidate2000_top500_2018_2026_bars.parquet",
+  "existing_bars": "data/dynamic_candidate2000_top500_2018_2026_bars.parquet",
+  "start_date": "2018-01-01",
+  "end_date": "2026-06-24",
+  "requested_symbols": 2000,
+  "actual_symbols": 1999,
+  "missing_symbols": [
+    "001399.SZ"
+  ],
+  "rows": 3268352,
+  "data_start": "2018-01-02",
+  "data_end": "2026-06-24",
+  "fetch_jobs": [
+    {
+      "symbols": [
+        "001399.SZ"
+      ],
+      "start": "2018-01-01",
+      "end": "2026-06-24",
+      "reason": "missing_symbols",
+      "error": "AKShare returned no usable bars.",
+      "downloaded_rows": 0,
+      "downloaded_symbols": 0
+    }
+  ],
+  "fetch_attempts": [
+    {
+      "symbol": "001399.SZ",
+      "source": "eastmoney",
+      "attempt_order": 1,
+      "status": "empty",
+      "rows": 0,
+      "fallback_used": false,
+      "error": "empty"
+    },
+    {
+      "symbol": "001399.SZ",
+      "source": "tencent_tx",
+      "attempt_order": 2,
+      "status": "empty",
+      "rows": 0,
+      "fallback_used": true,
+      "error": "empty"
+    },
+    {
+      "symbol": "001399.SZ",
+      "source": "eastmoney",
+      "attempt_order": 1,
+      "status": "empty",
+      "rows": 0,
+      "fallback_used": false,
+      "error": "empty"
+    },
+    {
+      "symbol": "001399.SZ",
+      "source": "tencent_tx",
+      "attempt_order": 2,
+      "status": "empty",
+      "rows": 0,
+      "fallback_used": true,
+      "error": "empty"
+    },
+    {
+      "symbol": "001399.SZ",
+      "source": "eastmoney",
+      "attempt_order": 1,
+      "status": "empty",
+      "rows": 0,
+      "fallback_used": false,
+      "error": "empty"
+    },
+    {
+      "symbol": "001399.SZ",
+      "source": "tencent_tx",
+      "attempt_order": 2,
+      "status": "empty",
+      "rows": 0,
+      "fallback_used": true,
+      "error": "empty"
+    }
+  ],
+  "universe": {
+    "min_listed_days": 120,
+    "min_amount": 10000000.0,
+    "liquidity_window": 20,
+    "dynamic_liquidity_top_n": 500,
+    "selected_mode": "dynamic_liquidity_top500"
+  },
+  "caveats": [
+    "Current universe symbols are used historically unless historical membership data is supplied.",
+    "Missing or failed symbols are recorded and do not stop the pipeline when usable data remains."
+  ],
+  "data_type": "real_akshare",
+  "synthetic_data": false,
+  "mock_data": false,
+  "download_source": "akshare"
+}

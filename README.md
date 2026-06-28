@@ -127,6 +127,27 @@ Industry metadata coverage is reported separately under each run's `industry/`
 directory. If coverage is insufficient, summaries state that industry
 attribution is not reliable.
 
+## Current Report Status
+
+Formal strategy-result comparisons are separated from data-quality-only
+checks:
+
+- `reports/universe_expansion_comparison.csv` contains formal Alpha158
+  universe expansion results only. Smoke tests are excluded.
+- `reports/smoke_test_summary.md` records real-data smoke test status.
+- `reports/rolling_baseline_comparison_2018_2026_real.csv` contains real
+  AKShare five-window rolling OOS results for `hs300_current_2018_2026` and
+  `dynamic_candidate1000_top300_2018_2026`.
+- `reports/quality_universe_comparison_real.csv` contains quality-only
+  validation for CSI800, CSI1800, and dynamic top500. It does not claim
+  Alpha158 strategy performance for those universes.
+
+HS300 2018-2026 currently has `data_quality_status=warning`; see
+`reports/alpha158_hs300_2018_2026/data_quality_warning_explanation.json` and
+the detail CSVs under `reports/alpha158_hs300_2018_2026/data_quality/`.
+Dynamic top300 uses a current-listed candidate pool with backward-looking
+rolling amount, not a reconstructed historical all-A universe.
+
 ## Minimal Flow
 
 Prepare AKShare bars:

@@ -1,0 +1,2000 @@
+symbol,industry,industry_source,rows,selected_rows,has_industry,is_unknown
+000001.SZ,J 金融业,akshare_metadata_cache,2054,2054,True,False
+000002.SZ,K 房地产,akshare_metadata_cache,2054,2054,True,False
+000006.SZ,K 房地产,akshare_metadata_cache,2012,803,True,False
+000007.SZ,K 房地产,akshare_metadata_cache,1997,230,True,False
+000019.SZ,F 批发零售,akshare_metadata_cache,1986,361,True,False
+000025.SZ,F 批发零售,akshare_metadata_cache,2054,863,True,False
+000026.SZ,F 批发零售,akshare_metadata_cache,2054,283,True,False
+000027.SZ,D 水电煤气,akshare_metadata_cache,2054,586,True,False
+000028.SZ,F 批发零售,akshare_metadata_cache,2054,820,True,False
+000030.SZ,C 制造业,akshare_metadata_cache,2054,85,True,False
+000032.SZ,E 建筑业,akshare_metadata_cache,2042,982,True,False
+000039.SZ,C 制造业,akshare_metadata_cache,2049,1263,True,False
+000048.SZ,A 农林牧渔,akshare_metadata_cache,2004,70,True,False
+000050.SZ,C 制造业,akshare_metadata_cache,2054,1085,True,False
+000061.SZ,L 商务服务,akshare_metadata_cache,2044,243,True,False
+000062.SZ,F 批发零售,akshare_metadata_cache,2044,650,True,False
+000063.SZ,C 制造业,akshare_metadata_cache,2014,2014,True,False
+000070.SZ,C 制造业,akshare_metadata_cache,2052,1109,True,False
+000090.SZ,E 建筑业,akshare_metadata_cache,2049,530,True,False
+000151.SZ,F 批发零售,akshare_metadata_cache,2044,709,True,False
+000157.SZ,C 制造业,akshare_metadata_cache,2054,1902,True,False
+000159.SZ,F 批发零售,akshare_metadata_cache,2054,369,True,False
+000166.SZ,J 金融业,akshare_metadata_cache,2054,1966,True,False
+000333.SZ,C 制造业,akshare_metadata_cache,2014,2014,True,False
+000401.SZ,C 制造业,akshare_metadata_cache,2013,871,True,False
+000403.SZ,C 制造业,akshare_metadata_cache,2040,467,True,False
+000407.SZ,D 水电煤气,akshare_metadata_cache,2044,166,True,False
+000417.SZ,F 批发零售,akshare_metadata_cache,2054,180,True,False
+000421.SZ,D 水电煤气,akshare_metadata_cache,2044,238,True,False
+000426.SZ,B 采矿业,akshare_metadata_cache,2005,1538,True,False
+000498.SZ,E 建筑业,akshare_metadata_cache,2043,423,True,False
+000501.SZ,F 批发零售,akshare_metadata_cache,2054,505,True,False
+000504.SZ,M 科研服务,akshare_metadata_cache,2040,84,True,False
+000505.SZ,C 制造业,akshare_metadata_cache,2048,511,True,False
+000509.SZ,C 制造业,akshare_metadata_cache,1974,176,True,False
+000513.SZ,C 制造业,akshare_metadata_cache,2054,1672,True,False
+000516.SZ,Q 卫生,akshare_metadata_cache,1984,1165,True,False
+000521.SZ,C 制造业,akshare_metadata_cache,2052,544,True,False
+000523.SZ,C 制造业,akshare_metadata_cache,1994,108,True,False
+000525.SZ,C 制造业,akshare_metadata_cache,2026,486,True,False
+000526.SZ,P 教育,akshare_metadata_cache,1908,353,True,False
+000528.SZ,C 制造业,akshare_metadata_cache,2033,1203,True,False
+000531.SZ,D 水电煤气,akshare_metadata_cache,2054,133,True,False
+000534.SZ,C 制造业,akshare_metadata_cache,1948,181,True,False
+000536.SZ,C 制造业,akshare_metadata_cache,2052,810,True,False
+000543.SZ,D 水电煤气,akshare_metadata_cache,2043,824,True,False
+000544.SZ,D 水电煤气,akshare_metadata_cache,2054,71,True,False
+000548.SZ,G 运输仓储,akshare_metadata_cache,2054,77,True,False
+000550.SZ,C 制造业,akshare_metadata_cache,2054,771,True,False
+000552.SZ,B 采矿业,akshare_metadata_cache,2033,466,True,False
+000555.SZ,I 信息技术,akshare_metadata_cache,2049,1375,True,False
+000559.SZ,C 制造业,akshare_metadata_cache,2044,626,True,False
+000561.SZ,C 制造业,akshare_metadata_cache,2044,367,True,False
+000586.SZ,C 制造业,akshare_metadata_cache,2036,326,True,False
+000592.SZ,C 制造业,akshare_metadata_cache,2032,908,True,False
+000598.SZ,D 水电煤气,akshare_metadata_cache,2054,247,True,False
+000601.SZ,D 水电煤气,akshare_metadata_cache,2042,284,True,False
+000603.SZ,B 采矿业,akshare_metadata_cache,1988,1130,True,False
+000607.SZ,L 商务服务,akshare_metadata_cache,2054,305,True,False
+000608.SZ,K 房地产,akshare_metadata_cache,2042,78,True,False
+000612.SZ,C 制造业,akshare_metadata_cache,2039,868,True,False
+000619.SZ,C 制造业,akshare_metadata_cache,2054,78,True,False
+000623.SZ,C 制造业,akshare_metadata_cache,2054,1179,True,False
+000630.SZ,C 制造业,akshare_metadata_cache,2044,1897,True,False
+000635.SZ,C 制造业,akshare_metadata_cache,2054,192,True,False
+000650.SZ,C 制造业,akshare_metadata_cache,2054,1144,True,False
+000657.SZ,C 制造业,akshare_metadata_cache,2044,1031,True,False
+000686.SZ,J 金融业,akshare_metadata_cache,2054,1089,True,False
+000700.SZ,C 制造业,akshare_metadata_cache,2054,682,True,False
+000708.SZ,C 制造业,akshare_metadata_cache,2048,414,True,False
+000710.SZ,M 科研服务,akshare_metadata_cache,2054,923,True,False
+000718.SZ,K 房地产,akshare_metadata_cache,2054,315,True,False
+000723.SZ,C 制造业,akshare_metadata_cache,1969,1700,True,False
+000726.SZ,C 制造业,akshare_metadata_cache,2054,35,True,False
+000733.SZ,C 制造业,akshare_metadata_cache,2054,1990,True,False
+000735.SZ,A 农林牧渔,akshare_metadata_cache,2052,1049,True,False
+000736.SZ,K 房地产,akshare_metadata_cache,2052,689,True,False
+000738.SZ,C 制造业,akshare_metadata_cache,2054,1678,True,False
+000739.SZ,C 制造业,akshare_metadata_cache,2054,1223,True,False
+000750.SZ,J 金融业,akshare_metadata_cache,2048,1280,True,False
+000751.SZ,C 制造业,akshare_metadata_cache,2054,379,True,False
+000753.SZ,F 批发零售,akshare_metadata_cache,2054,222,True,False
+000755.SZ,G 运输仓储,akshare_metadata_cache,2024,169,True,False
+000758.SZ,B 采矿业,akshare_metadata_cache,2044,973,True,False
+000761.SZ,C 制造业,akshare_metadata_cache,2053,162,True,False
+000766.SZ,C 制造业,akshare_metadata_cache,1936,918,True,False
+000776.SZ,J 金融业,akshare_metadata_cache,2054,2054,True,False
+000778.SZ,C 制造业,akshare_metadata_cache,2054,942,True,False
+000782.SZ,C 制造业,akshare_metadata_cache,2043,8,True,False
+000788.SZ,C 制造业,akshare_metadata_cache,2054,285,True,False
+000789.SZ,C 制造业,akshare_metadata_cache,2054,950,True,False
+000796.SZ,L 商务服务,akshare_metadata_cache,1920,571,True,False
+000798.SZ,A 农林牧渔,akshare_metadata_cache,2054,256,True,False
+000801.SZ,C 制造业,akshare_metadata_cache,2044,799,True,False
+000803.SZ,N 公共环保,akshare_metadata_cache,2028,10,True,False
+000810.SZ,C 制造业,akshare_metadata_cache,2051,1230,True,False
+000811.SZ,C 制造业,akshare_metadata_cache,2054,884,True,False
+000812.SZ,C 制造业,akshare_metadata_cache,1953,697,True,False
+000819.SZ,C 制造业,akshare_metadata_cache,2054,277,True,False
+000825.SZ,C 制造业,akshare_metadata_cache,1946,748,True,False
+000829.SZ,F 批发零售,akshare_metadata_cache,2054,1099,True,False
+000830.SZ,C 制造业,akshare_metadata_cache,2044,1671,True,False
+000833.SZ,S 综合,akshare_metadata_cache,2054,530,True,False
+000839.SZ,I 信息技术,akshare_metadata_cache,2052,745,True,False
+000858.SZ,C 制造业,akshare_metadata_cache,2054,2054,True,False
+000859.SZ,C 制造业,akshare_metadata_cache,2044,624,True,False
+000862.SZ,D 水电煤气,akshare_metadata_cache,2038,620,True,False
+000868.SZ,C 制造业,akshare_metadata_cache,2051,744,True,False
+000877.SZ,C 制造业,akshare_metadata_cache,2043,1144,True,False
+000878.SZ,C 制造业,akshare_metadata_cache,2035,1969,True,False
+000880.SZ,C 制造业,akshare_metadata_cache,2044,425,True,False
+000882.SZ,L 商务服务,akshare_metadata_cache,2054,361,True,False
+000887.SZ,C 制造业,akshare_metadata_cache,2054,1817,True,False
+000888.SZ,N 公共环保,akshare_metadata_cache,2054,372,True,False
+000892.SZ,R 文化传播,akshare_metadata_cache,2054,471,True,False
+000895.SZ,C 制造业,akshare_metadata_cache,2039,1741,True,False
+000897.SZ,K 房地产,akshare_metadata_cache,2052,224,True,False
+000899.SZ,D 水电煤气,akshare_metadata_cache,2049,493,True,False
+000905.SZ,F 批发零售,akshare_metadata_cache,2049,268,True,False
+000906.SZ,L 商务服务,akshare_metadata_cache,2030,9,True,False
+000908.SZ,C 制造业,akshare_metadata_cache,2045,378,True,False
+000912.SZ,C 制造业,akshare_metadata_cache,1826,306,True,False
+000915.SZ,C 制造业,akshare_metadata_cache,2054,647,True,False
+000919.SZ,C 制造业,akshare_metadata_cache,2054,146,True,False
+000921.SZ,C 制造业,akshare_metadata_cache,2054,1262,True,False
+000922.SZ,C 制造业,akshare_metadata_cache,2053,323,True,False
+000925.SZ,C 制造业,akshare_metadata_cache,2054,504,True,False
+000926.SZ,K 房地产,akshare_metadata_cache,2048,396,True,False
+000928.SZ,E 建筑业,akshare_metadata_cache,2054,838,True,False
+000931.SZ,C 制造业,akshare_metadata_cache,2051,334,True,False
+000933.SZ,C 制造业,akshare_metadata_cache,2044,1942,True,False
+000935.SZ,C 制造业,akshare_metadata_cache,2054,707,True,False
+000948.SZ,I 信息技术,akshare_metadata_cache,2044,864,True,False
+000951.SZ,C 制造业,akshare_metadata_cache,2054,1368,True,False
+000952.SZ,C 制造业,akshare_metadata_cache,2054,164,True,False
+000953.SZ,C 制造业,akshare_metadata_cache,2038,131,True,False
+000955.SZ,C 制造业,akshare_metadata_cache,2054,537,True,False
+000959.SZ,C 制造业,akshare_metadata_cache,2022,473,True,False
+000960.SZ,C 制造业,akshare_metadata_cache,2054,1964,True,False
+000962.SZ,C 制造业,akshare_metadata_cache,2014,681,True,False
+000965.SZ,K 房地产,akshare_metadata_cache,2054,404,True,False
+000967.SZ,C 制造业,akshare_metadata_cache,1998,333,True,False
+000968.SZ,B 采矿业,akshare_metadata_cache,2054,448,True,False
+000981.SZ,C 制造业,akshare_metadata_cache,1985,761,True,False
+000993.SZ,D 水电煤气,akshare_metadata_cache,2054,734,True,False
+000995.SZ,C 制造业,akshare_metadata_cache,1636,395,True,False
+001202.SZ,G 运输仓储,akshare_metadata_cache,1247,0,True,False
+001205.SZ,G 运输仓储,akshare_metadata_cache,1240,19,True,False
+001206.SZ,C 制造业,akshare_metadata_cache,1228,28,True,False
+001210.SZ,D 水电煤气,akshare_metadata_cache,1186,0,True,False
+001212.SZ,C 制造业,akshare_metadata_cache,1167,260,True,False
+001215.SZ,C 制造业,akshare_metadata_cache,1159,0,True,False
+001217.SZ,C 制造业,akshare_metadata_cache,1144,112,True,False
+001218.SZ,C 制造业,akshare_metadata_cache,1137,0,True,False
+001221.SZ,C 制造业,akshare_metadata_cache,217,0,True,False
+001225.SZ,C 制造业,akshare_metadata_cache,808,0,True,False
+001226.SZ,C 制造业,akshare_metadata_cache,971,32,True,False
+001228.SZ,L 商务服务,akshare_metadata_cache,1005,6,True,False
+001229.SZ,C 制造业,akshare_metadata_cache,938,17,True,False
+001233.SZ,C 制造业,akshare_metadata_cache,139,0,True,False
+001259.SZ,C 制造业,akshare_metadata_cache,921,0,True,False
+001266.SZ,C 制造业,akshare_metadata_cache,1047,43,True,False
+001268.SZ,C 制造业,akshare_metadata_cache,965,28,True,False
+001269.SZ,C 制造业,akshare_metadata_cache,900,273,True,False
+001277.SZ,C 制造业,akshare_metadata_cache,434,0,True,False
+001278.SZ,C 制造业,akshare_metadata_cache,798,31,True,False
+001279.SZ,C 制造业,akshare_metadata_cache,413,0,True,False
+001280.SZ,B 采矿业,akshare_metadata_cache,133,55,True,False
+001282.SZ,C 制造业,akshare_metadata_cache,747,108,True,False
+001285.SZ,C 制造业,akshare_metadata_cache,163,0,True,False
+001286.SZ,D 水电煤气,akshare_metadata_cache,776,215,True,False
+001288.SZ,C 制造业,akshare_metadata_cache,1126,0,True,False
+001289.SZ,D 水电煤气,akshare_metadata_cache,1067,81,True,False
+001296.SZ,C 制造业,akshare_metadata_cache,1087,46,True,False
+001301.SZ,C 制造业,akshare_metadata_cache,842,281,True,False
+001306.SZ,C 制造业,akshare_metadata_cache,629,49,True,False
+001308.SZ,C 制造业,akshare_metadata_cache,1033,111,True,False
+001314.SZ,C 制造业,akshare_metadata_cache,805,338,True,False
+001317.SZ,G 运输仓储,akshare_metadata_cache,1100,159,True,False
+001319.SZ,C 制造业,akshare_metadata_cache,999,111,True,False
+001322.SZ,C 制造业,akshare_metadata_cache,887,8,True,False
+001323.SZ,C 制造业,akshare_metadata_cache,970,0,True,False
+001324.SZ,C 制造业,akshare_metadata_cache,749,30,True,False
+001326.SZ,C 制造业,akshare_metadata_cache,634,0,True,False
+001328.SZ,C 制造业,akshare_metadata_cache,776,39,True,False
+001331.SZ,D 水电煤气,akshare_metadata_cache,888,57,True,False
+001332.SZ,C 制造业,akshare_metadata_cache,908,0,True,False
+001338.SZ,C 制造业,akshare_metadata_cache,872,55,True,False
+001358.SZ,C 制造业,akshare_metadata_cache,604,2,True,False
+001360.SZ,C 制造业,akshare_metadata_cache,776,33,True,False
+001366.SZ,C 制造业,akshare_metadata_cache,799,25,True,False
+001367.SZ,C 制造业,akshare_metadata_cache,776,12,True,False
+001373.SZ,C 制造业,akshare_metadata_cache,741,0,True,False
+001382.SZ,C 制造业,akshare_metadata_cache,305,0,True,False
+001388.SZ,C 制造业,akshare_metadata_cache,238,0,True,False
+001391.SZ,G 运输仓储,akshare_metadata_cache,357,39,True,False
+001393.SZ,C 制造业,akshare_metadata_cache,28,0,True,False
+001896.SZ,D 水电煤气,akshare_metadata_cache,2043,567,True,False
+001914.SZ,K 房地产,akshare_metadata_cache,2043,593,True,False
+002001.SZ,C 制造业,akshare_metadata_cache,2054,1981,True,False
+002003.SZ,C 制造业,akshare_metadata_cache,2054,42,True,False
+002007.SZ,C 制造业,akshare_metadata_cache,2054,1659,True,False
+002010.SZ,L 商务服务,akshare_metadata_cache,2044,606,True,False
+002011.SZ,C 制造业,akshare_metadata_cache,1938,679,True,False
+002017.SZ,C 制造业,akshare_metadata_cache,2048,906,True,False
+002019.SZ,C 制造业,akshare_metadata_cache,2054,1020,True,False
+002020.SZ,C 制造业,akshare_metadata_cache,2054,894,True,False
+002022.SZ,C 制造业,akshare_metadata_cache,2047,539,True,False
+002025.SZ,C 制造业,akshare_metadata_cache,2054,1853,True,False
+002027.SZ,L 商务服务,akshare_metadata_cache,2054,2054,True,False
+002028.SZ,C 制造业,akshare_metadata_cache,2054,1932,True,False
+002030.SZ,C 制造业,akshare_metadata_cache,2054,1259,True,False
+002035.SZ,C 制造业,akshare_metadata_cache,2054,857,True,False
+002037.SZ,C 制造业,akshare_metadata_cache,2004,339,True,False
+002044.SZ,Q 卫生,akshare_metadata_cache,2054,1898,True,False
+002045.SZ,C 制造业,akshare_metadata_cache,2049,1424,True,False
+002046.SZ,C 制造业,akshare_metadata_cache,2054,673,True,False
+002047.SZ,E 建筑业,akshare_metadata_cache,1984,440,True,False
+002048.SZ,C 制造业,akshare_metadata_cache,2054,1097,True,False
+002056.SZ,C 制造业,akshare_metadata_cache,2054,1938,True,False
+002057.SZ,C 制造业,akshare_metadata_cache,2054,758,True,False
+002059.SZ,N 公共环保,akshare_metadata_cache,1938,237,True,False
+002060.SZ,E 建筑业,akshare_metadata_cache,2044,324,True,False
+002068.SZ,C 制造业,akshare_metadata_cache,2054,987,True,False
+002069.SZ,A 农林牧渔,akshare_metadata_cache,2049,84,True,False
+002074.SZ,C 制造业,akshare_metadata_cache,2047,2047,True,False
+002076.SZ,C 制造业,akshare_metadata_cache,2037,319,True,False
+002084.SZ,C 制造业,akshare_metadata_cache,2054,205,True,False
+002085.SZ,C 制造业,akshare_metadata_cache,2006,1078,True,False
+002086.SZ,A 农林牧渔,akshare_metadata_cache,1978,328,True,False
+002090.SZ,C 制造业,akshare_metadata_cache,2047,333,True,False
+002093.SZ,I 信息技术,akshare_metadata_cache,2054,905,True,False
+002097.SZ,C 制造业,akshare_metadata_cache,2051,621,True,False
+002098.SZ,C 制造业,akshare_metadata_cache,1885,293,True,False
+002101.SZ,C 制造业,akshare_metadata_cache,2054,455,True,False
+002106.SZ,C 制造业,akshare_metadata_cache,2054,820,True,False
+002107.SZ,C 制造业,akshare_metadata_cache,2054,89,True,False
+002110.SZ,C 制造业,akshare_metadata_cache,2047,954,True,False
+002114.SZ,C 制造业,akshare_metadata_cache,2050,244,True,False
+002116.SZ,E 建筑业,akshare_metadata_cache,2054,291,True,False
+002119.SZ,C 制造业,akshare_metadata_cache,2054,1129,True,False
+002131.SZ,L 商务服务,akshare_metadata_cache,2051,1750,True,False
+002132.SZ,C 制造业,akshare_metadata_cache,2054,558,True,False
+002133.SZ,K 房地产,akshare_metadata_cache,2054,98,True,False
+002139.SZ,C 制造业,akshare_metadata_cache,2054,1687,True,False
+002140.SZ,E 建筑业,akshare_metadata_cache,2054,291,True,False
+002141.SZ,C 制造业,akshare_metadata_cache,2052,279,True,False
+002144.SZ,C 制造业,akshare_metadata_cache,2054,18,True,False
+002145.SZ,C 制造业,akshare_metadata_cache,2054,1137,True,False
+002148.SZ,I 信息技术,akshare_metadata_cache,2054,603,True,False
+002149.SZ,C 制造业,akshare_metadata_cache,2054,812,True,False
+002154.SZ,C 制造业,akshare_metadata_cache,2054,287,True,False
+002155.SZ,B 采矿业,akshare_metadata_cache,2044,1963,True,False
+002158.SZ,C 制造业,akshare_metadata_cache,2054,821,True,False
+002166.SZ,C 制造业,akshare_metadata_cache,2038,582,True,False
+002169.SZ,C 制造业,akshare_metadata_cache,2046,885,True,False
+002171.SZ,C 制造业,akshare_metadata_cache,1994,939,True,False
+002174.SZ,I 信息技术,akshare_metadata_cache,2054,1608,True,False
+002176.SZ,C 制造业,akshare_metadata_cache,2042,1689,True,False
+002177.SZ,C 制造业,akshare_metadata_cache,2052,1127,True,False
+002179.SZ,C 制造业,akshare_metadata_cache,2054,2054,True,False
+002181.SZ,L 商务服务,akshare_metadata_cache,2054,685,True,False
+002184.SZ,C 制造业,akshare_metadata_cache,2044,651,True,False
+002186.SZ,H 住宿餐饮,akshare_metadata_cache,2049,152,True,False
+002187.SZ,F 批发零售,akshare_metadata_cache,2048,222,True,False
+002188.SZ,K 房地产,akshare_metadata_cache,2039,107,True,False
+002189.SZ,C 制造业,akshare_metadata_cache,2006,651,True,False
+002192.SZ,B 采矿业,akshare_metadata_cache,2052,1671,True,False
+002195.SZ,I 信息技术,akshare_metadata_cache,2054,1910,True,False
+002197.SZ,I 信息技术,akshare_metadata_cache,2042,907,True,False
+002201.SZ,C 制造业,akshare_metadata_cache,2054,561,True,False
+002204.SZ,C 制造业,akshare_metadata_cache,2054,447,True,False
+002205.SZ,C 制造业,akshare_metadata_cache,2038,212,True,False
+002206.SZ,C 制造业,akshare_metadata_cache,2054,234,True,False
+002212.SZ,I 信息技术,akshare_metadata_cache,2010,1125,True,False
+002213.SZ,C 制造业,akshare_metadata_cache,2019,560,True,False
+002215.SZ,C 制造业,akshare_metadata_cache,2054,654,True,False
+002218.SZ,C 制造业,akshare_metadata_cache,2054,764,True,False
+002223.SZ,C 制造业,akshare_metadata_cache,2054,1852,True,False
+002226.SZ,C 制造业,akshare_metadata_cache,1918,280,True,False
+002232.SZ,I 信息技术,akshare_metadata_cache,2054,861,True,False
+002233.SZ,C 制造业,akshare_metadata_cache,2054,911,True,False
+002234.SZ,A 农林牧渔,akshare_metadata_cache,2054,872,True,False
+002235.SZ,C 制造业,akshare_metadata_cache,2049,1436,True,False
+002243.SZ,C 制造业,akshare_metadata_cache,2043,565,True,False
+002244.SZ,K 房地产,akshare_metadata_cache,2054,1106,True,False
+002246.SZ,C 制造业,akshare_metadata_cache,2054,752,True,False
+002248.SZ,C 制造业,akshare_metadata_cache,2053,386,True,False
+002252.SZ,C 制造业,akshare_metadata_cache,1845,1273,True,False
+002253.SZ,I 信息技术,akshare_metadata_cache,2053,485,True,False
+002254.SZ,C 制造业,akshare_metadata_cache,2032,742,True,False
+002255.SZ,C 制造业,akshare_metadata_cache,2052,437,True,False
+002259.SZ,D 水电煤气,akshare_metadata_cache,1955,121,True,False
+002264.SZ,I 信息技术,akshare_metadata_cache,2054,495,True,False
+002266.SZ,N 公共环保,akshare_metadata_cache,2043,488,True,False
+002267.SZ,D 水电煤气,akshare_metadata_cache,2054,248,True,False
+002270.SZ,C 制造业,akshare_metadata_cache,2002,656,True,False
+002272.SZ,C 制造业,akshare_metadata_cache,2054,771,True,False
+002273.SZ,C 制造业,akshare_metadata_cache,2054,2046,True,False
+002275.SZ,C 制造业,akshare_metadata_cache,2054,20,True,False
+002277.SZ,F 批发零售,akshare_metadata_cache,2042,572,True,False
+002281.SZ,C 制造业,akshare_metadata_cache,2054,1741,True,False
+002284.SZ,C 制造业,akshare_metadata_cache,2054,533,True,False
+002291.SZ,I 信息技术,akshare_metadata_cache,2039,1342,True,False
+002299.SZ,C 制造业,akshare_metadata_cache,2054,1220,True,False
+002303.SZ,C 制造业,akshare_metadata_cache,2054,173,True,False
+002304.SZ,C 制造业,akshare_metadata_cache,2054,1909,True,False
+002314.SZ,K 房地产,akshare_metadata_cache,2038,229,True,False
+002316.SZ,I 信息技术,akshare_metadata_cache,2050,451,True,False
+002317.SZ,C 制造业,akshare_metadata_cache,2054,1419,True,False
+002319.SZ,C 制造业,akshare_metadata_cache,2017,23,True,False
+002326.SZ,C 制造业,akshare_metadata_cache,2049,1488,True,False
+002328.SZ,C 制造业,akshare_metadata_cache,2054,425,True,False
+002333.SZ,C 制造业,akshare_metadata_cache,2050,191,True,False
+002343.SZ,R 文化传播,akshare_metadata_cache,2049,746,True,False
+002353.SZ,C 制造业,akshare_metadata_cache,2054,1963,True,False
+002355.SZ,C 制造业,akshare_metadata_cache,2044,490,True,False
+002356.SZ,F 批发零售,akshare_metadata_cache,2036,265,True,False
+002358.SZ,C 制造业,akshare_metadata_cache,2011,485,True,False
+002361.SZ,C 制造业,akshare_metadata_cache,2054,350,True,False
+002365.SZ,C 制造业,akshare_metadata_cache,2054,430,True,False
+002366.SZ,C 制造业,akshare_metadata_cache,1971,1016,True,False
+002367.SZ,C 制造业,akshare_metadata_cache,2054,539,True,False
+002368.SZ,I 信息技术,akshare_metadata_cache,2054,1618,True,False
+002370.SZ,C 制造业,akshare_metadata_cache,2040,814,True,False
+002372.SZ,C 制造业,akshare_metadata_cache,2054,820,True,False
+002374.SZ,C 制造业,akshare_metadata_cache,2044,335,True,False
+002376.SZ,C 制造业,akshare_metadata_cache,2054,558,True,False
+002377.SZ,C 制造业,akshare_metadata_cache,2048,146,True,False
+002378.SZ,C 制造业,akshare_metadata_cache,2054,701,True,False
+002379.SZ,C 制造业,akshare_metadata_cache,2044,369,True,False
+002383.SZ,C 制造业,akshare_metadata_cache,2054,1050,True,False
+002387.SZ,C 制造业,akshare_metadata_cache,2021,760,True,False
+002389.SZ,C 制造业,akshare_metadata_cache,2054,1719,True,False
+002391.SZ,C 制造业,akshare_metadata_cache,2054,123,True,False
+002393.SZ,C 制造业,akshare_metadata_cache,2054,66,True,False
+002394.SZ,C 制造业,akshare_metadata_cache,2054,7,True,False
+002398.SZ,C 制造业,akshare_metadata_cache,2007,222,True,False
+002403.SZ,C 制造业,akshare_metadata_cache,2054,227,True,False
+002405.SZ,I 信息技术,akshare_metadata_cache,2054,1981,True,False
+002406.SZ,C 制造业,akshare_metadata_cache,2054,337,True,False
+002409.SZ,C 制造业,akshare_metadata_cache,2049,1825,True,False
+002410.SZ,I 信息技术,akshare_metadata_cache,2054,1963,True,False
+002412.SZ,C 制造业,akshare_metadata_cache,2054,155,True,False
+002422.SZ,C 制造业,akshare_metadata_cache,2054,1932,True,False
+002423.SZ,J 金融业,akshare_metadata_cache,1962,657,True,False
+002425.SZ,I 信息技术,akshare_metadata_cache,2038,1032,True,False
+002436.SZ,C 制造业,akshare_metadata_cache,1985,1871,True,False
+002438.SZ,C 制造业,akshare_metadata_cache,2044,164,True,False
+002441.SZ,F 批发零售,akshare_metadata_cache,2054,158,True,False
+002445.SZ,C 制造业,akshare_metadata_cache,1970,280,True,False
+002446.SZ,C 制造业,akshare_metadata_cache,2054,1363,True,False
+002449.SZ,C 制造业,akshare_metadata_cache,2054,880,True,False
+002451.SZ,C 制造业,akshare_metadata_cache,1977,551,True,False
+002453.SZ,C 制造业,akshare_metadata_cache,2014,327,True,False
+002455.SZ,C 制造业,akshare_metadata_cache,2054,580,True,False
+002457.SZ,C 制造业,akshare_metadata_cache,2054,719,True,False
+002458.SZ,A 农林牧渔,akshare_metadata_cache,2034,1020,True,False
+002459.SZ,C 制造业,akshare_metadata_cache,1982,1645,True,False
+002460.SZ,C 制造业,akshare_metadata_cache,2054,2054,True,False
+002461.SZ,C 制造业,akshare_metadata_cache,2054,335,True,False
+002462.SZ,F 批发零售,akshare_metadata_cache,2049,155,True,False
+002467.SZ,I 信息技术,akshare_metadata_cache,2054,1060,True,False
+002468.SZ,G 运输仓储,akshare_metadata_cache,2054,1061,True,False
+002471.SZ,C 制造业,akshare_metadata_cache,2044,482,True,False
+002474.SZ,I 信息技术,akshare_metadata_cache,2054,788,True,False
+002479.SZ,D 水电煤气,akshare_metadata_cache,2054,239,True,False
+002483.SZ,C 制造业,akshare_metadata_cache,2038,171,True,False
+002486.SZ,C 制造业,akshare_metadata_cache,2043,309,True,False
+002492.SZ,G 运输仓储,akshare_metadata_cache,2054,282,True,False
+002493.SZ,C 制造业,akshare_metadata_cache,2054,1529,True,False
+002497.SZ,C 制造业,akshare_metadata_cache,2054,1781,True,False
+002498.SZ,C 制造业,akshare_metadata_cache,2054,545,True,False
+002500.SZ,J 金融业,akshare_metadata_cache,2048,964,True,False
+002510.SZ,C 制造业,akshare_metadata_cache,2044,896,True,False
+002515.SZ,C 制造业,akshare_metadata_cache,1971,414,True,False
+002516.SZ,C 制造业,akshare_metadata_cache,2049,128,True,False
+002518.SZ,C 制造业,akshare_metadata_cache,2054,1216,True,False
+002520.SZ,C 制造业,akshare_metadata_cache,1946,587,True,False
+002524.SZ,Q 卫生,akshare_metadata_cache,1982,600,True,False
+002527.SZ,C 制造业,akshare_metadata_cache,2049,559,True,False
+002529.SZ,C 制造业,akshare_metadata_cache,2035,373,True,False
+002530.SZ,C 制造业,akshare_metadata_cache,2049,1219,True,False
+002537.SZ,C 制造业,akshare_metadata_cache,2054,1132,True,False
+002540.SZ,C 制造业,akshare_metadata_cache,2054,76,True,False
+002541.SZ,C 制造业,akshare_metadata_cache,2054,521,True,False
+002544.SZ,I 信息技术,akshare_metadata_cache,2054,1118,True,False
+002545.SZ,C 制造业,akshare_metadata_cache,1993,425,True,False
+002548.SZ,C 制造业,akshare_metadata_cache,2044,492,True,False
+002553.SZ,C 制造业,akshare_metadata_cache,2054,736,True,False
+002555.SZ,I 信息技术,akshare_metadata_cache,2054,2054,True,False
+002557.SZ,C 制造业,akshare_metadata_cache,2054,1338,True,False
+002562.SZ,C 制造业,akshare_metadata_cache,2054,726,True,False
+002563.SZ,C 制造业,akshare_metadata_cache,2054,458,True,False
+002564.SZ,C 制造业,akshare_metadata_cache,2004,350,True,False
+002565.SZ,C 制造业,akshare_metadata_cache,2054,817,True,False
+002568.SZ,C 制造业,akshare_metadata_cache,2054,1292,True,False
+002573.SZ,N 公共环保,akshare_metadata_cache,1973,306,True,False
+002574.SZ,C 制造业,akshare_metadata_cache,2054,101,True,False
+002577.SZ,C 制造业,akshare_metadata_cache,2054,365,True,False
+002580.SZ,C 制造业,akshare_metadata_cache,1968,629,True,False
+002585.SZ,C 制造业,akshare_metadata_cache,2054,1028,True,False
+002587.SZ,C 制造业,akshare_metadata_cache,2054,478,True,False
+002589.SZ,F 批发零售,akshare_metadata_cache,2054,845,True,False
+002596.SZ,C 制造业,akshare_metadata_cache,2044,900,True,False
+002599.SZ,C 制造业,akshare_metadata_cache,2050,467,True,False
+002600.SZ,C 制造业,akshare_metadata_cache,2054,1980,True,False
+002607.SZ,P 教育,akshare_metadata_cache,1956,1842,True,False
+002609.SZ,I 信息技术,akshare_metadata_cache,2033,292,True,False
+002613.SZ,C 制造业,akshare_metadata_cache,2054,288,True,False
+002614.SZ,C 制造业,akshare_metadata_cache,2054,632,True,False
+002615.SZ,C 制造业,akshare_metadata_cache,2054,120,True,False
+002623.SZ,C 制造业,akshare_metadata_cache,2045,563,True,False
+002627.SZ,N 公共环保,akshare_metadata_cache,2033,64,True,False
+002629.SZ,B 采矿业,akshare_metadata_cache,2036,210,True,False
+002633.SZ,C 制造业,akshare_metadata_cache,2041,0,True,False
+002640.SZ,F 批发零售,akshare_metadata_cache,2052,1551,True,False
+002642.SZ,I 信息技术,akshare_metadata_cache,2047,950,True,False
+002643.SZ,C 制造业,akshare_metadata_cache,2054,930,True,False
+002645.SZ,C 制造业,akshare_metadata_cache,2043,636,True,False
+002649.SZ,I 信息技术,akshare_metadata_cache,2054,1161,True,False
+002651.SZ,C 制造业,akshare_metadata_cache,2054,316,True,False
+002658.SZ,C 制造业,akshare_metadata_cache,2054,168,True,False
+002666.SZ,C 制造业,akshare_metadata_cache,2054,339,True,False
+002670.SZ,J 金融业,akshare_metadata_cache,2024,1534,True,False
+002671.SZ,C 制造业,akshare_metadata_cache,2054,72,True,False
+002672.SZ,C 制造业,akshare_metadata_cache,2054,206,True,False
+002675.SZ,C 制造业,akshare_metadata_cache,2049,737,True,False
+002677.SZ,C 制造业,akshare_metadata_cache,2054,438,True,False
+002682.SZ,G 运输仓储,akshare_metadata_cache,2042,411,True,False
+002683.SZ,B 采矿业,akshare_metadata_cache,2044,1337,True,False
+002688.SZ,C 制造业,akshare_metadata_cache,2054,238,True,False
+002697.SZ,F 批发零售,akshare_metadata_cache,2048,530,True,False
+002698.SZ,C 制造业,akshare_metadata_cache,2054,372,True,False
+002701.SZ,C 制造业,akshare_metadata_cache,2054,511,True,False
+002702.SZ,C 制造业,akshare_metadata_cache,2054,560,True,False
+002708.SZ,C 制造业,akshare_metadata_cache,2045,708,True,False
+002709.SZ,C 制造业,akshare_metadata_cache,2054,1954,True,False
+002715.SZ,C 制造业,akshare_metadata_cache,2044,21,True,False
+002716.SZ,C 制造业,akshare_metadata_cache,1956,949,True,False
+002718.SZ,C 制造业,akshare_metadata_cache,2044,0,True,False
+002724.SZ,C 制造业,akshare_metadata_cache,2052,59,True,False
+002725.SZ,C 制造业,akshare_metadata_cache,2049,659,True,False
+002727.SZ,F 批发零售,akshare_metadata_cache,2054,1407,True,False
+002732.SZ,C 制造业,akshare_metadata_cache,2054,45,True,False
+002733.SZ,C 制造业,akshare_metadata_cache,2054,1040,True,False
+002742.SZ,C 制造业,akshare_metadata_cache,2040,255,True,False
+002746.SZ,C 制造业,akshare_metadata_cache,2054,611,True,False
+002749.SZ,C 制造业,akshare_metadata_cache,2054,0,True,False
+002756.SZ,C 制造业,akshare_metadata_cache,2054,1340,True,False
+002760.SZ,C 制造业,akshare_metadata_cache,2050,97,True,False
+002762.SZ,C 制造业,akshare_metadata_cache,2042,338,True,False
+002766.SZ,C 制造业,akshare_metadata_cache,2049,540,True,False
+002767.SZ,C 制造业,akshare_metadata_cache,2054,106,True,False
+002768.SZ,C 制造业,akshare_metadata_cache,2054,326,True,False
+002769.SZ,L 商务服务,akshare_metadata_cache,2024,347,True,False
+002778.SZ,C 制造业,akshare_metadata_cache,1988,67,True,False
+002780.SZ,F 批发零售,akshare_metadata_cache,2054,93,True,False
+002783.SZ,C 制造业,akshare_metadata_cache,2054,366,True,False
+002792.SZ,C 制造业,akshare_metadata_cache,2054,1139,True,False
+002793.SZ,C 制造业,akshare_metadata_cache,2043,243,True,False
+002795.SZ,C 制造业,akshare_metadata_cache,2043,283,True,False
+002796.SZ,C 制造业,akshare_metadata_cache,2054,861,True,False
+002800.SZ,G 运输仓储,akshare_metadata_cache,2050,293,True,False
+002801.SZ,C 制造业,akshare_metadata_cache,2054,28,True,False
+002803.SZ,F 批发零售,akshare_metadata_cache,2054,1011,True,False
+002807.SZ,J 金融业,akshare_metadata_cache,2054,255,True,False
+002827.SZ,C 制造业,akshare_metadata_cache,2054,411,True,False
+002829.SZ,C 制造业,akshare_metadata_cache,2054,535,True,False
+002831.SZ,C 制造业,akshare_metadata_cache,2054,296,True,False
+002836.SZ,C 制造业,akshare_metadata_cache,2044,62,True,False
+002837.SZ,C 制造业,akshare_metadata_cache,2048,1490,True,False
+002842.SZ,C 制造业,akshare_metadata_cache,2054,357,True,False
+002843.SZ,C 制造业,akshare_metadata_cache,2054,475,True,False
+002846.SZ,C 制造业,akshare_metadata_cache,2054,528,True,False
+002847.SZ,C 制造业,akshare_metadata_cache,2054,659,True,False
+002849.SZ,C 制造业,akshare_metadata_cache,2054,133,True,False
+002865.SZ,C 制造业,akshare_metadata_cache,2054,1392,True,False
+002866.SZ,C 制造业,akshare_metadata_cache,1978,750,True,False
+002868.SZ,C 制造业,akshare_metadata_cache,2048,159,True,False
+002869.SZ,C 制造业,akshare_metadata_cache,2054,676,True,False
+002871.SZ,C 制造业,akshare_metadata_cache,2054,238,True,False
+002873.SZ,C 制造业,akshare_metadata_cache,2044,265,True,False
+002880.SZ,C 制造业,akshare_metadata_cache,2049,48,True,False
+002881.SZ,C 制造业,akshare_metadata_cache,2054,858,True,False
+002888.SZ,C 制造业,akshare_metadata_cache,2052,457,True,False
+002890.SZ,C 制造业,akshare_metadata_cache,2044,39,True,False
+002891.SZ,C 制造业,akshare_metadata_cache,2044,450,True,False
+002898.SZ,C 制造业,akshare_metadata_cache,2018,218,True,False
+002905.SZ,R 文化传播,akshare_metadata_cache,2054,493,True,False
+002908.SZ,I 信息技术,akshare_metadata_cache,2054,724,True,False
+002911.SZ,D 水电煤气,akshare_metadata_cache,2054,290,True,False
+002913.SZ,C 制造业,akshare_metadata_cache,2054,690,True,False
+002915.SZ,C 制造业,akshare_metadata_cache,2053,732,True,False
+002923.SZ,C 制造业,akshare_metadata_cache,2051,339,True,False
+002925.SZ,C 制造业,akshare_metadata_cache,2043,827,True,False
+002928.SZ,G 运输仓储,akshare_metadata_cache,2016,457,True,False
+002930.SZ,G 运输仓储,akshare_metadata_cache,1989,449,True,False
+002935.SZ,C 制造业,akshare_metadata_cache,1890,394,True,False
+002941.SZ,E 建筑业,akshare_metadata_cache,1834,916,True,False
+002942.SZ,C 制造业,akshare_metadata_cache,1829,72,True,False
+002945.SZ,J 金融业,akshare_metadata_cache,1800,1100,True,False
+002946.SZ,C 制造业,akshare_metadata_cache,1794,192,True,False
+002948.SZ,J 金融业,akshare_metadata_cache,1795,217,True,False
+002953.SZ,C 制造业,akshare_metadata_cache,1729,288,True,False
+002957.SZ,C 制造业,akshare_metadata_cache,1674,414,True,False
+002959.SZ,C 制造业,akshare_metadata_cache,1654,424,True,False
+002960.SZ,C 制造业,akshare_metadata_cache,1664,178,True,False
+002963.SZ,E 建筑业,akshare_metadata_cache,1614,0,True,False
+002966.SZ,J 金融业,akshare_metadata_cache,1669,933,True,False
+002971.SZ,C 制造业,akshare_metadata_cache,1560,55,True,False
+002973.SZ,N 公共环保,akshare_metadata_cache,1565,26,True,False
+002976.SZ,C 制造业,akshare_metadata_cache,1527,60,True,False
+002979.SZ,C 制造业,akshare_metadata_cache,1505,496,True,False
+002981.SZ,C 制造业,akshare_metadata_cache,1498,80,True,False
+002985.SZ,C 制造业,akshare_metadata_cache,1490,646,True,False
+002986.SZ,C 制造业,akshare_metadata_cache,1469,14,True,False
+002990.SZ,I 信息技术,akshare_metadata_cache,1475,102,True,False
+002991.SZ,C 制造业,akshare_metadata_cache,1428,27,True,False
+002992.SZ,C 制造业,akshare_metadata_cache,1427,384,True,False
+002996.SZ,C 制造业,akshare_metadata_cache,1408,149,True,False
+003002.SZ,C 制造业,akshare_metadata_cache,1391,58,True,False
+003006.SZ,C 制造业,akshare_metadata_cache,1392,0,True,False
+003007.SZ,I 信息技术,akshare_metadata_cache,1390,306,True,False
+003008.SZ,M 科研服务,akshare_metadata_cache,1390,5,True,False
+003010.SZ,I 信息技术,akshare_metadata_cache,1388,234,True,False
+003011.SZ,C 制造业,akshare_metadata_cache,1385,0,True,False
+003016.SZ,C 制造业,akshare_metadata_cache,1373,122,True,False
+003018.SZ,C 制造业,akshare_metadata_cache,1364,101,True,False
+003031.SZ,C 制造业,akshare_metadata_cache,1314,428,True,False
+003035.SZ,M 科研服务,akshare_metadata_cache,1313,381,True,False
+003041.SZ,C 制造业,akshare_metadata_cache,1255,64,True,False
+300006.SZ,C 制造业,akshare_metadata_cache,2054,554,True,False
+300007.SZ,I 信息技术,akshare_metadata_cache,2054,1528,True,False
+300013.SZ,G 运输仓储,akshare_metadata_cache,2024,222,True,False
+300016.SZ,C 制造业,akshare_metadata_cache,2022,492,True,False
+300018.SZ,C 制造业,akshare_metadata_cache,2031,434,True,False
+300021.SZ,N 公共环保,akshare_metadata_cache,2054,366,True,False
+300022.SZ,F 批发零售,akshare_metadata_cache,2044,284,True,False
+300025.SZ,I 信息技术,akshare_metadata_cache,2054,545,True,False
+300030.SZ,C 制造业,akshare_metadata_cache,2054,271,True,False
+300037.SZ,C 制造业,akshare_metadata_cache,2054,1979,True,False
+300039.SZ,C 制造业,akshare_metadata_cache,2054,543,True,False
+300045.SZ,C 制造业,akshare_metadata_cache,2049,1279,True,False
+300047.SZ,I 信息技术,akshare_metadata_cache,2054,1429,True,False
+300051.SZ,I 信息技术,akshare_metadata_cache,2037,374,True,False
+300061.SZ,L 商务服务,akshare_metadata_cache,2054,707,True,False
+300067.SZ,C 制造业,akshare_metadata_cache,1987,582,True,False
+300070.SZ,N 公共环保,akshare_metadata_cache,2045,1193,True,False
+300071.SZ,L 商务服务,akshare_metadata_cache,1951,546,True,False
+300072.SZ,C 制造业,akshare_metadata_cache,2034,996,True,False
+300078.SZ,C 制造业,akshare_metadata_cache,2054,921,True,False
+300080.SZ,C 制造业,akshare_metadata_cache,1939,352,True,False
+300084.SZ,B 采矿业,akshare_metadata_cache,2042,350,True,False
+300086.SZ,C 制造业,akshare_metadata_cache,1954,523,True,False
+300088.SZ,C 制造业,akshare_metadata_cache,2039,1800,True,False
+300092.SZ,C 制造业,akshare_metadata_cache,2054,247,True,False
+300094.SZ,C 制造业,akshare_metadata_cache,2054,943,True,False
+300095.SZ,C 制造业,akshare_metadata_cache,2054,383,True,False
+300100.SZ,C 制造业,akshare_metadata_cache,2049,875,True,False
+300101.SZ,I 信息技术,akshare_metadata_cache,2054,1824,True,False
+300102.SZ,C 制造业,akshare_metadata_cache,2038,1124,True,False
+300106.SZ,C 制造业,akshare_metadata_cache,2044,428,True,False
+300110.SZ,C 制造业,akshare_metadata_cache,2048,560,True,False
+300113.SZ,I 信息技术,akshare_metadata_cache,2054,1674,True,False
+300121.SZ,C 制造业,akshare_metadata_cache,2043,260,True,False
+300122.SZ,C 制造业,akshare_metadata_cache,2054,1957,True,False
+300127.SZ,C 制造业,akshare_metadata_cache,2044,809,True,False
+300137.SZ,C 制造业,akshare_metadata_cache,2052,596,True,False
+300140.SZ,N 公共环保,akshare_metadata_cache,2021,339,True,False
+300146.SZ,C 制造业,akshare_metadata_cache,1934,1423,True,False
+300149.SZ,M 科研服务,akshare_metadata_cache,2029,450,True,False
+300153.SZ,C 制造业,akshare_metadata_cache,2054,579,True,False
+300155.SZ,C 制造业,akshare_metadata_cache,2054,173,True,False
+300157.SZ,C 制造业,akshare_metadata_cache,2047,591,True,False
+300158.SZ,C 制造业,akshare_metadata_cache,2054,842,True,False
+300161.SZ,C 制造业,akshare_metadata_cache,2054,567,True,False
+300166.SZ,I 信息技术,akshare_metadata_cache,2054,1813,True,False
+300168.SZ,I 信息技术,akshare_metadata_cache,2049,1273,True,False
+300171.SZ,C 制造业,akshare_metadata_cache,2054,776,True,False
+300177.SZ,C 制造业,akshare_metadata_cache,2054,1234,True,False
+300184.SZ,F 批发零售,akshare_metadata_cache,2054,1419,True,False
+300188.SZ,I 信息技术,akshare_metadata_cache,2050,1427,True,False
+300191.SZ,B 采矿业,akshare_metadata_cache,2054,565,True,False
+300193.SZ,C 制造业,akshare_metadata_cache,2054,61,True,False
+300194.SZ,C 制造业,akshare_metadata_cache,2054,583,True,False
+300196.SZ,C 制造业,akshare_metadata_cache,2054,95,True,False
+300201.SZ,C 制造业,akshare_metadata_cache,2008,286,True,False
+300203.SZ,C 制造业,akshare_metadata_cache,2054,1059,True,False
+300209.SZ,F 批发零售,akshare_metadata_cache,2039,427,True,False
+300215.SZ,M 科研服务,akshare_metadata_cache,2054,203,True,False
+300218.SZ,C 制造业,akshare_metadata_cache,2054,51,True,False
+300222.SZ,C 制造业,akshare_metadata_cache,2054,1107,True,False
+300225.SZ,C 制造业,akshare_metadata_cache,1919,705,True,False
+300232.SZ,C 制造业,akshare_metadata_cache,2054,1025,True,False
+300233.SZ,C 制造业,akshare_metadata_cache,2049,737,True,False
+300238.SZ,C 制造业,akshare_metadata_cache,1946,690,True,False
+300246.SZ,C 制造业,akshare_metadata_cache,2054,203,True,False
+300247.SZ,C 制造业,akshare_metadata_cache,2034,184,True,False
+300249.SZ,I 信息技术,akshare_metadata_cache,2054,943,True,False
+300251.SZ,R 文化传播,akshare_metadata_cache,2054,1850,True,False
+300259.SZ,C 制造业,akshare_metadata_cache,2054,212,True,False
+300263.SZ,C 制造业,akshare_metadata_cache,2054,947,True,False
+300265.SZ,C 制造业,akshare_metadata_cache,2054,570,True,False
+300267.SZ,C 制造业,akshare_metadata_cache,2054,673,True,False
+300268.SZ,C 制造业,akshare_metadata_cache,2050,163,True,False
+300272.SZ,C 制造业,akshare_metadata_cache,2050,220,True,False
+300274.SZ,C 制造业,akshare_metadata_cache,2054,2054,True,False
+300275.SZ,I 信息技术,akshare_metadata_cache,2045,327,True,False
+300277.SZ,I 信息技术,akshare_metadata_cache,2031,335,True,False
+300278.SZ,C 制造业,akshare_metadata_cache,1987,562,True,False
+300284.SZ,M 科研服务,akshare_metadata_cache,2049,621,True,False
+300288.SZ,I 信息技术,akshare_metadata_cache,2054,717,True,False
+300293.SZ,C 制造业,akshare_metadata_cache,2054,819,True,False
+300294.SZ,C 制造业,akshare_metadata_cache,2032,1035,True,False
+300298.SZ,C 制造业,akshare_metadata_cache,2050,453,True,False
+300305.SZ,C 制造业,akshare_metadata_cache,2054,59,True,False
+300310.SZ,I 信息技术,akshare_metadata_cache,2054,992,True,False
+300324.SZ,I 信息技术,akshare_metadata_cache,1925,1222,True,False
+300331.SZ,C 制造业,akshare_metadata_cache,2054,948,True,False
+300332.SZ,D 水电煤气,akshare_metadata_cache,2054,270,True,False
+300335.SZ,D 水电煤气,akshare_metadata_cache,2054,421,True,False
+300337.SZ,C 制造业,akshare_metadata_cache,2000,1006,True,False
+300340.SZ,C 制造业,akshare_metadata_cache,2045,831,True,False
+300341.SZ,C 制造业,akshare_metadata_cache,2033,341,True,False
+300342.SZ,C 制造业,akshare_metadata_cache,2054,1130,True,False
+300343.SZ,C 制造业,akshare_metadata_cache,1992,1171,True,False
+300345.SZ,C 制造业,akshare_metadata_cache,2033,287,True,False
+300346.SZ,C 制造业,akshare_metadata_cache,2046,1778,True,False
+300347.SZ,M 科研服务,akshare_metadata_cache,2054,2054,True,False
+300348.SZ,I 信息技术,akshare_metadata_cache,2044,1438,True,False
+300351.SZ,C 制造业,akshare_metadata_cache,2054,686,True,False
+300354.SZ,C 制造业,akshare_metadata_cache,2054,165,True,False
+300359.SZ,P 教育,akshare_metadata_cache,2044,498,True,False
+300365.SZ,I 信息技术,akshare_metadata_cache,2054,559,True,False
+300369.SZ,I 信息技术,akshare_metadata_cache,2044,1077,True,False
+300376.SZ,C 制造业,akshare_metadata_cache,2052,829,True,False
+300377.SZ,I 信息技术,akshare_metadata_cache,2054,1564,True,False
+300378.SZ,I 信息技术,akshare_metadata_cache,2054,1482,True,False
+300382.SZ,C 制造业,akshare_metadata_cache,2054,680,True,False
+300387.SZ,C 制造业,akshare_metadata_cache,2048,71,True,False
+300389.SZ,C 制造业,akshare_metadata_cache,2054,137,True,False
+300393.SZ,C 制造业,akshare_metadata_cache,2049,1023,True,False
+300394.SZ,C 制造业,akshare_metadata_cache,2049,1590,True,False
+300395.SZ,C 制造业,akshare_metadata_cache,2054,1440,True,False
+300398.SZ,C 制造业,akshare_metadata_cache,2054,1501,True,False
+300399.SZ,I 信息技术,akshare_metadata_cache,2054,472,True,False
+300402.SZ,C 制造业,akshare_metadata_cache,2054,303,True,False
+300403.SZ,C 制造业,akshare_metadata_cache,2054,629,True,False
+300404.SZ,M 科研服务,akshare_metadata_cache,2054,193,True,False
+300405.SZ,C 制造业,akshare_metadata_cache,2044,204,True,False
+300409.SZ,C 制造业,akshare_metadata_cache,1999,1434,True,False
+300412.SZ,C 制造业,akshare_metadata_cache,2031,235,True,False
+300422.SZ,N 公共环保,akshare_metadata_cache,2043,347,True,False
+300423.SZ,C 制造业,akshare_metadata_cache,2039,340,True,False
+300426.SZ,R 文化传播,akshare_metadata_cache,2050,265,True,False
+300428.SZ,C 制造业,akshare_metadata_cache,2037,669,True,False
+300438.SZ,C 制造业,akshare_metadata_cache,2050,1692,True,False
+300439.SZ,C 制造业,akshare_metadata_cache,2054,291,True,False
+300444.SZ,C 制造业,akshare_metadata_cache,1983,834,True,False
+300447.SZ,C 制造业,akshare_metadata_cache,2054,336,True,False
+300448.SZ,I 信息技术,akshare_metadata_cache,2054,556,True,False
+300449.SZ,C 制造业,akshare_metadata_cache,2029,330,True,False
+300455.SZ,C 制造业,akshare_metadata_cache,1954,595,True,False
+300458.SZ,C 制造业,akshare_metadata_cache,2054,2041,True,False
+300459.SZ,I 信息技术,akshare_metadata_cache,2054,1719,True,False
+300461.SZ,C 制造业,akshare_metadata_cache,2051,238,True,False
+300463.SZ,C 制造业,akshare_metadata_cache,2054,850,True,False
+300466.SZ,C 制造业,akshare_metadata_cache,2053,496,True,False
+300467.SZ,I 信息技术,akshare_metadata_cache,2054,678,True,False
+300470.SZ,C 制造业,akshare_metadata_cache,2054,101,True,False
+300473.SZ,C 制造业,akshare_metadata_cache,2046,274,True,False
+300474.SZ,C 制造业,akshare_metadata_cache,2054,2040,True,False
+300480.SZ,C 制造业,akshare_metadata_cache,2054,404,True,False
+300486.SZ,C 制造业,akshare_metadata_cache,2034,273,True,False
+300487.SZ,C 制造业,akshare_metadata_cache,2045,1081,True,False
+300488.SZ,C 制造业,akshare_metadata_cache,2054,116,True,False
+300496.SZ,I 信息技术,akshare_metadata_cache,2054,2054,True,False
+300500.SZ,M 科研服务,akshare_metadata_cache,2053,315,True,False
+300503.SZ,C 制造业,akshare_metadata_cache,2054,1028,True,False
+300504.SZ,C 制造业,akshare_metadata_cache,1996,578,True,False
+300509.SZ,C 制造业,akshare_metadata_cache,2054,24,True,False
+300513.SZ,I 信息技术,akshare_metadata_cache,2049,445,True,False
+300517.SZ,E 建筑业,akshare_metadata_cache,2054,40,True,False
+300518.SZ,I 信息技术,akshare_metadata_cache,2054,111,True,False
+300519.SZ,C 制造业,akshare_metadata_cache,2049,157,True,False
+300520.SZ,I 信息技术,akshare_metadata_cache,2043,1342,True,False
+300525.SZ,I 信息技术,akshare_metadata_cache,2029,542,True,False
+300528.SZ,R 文化传播,akshare_metadata_cache,2054,396,True,False
+300529.SZ,C 制造业,akshare_metadata_cache,2054,1187,True,False
+300532.SZ,I 信息技术,akshare_metadata_cache,2054,522,True,False
+300533.SZ,I 信息技术,akshare_metadata_cache,2054,634,True,False
+300535.SZ,C 制造业,akshare_metadata_cache,2054,27,True,False
+300538.SZ,F 批发零售,akshare_metadata_cache,2054,478,True,False
+300539.SZ,C 制造业,akshare_metadata_cache,2053,140,True,False
+300542.SZ,I 信息技术,akshare_metadata_cache,2044,930,True,False
+300546.SZ,C 制造业,akshare_metadata_cache,2054,545,True,False
+300548.SZ,C 制造业,akshare_metadata_cache,2050,1146,True,False
+300550.SZ,I 信息技术,akshare_metadata_cache,2049,82,True,False
+300551.SZ,C 制造业,akshare_metadata_cache,2041,832,True,False
+300552.SZ,C 制造业,akshare_metadata_cache,2054,931,True,False
+300554.SZ,C 制造业,akshare_metadata_cache,2051,461,True,False
+300557.SZ,C 制造业,akshare_metadata_cache,2054,43,True,False
+300558.SZ,C 制造业,akshare_metadata_cache,2054,1753,True,False
+300562.SZ,C 制造业,akshare_metadata_cache,2051,349,True,False
+300571.SZ,C 制造业,akshare_metadata_cache,2049,884,True,False
+300575.SZ,C 制造业,akshare_metadata_cache,2054,176,True,False
+300578.SZ,I 信息技术,akshare_metadata_cache,1980,849,True,False
+300579.SZ,I 信息技术,akshare_metadata_cache,2054,996,True,False
+300580.SZ,C 制造业,akshare_metadata_cache,2017,591,True,False
+300582.SZ,C 制造业,akshare_metadata_cache,2054,428,True,False
+300583.SZ,C 制造业,akshare_metadata_cache,2054,48,True,False
+300585.SZ,C 制造业,akshare_metadata_cache,2049,533,True,False
+300588.SZ,I 信息技术,akshare_metadata_cache,2049,551,True,False
+300590.SZ,C 制造业,akshare_metadata_cache,2054,1029,True,False
+300592.SZ,F 批发零售,akshare_metadata_cache,2033,169,True,False
+300593.SZ,C 制造业,akshare_metadata_cache,2013,942,True,False
+300595.SZ,C 制造业,akshare_metadata_cache,2054,1473,True,False
+300596.SZ,C 制造业,akshare_metadata_cache,2044,113,True,False
+300605.SZ,I 信息技术,akshare_metadata_cache,2054,302,True,False
+300613.SZ,I 信息技术,akshare_metadata_cache,2044,1355,True,False
+300619.SZ,C 制造业,akshare_metadata_cache,2054,499,True,False
+300621.SZ,E 建筑业,akshare_metadata_cache,2054,63,True,False
+300625.SZ,C 制造业,akshare_metadata_cache,2054,36,True,False
+300626.SZ,C 制造业,akshare_metadata_cache,2054,63,True,False
+300628.SZ,C 制造业,akshare_metadata_cache,2054,1521,True,False
+300632.SZ,C 制造业,akshare_metadata_cache,2054,441,True,False
+300633.SZ,C 制造业,akshare_metadata_cache,2054,731,True,False
+300635.SZ,M 科研服务,akshare_metadata_cache,2051,123,True,False
+300636.SZ,C 制造业,akshare_metadata_cache,2054,110,True,False
+300642.SZ,C 制造业,akshare_metadata_cache,2054,212,True,False
+300643.SZ,C 制造业,akshare_metadata_cache,2054,319,True,False
+300644.SZ,C 制造业,akshare_metadata_cache,2026,411,True,False
+300645.SZ,I 信息技术,akshare_metadata_cache,2044,317,True,False
+300649.SZ,M 科研服务,akshare_metadata_cache,2054,302,True,False
+300650.SZ,F 批发零售,akshare_metadata_cache,2054,213,True,False
+300651.SZ,C 制造业,akshare_metadata_cache,2054,140,True,False
+300652.SZ,C 制造业,akshare_metadata_cache,2054,122,True,False
+300653.SZ,C 制造业,akshare_metadata_cache,2054,507,True,False
+300655.SZ,C 制造业,akshare_metadata_cache,2047,1552,True,False
+300658.SZ,C 制造业,akshare_metadata_cache,2044,333,True,False
+300659.SZ,I 信息技术,akshare_metadata_cache,1980,828,True,False
+300668.SZ,L 商务服务,akshare_metadata_cache,2054,212,True,False
+300671.SZ,I 信息技术,akshare_metadata_cache,2054,1441,True,False
+300674.SZ,I 信息技术,akshare_metadata_cache,1849,1252,True,False
+300677.SZ,C 制造业,akshare_metadata_cache,2054,1551,True,False
+300679.SZ,C 制造业,akshare_metadata_cache,2044,1591,True,False
+300681.SZ,C 制造业,akshare_metadata_cache,2054,429,True,False
+300682.SZ,I 信息技术,akshare_metadata_cache,2003,1014,True,False
+300683.SZ,C 制造业,akshare_metadata_cache,1996,248,True,False
+300684.SZ,C 制造业,akshare_metadata_cache,2054,1201,True,False
+300687.SZ,I 信息技术,akshare_metadata_cache,2054,1006,True,False
+300688.SZ,L 商务服务,akshare_metadata_cache,2039,1040,True,False
+300689.SZ,C 制造业,akshare_metadata_cache,2054,192,True,False
+300690.SZ,C 制造业,akshare_metadata_cache,2054,593,True,False
+300698.SZ,C 制造业,akshare_metadata_cache,2054,484,True,False
+300701.SZ,C 制造业,akshare_metadata_cache,2054,307,True,False
+300708.SZ,C 制造业,akshare_metadata_cache,2054,1074,True,False
+300709.SZ,C 制造业,akshare_metadata_cache,2054,1102,True,False
+300710.SZ,C 制造业,akshare_metadata_cache,2039,143,True,False
+300712.SZ,E 建筑业,akshare_metadata_cache,2054,544,True,False
+300713.SZ,C 制造业,akshare_metadata_cache,2054,331,True,False
+300715.SZ,C 制造业,akshare_metadata_cache,2048,210,True,False
+300718.SZ,C 制造业,akshare_metadata_cache,2054,673,True,False
+300720.SZ,C 制造业,akshare_metadata_cache,2044,274,True,False
+300727.SZ,C 制造业,akshare_metadata_cache,2054,501,True,False
+300729.SZ,C 制造业,akshare_metadata_cache,2054,365,True,False
+300735.SZ,C 制造业,akshare_metadata_cache,2054,1256,True,False
+300741.SZ,C 制造业,akshare_metadata_cache,2017,219,True,False
+300745.SZ,C 制造业,akshare_metadata_cache,1962,505,True,False
+300747.SZ,C 制造业,akshare_metadata_cache,1940,1242,True,False
+300749.SZ,C 制造业,akshare_metadata_cache,1860,155,True,False
+300750.SZ,C 制造业,akshare_metadata_cache,1949,1870,True,False
+300752.SZ,C 制造业,akshare_metadata_cache,1832,277,True,False
+300759.SZ,M 科研服务,akshare_metadata_cache,1793,1654,True,False
+300761.SZ,A 农林牧渔,akshare_metadata_cache,1783,280,True,False
+300762.SZ,C 制造业,akshare_metadata_cache,1765,967,True,False
+300766.SZ,I 信息技术,akshare_metadata_cache,1758,1037,True,False
+300767.SZ,C 制造业,akshare_metadata_cache,1754,447,True,False
+300770.SZ,I 信息技术,akshare_metadata_cache,1740,704,True,False
+300780.SZ,C 制造业,akshare_metadata_cache,1713,240,True,False
+300786.SZ,C 制造业,akshare_metadata_cache,1677,213,True,False
+300787.SZ,C 制造业,akshare_metadata_cache,1660,192,True,False
+300798.SZ,C 制造业,akshare_metadata_cache,1595,272,True,False
+300803.SZ,J 金融业,akshare_metadata_cache,1599,1438,True,False
+300804.SZ,C 制造业,akshare_metadata_cache,725,26,True,False
+300805.SZ,L 商务服务,akshare_metadata_cache,1596,200,True,False
+300809.SZ,C 制造业,akshare_metadata_cache,1582,563,True,False
+300810.SZ,I 信息技术,akshare_metadata_cache,1585,109,True,False
+300816.SZ,N 公共环保,akshare_metadata_cache,1546,26,True,False
+300820.SZ,C 制造业,akshare_metadata_cache,1543,664,True,False
+300821.SZ,C 制造业,akshare_metadata_cache,1523,687,True,False
+300823.SZ,C 制造业,akshare_metadata_cache,1518,38,True,False
+300825.SZ,M 科研服务,akshare_metadata_cache,1512,556,True,False
+300826.SZ,M 科研服务,akshare_metadata_cache,1507,105,True,False
+300834.SZ,C 制造业,akshare_metadata_cache,1074,20,True,False
+300835.SZ,C 制造业,akshare_metadata_cache,1475,413,True,False
+300839.SZ,C 制造业,akshare_metadata_cache,1446,0,True,False
+300841.SZ,C 制造业,akshare_metadata_cache,1454,525,True,False
+300842.SZ,C 制造业,akshare_metadata_cache,1447,927,True,False
+300844.SZ,M 科研服务,akshare_metadata_cache,1175,45,True,False
+300846.SZ,I 信息技术,akshare_metadata_cache,1450,928,True,False
+300850.SZ,C 制造业,akshare_metadata_cache,1436,1030,True,False
+300852.SZ,C 制造业,akshare_metadata_cache,1442,177,True,False
+300854.SZ,N 公共环保,akshare_metadata_cache,1151,14,True,False
+300857.SZ,C 制造业,akshare_metadata_cache,1432,757,True,False
+300858.SZ,C 制造业,akshare_metadata_cache,1432,62,True,False
+300860.SZ,R 文化传播,akshare_metadata_cache,1412,186,True,False
+300861.SZ,C 制造业,akshare_metadata_cache,1412,378,True,False
+300862.SZ,C 制造业,akshare_metadata_cache,1412,71,True,False
+300866.SZ,C 制造业,akshare_metadata_cache,1412,884,True,False
+300867.SZ,N 公共环保,akshare_metadata_cache,1412,148,True,False
+300869.SZ,C 制造业,akshare_metadata_cache,1412,358,True,False
+300871.SZ,C 制造业,akshare_metadata_cache,1412,106,True,False
+300872.SZ,I 信息技术,akshare_metadata_cache,1412,504,True,False
+300873.SZ,G 运输仓储,akshare_metadata_cache,1412,48,True,False
+300876.SZ,C 制造业,akshare_metadata_cache,1412,0,True,False
+300878.SZ,C 制造业,akshare_metadata_cache,1412,66,True,False
+300880.SZ,C 制造业,akshare_metadata_cache,1406,163,True,False
+300882.SZ,C 制造业,akshare_metadata_cache,1399,158,True,False
+300885.SZ,C 制造业,akshare_metadata_cache,1399,144,True,False
+300886.SZ,C 制造业,akshare_metadata_cache,1385,21,True,False
+300890.SZ,C 制造业,akshare_metadata_cache,1394,474,True,False
+300891.SZ,C 制造业,akshare_metadata_cache,1394,182,True,False
+300893.SZ,C 制造业,akshare_metadata_cache,1389,53,True,False
+300896.SZ,C 制造业,akshare_metadata_cache,1387,1239,True,False
+300897.SZ,C 制造业,akshare_metadata_cache,1382,12,True,False
+300898.SZ,C 制造业,akshare_metadata_cache,1379,192,True,False
+300903.SZ,C 制造业,akshare_metadata_cache,1365,373,True,False
+300904.SZ,C 制造业,akshare_metadata_cache,694,24,True,False
+300905.SZ,C 制造业,akshare_metadata_cache,1355,255,True,False
+300906.SZ,C 制造业,akshare_metadata_cache,1365,35,True,False
+300911.SZ,C 制造业,akshare_metadata_cache,1345,50,True,False
+300912.SZ,N 公共环保,akshare_metadata_cache,1333,117,True,False
+300916.SZ,C 制造业,akshare_metadata_cache,1346,70,True,False
+300923.SZ,C 制造业,akshare_metadata_cache,1330,22,True,False
+300927.SZ,C 制造业,akshare_metadata_cache,1321,141,True,False
+300928.SZ,M 科研服务,akshare_metadata_cache,1322,123,True,False
+300930.SZ,C 制造业,akshare_metadata_cache,1311,31,True,False
+300936.SZ,C 制造业,akshare_metadata_cache,1308,173,True,False
+300937.SZ,F 批发零售,akshare_metadata_cache,1307,118,True,False
+300939.SZ,C 制造业,akshare_metadata_cache,1306,186,True,False
+300942.SZ,C 制造业,akshare_metadata_cache,1298,121,True,False
+300947.SZ,L 商务服务,akshare_metadata_cache,1297,161,True,False
+300952.SZ,C 制造业,akshare_metadata_cache,1281,83,True,False
+300955.SZ,C 制造业,akshare_metadata_cache,1267,0,True,False
+300957.SZ,C 制造业,akshare_metadata_cache,1271,791,True,False
+300958.SZ,N 公共环保,akshare_metadata_cache,1269,59,True,False
+300959.SZ,I 信息技术,akshare_metadata_cache,1269,181,True,False
+300965.SZ,C 制造业,akshare_metadata_cache,1244,20,True,False
+300967.SZ,A 农林牧渔,akshare_metadata_cache,1259,172,True,False
+300970.SZ,A 农林牧渔,akshare_metadata_cache,1260,39,True,False
+300979.SZ,C 制造业,akshare_metadata_cache,1250,116,True,False
+300981.SZ,C 制造业,akshare_metadata_cache,1249,28,True,False
+300985.SZ,C 制造业,akshare_metadata_cache,1247,165,True,False
+300986.SZ,C 制造业,akshare_metadata_cache,1243,135,True,False
+300988.SZ,C 制造业,akshare_metadata_cache,1241,159,True,False
+300990.SZ,C 制造业,akshare_metadata_cache,1241,306,True,False
+300991.SZ,C 制造业,akshare_metadata_cache,1235,177,True,False
+300992.SZ,C 制造业,akshare_metadata_cache,1227,0,True,False
+300994.SZ,C 制造业,akshare_metadata_cache,1176,39,True,False
+300997.SZ,C 制造业,akshare_metadata_cache,1226,116,True,False
+300998.SZ,C 制造业,akshare_metadata_cache,1226,34,True,False
+300999.SZ,C 制造业,akshare_metadata_cache,1380,1034,True,False
+301002.SZ,C 制造业,akshare_metadata_cache,1223,19,True,False
+301008.SZ,C 制造业,akshare_metadata_cache,1219,56,True,False
+301010.SZ,C 制造业,akshare_metadata_cache,1215,60,True,False
+301012.SZ,C 制造业,akshare_metadata_cache,1211,231,True,False
+301015.SZ,F 批发零售,akshare_metadata_cache,1207,78,True,False
+301016.SZ,C 制造业,akshare_metadata_cache,1197,97,True,False
+301018.SZ,C 制造业,akshare_metadata_cache,1202,629,True,False
+301021.SZ,C 制造业,akshare_metadata_cache,1203,254,True,False
+301022.SZ,C 制造业,akshare_metadata_cache,1195,44,True,False
+301023.SZ,C 制造业,akshare_metadata_cache,1202,0,True,False
+301027.SZ,M 科研服务,akshare_metadata_cache,1193,114,True,False
+301031.SZ,C 制造业,akshare_metadata_cache,1196,124,True,False
+301032.SZ,C 制造业,akshare_metadata_cache,1191,30,True,False
+301033.SZ,C 制造业,akshare_metadata_cache,1179,0,True,False
+301035.SZ,C 制造业,akshare_metadata_cache,1187,41,True,False
+301036.SZ,C 制造业,akshare_metadata_cache,1186,139,True,False
+301038.SZ,M 科研服务,akshare_metadata_cache,1182,202,True,False
+301040.SZ,C 制造业,akshare_metadata_cache,1178,12,True,False
+301043.SZ,C 制造业,akshare_metadata_cache,1177,0,True,False
+301045.SZ,C 制造业,akshare_metadata_cache,1175,0,True,False
+301048.SZ,C 制造业,akshare_metadata_cache,1172,67,True,False
+301051.SZ,C 制造业,akshare_metadata_cache,1165,0,True,False
+301052.SZ,R 文化传播,akshare_metadata_cache,1164,462,True,False
+301057.SZ,C 制造业,akshare_metadata_cache,1151,0,True,False
+301058.SZ,M 科研服务,akshare_metadata_cache,1156,204,True,False
+301066.SZ,C 制造业,akshare_metadata_cache,1149,57,True,False
+301069.SZ,C 制造业,akshare_metadata_cache,1146,211,True,False
+301075.SZ,C 制造业,akshare_metadata_cache,1137,35,True,False
+301076.SZ,C 制造业,akshare_metadata_cache,1141,278,True,False
+301082.SZ,C 制造业,akshare_metadata_cache,1129,170,True,False
+301086.SZ,C 制造业,akshare_metadata_cache,1134,47,True,False
+301087.SZ,C 制造业,akshare_metadata_cache,1131,45,True,False
+301088.SZ,F 批发零售,akshare_metadata_cache,1128,17,True,False
+301092.SZ,C 制造业,akshare_metadata_cache,1125,57,True,False
+301093.SZ,C 制造业,akshare_metadata_cache,1126,55,True,False
+301097.SZ,C 制造业,akshare_metadata_cache,1021,0,True,False
+301098.SZ,E 建筑业,akshare_metadata_cache,1117,29,True,False
+301099.SZ,F 批发零售,akshare_metadata_cache,1111,271,True,False
+301100.SZ,C 制造业,akshare_metadata_cache,1092,1,True,False
+301105.SZ,C 制造业,akshare_metadata_cache,840,0,True,False
+301106.SZ,C 制造业,akshare_metadata_cache,1053,16,True,False
+301107.SZ,C 制造业,akshare_metadata_cache,991,2,True,False
+301108.SZ,C 制造业,akshare_metadata_cache,1102,0,True,False
+301109.SZ,N 公共环保,akshare_metadata_cache,1007,0,True,False
+301111.SZ,C 制造业,akshare_metadata_cache,1100,112,True,False
+301116.SZ,C 制造业,akshare_metadata_cache,1071,91,True,False
+301117.SZ,I 信息技术,akshare_metadata_cache,1072,189,True,False
+301119.SZ,C 制造业,akshare_metadata_cache,1111,10,True,False
+301120.SZ,C 制造业,akshare_metadata_cache,1013,319,True,False
+301121.SZ,C 制造业,akshare_metadata_cache,938,74,True,False
+301123.SZ,C 制造业,akshare_metadata_cache,1066,305,True,False
+301125.SZ,C 制造业,akshare_metadata_cache,981,0,True,False
+301131.SZ,C 制造业,akshare_metadata_cache,1037,63,True,False
+301137.SZ,C 制造业,akshare_metadata_cache,1031,260,True,False
+301150.SZ,C 制造业,akshare_metadata_cache,1011,223,True,False
+301151.SZ,C 制造业,akshare_metadata_cache,1019,41,True,False
+301156.SZ,C 制造业,akshare_metadata_cache,974,18,True,False
+301161.SZ,C 制造业,akshare_metadata_cache,912,23,True,False
+301166.SZ,F 批发零售,akshare_metadata_cache,1085,46,True,False
+301170.SZ,C 制造业,akshare_metadata_cache,725,0,True,False
+301172.SZ,I 信息技术,akshare_metadata_cache,704,69,True,False
+301173.SZ,C 制造业,akshare_metadata_cache,319,0,True,False
+301177.SZ,F 批发零售,akshare_metadata_cache,1094,12,True,False
+301181.SZ,C 制造业,akshare_metadata_cache,1047,25,True,False
+301182.SZ,C 制造业,akshare_metadata_cache,1088,117,True,False
+301186.SZ,C 制造业,akshare_metadata_cache,1086,25,True,False
+301190.SZ,C 制造业,akshare_metadata_cache,1087,12,True,False
+301193.SZ,C 制造业,akshare_metadata_cache,1098,0,True,False
+301201.SZ,C 制造业,akshare_metadata_cache,1069,82,True,False
+301202.SZ,C 制造业,akshare_metadata_cache,719,137,True,False
+301203.SZ,N 公共环保,akshare_metadata_cache,779,39,True,False
+301205.SZ,C 制造业,akshare_metadata_cache,913,746,True,False
+301211.SZ,C 制造业,akshare_metadata_cache,1089,261,True,False
+301215.SZ,M 科研服务,akshare_metadata_cache,1041,139,True,False
+301219.SZ,C 制造业,akshare_metadata_cache,1034,472,True,False
+301222.SZ,C 制造业,akshare_metadata_cache,1040,0,True,False
+301223.SZ,C 制造业,akshare_metadata_cache,887,0,True,False
+301226.SZ,C 制造业,akshare_metadata_cache,1028,112,True,False
+301231.SZ,R 文化传播,akshare_metadata_cache,915,180,True,False
+301232.SZ,C 制造业,akshare_metadata_cache,731,162,True,False
+301233.SZ,C 制造业,akshare_metadata_cache,961,14,True,False
+301238.SZ,C 制造业,akshare_metadata_cache,974,270,True,False
+301239.SZ,Q 卫生,akshare_metadata_cache,962,52,True,False
+301251.SZ,C 制造业,akshare_metadata_cache,674,252,True,False
+301257.SZ,M 科研服务,akshare_metadata_cache,996,0,True,False
+301258.SZ,C 制造业,akshare_metadata_cache,1026,44,True,False
+301262.SZ,I 信息技术,akshare_metadata_cache,728,103,True,False
+301266.SZ,C 制造业,akshare_metadata_cache,981,146,True,False
+301267.SZ,Q 卫生,akshare_metadata_cache,879,99,True,False
+301268.SZ,C 制造业,akshare_metadata_cache,1021,38,True,False
+301269.SZ,I 信息技术,akshare_metadata_cache,934,789,True,False
+301270.SZ,I 信息技术,akshare_metadata_cache,921,174,True,False
+301276.SZ,C 制造业,akshare_metadata_cache,914,1,True,False
+301277.SZ,C 制造业,akshare_metadata_cache,872,135,True,False
+301283.SZ,C 制造业,akshare_metadata_cache,919,0,True,False
+301293.SZ,Q 卫生,akshare_metadata_cache,760,606,True,False
+301300.SZ,C 制造业,akshare_metadata_cache,929,3,True,False
+301301.SZ,C 制造业,akshare_metadata_cache,843,288,True,False
+301303.SZ,C 制造业,akshare_metadata_cache,810,13,True,False
+301305.SZ,N 公共环保,akshare_metadata_cache,748,0,True,False
+301306.SZ,M 科研服务,akshare_metadata_cache,947,280,True,False
+301311.SZ,C 制造业,akshare_metadata_cache,862,191,True,False
+301312.SZ,C 制造业,akshare_metadata_cache,958,212,True,False
+301313.SZ,I 信息技术,akshare_metadata_cache,900,251,True,False
+301315.SZ,I 信息技术,akshare_metadata_cache,727,250,True,False
+301318.SZ,C 制造业,akshare_metadata_cache,936,74,True,False
+301327.SZ,C 制造业,akshare_metadata_cache,909,46,True,False
+301328.SZ,C 制造业,akshare_metadata_cache,915,3,True,False
+301330.SZ,C 制造业,akshare_metadata_cache,931,124,True,False
+301333.SZ,M 科研服务,akshare_metadata_cache,942,13,True,False
+301335.SZ,C 制造业,akshare_metadata_cache,860,36,True,False
+301336.SZ,C 制造业,akshare_metadata_cache,934,26,True,False
+301337.SZ,I 信息技术,akshare_metadata_cache,745,125,True,False
+301349.SZ,C 制造业,akshare_metadata_cache,914,58,True,False
+301356.SZ,C 制造业,akshare_metadata_cache,874,0,True,False
+301357.SZ,C 制造业,akshare_metadata_cache,760,306,True,False
+301361.SZ,C 制造业,akshare_metadata_cache,872,105,True,False
+301366.SZ,C 制造业,akshare_metadata_cache,904,268,True,False
+301372.SZ,N 公共环保,akshare_metadata_cache,692,0,True,False
+301378.SZ,I 信息技术,akshare_metadata_cache,790,17,True,False
+301382.SZ,I 信息技术,akshare_metadata_cache,752,448,True,False
+301383.SZ,C 制造业,akshare_metadata_cache,735,169,True,False
+301390.SZ,M 科研服务,akshare_metadata_cache,759,0,True,False
+301392.SZ,C 制造业,akshare_metadata_cache,497,248,True,False
+301395.SZ,C 制造业,akshare_metadata_cache,721,0,True,False
+301399.SZ,C 制造业,akshare_metadata_cache,748,0,True,False
+301408.SZ,F 批发零售,akshare_metadata_cache,803,138,True,False
+301413.SZ,C 制造业,akshare_metadata_cache,607,250,True,False
+301418.SZ,C 制造业,akshare_metadata_cache,686,7,True,False
+301439.SZ,C 制造业,akshare_metadata_cache,791,36,True,False
+301446.SZ,C 制造业,akshare_metadata_cache,705,0,True,False
+301448.SZ,C 制造业,akshare_metadata_cache,729,21,True,False
+301456.SZ,C 制造业,akshare_metadata_cache,712,14,True,False
+301458.SZ,C 制造业,akshare_metadata_cache,349,23,True,False
+301459.SZ,C 制造业,akshare_metadata_cache,610,16,True,False
+301468.SZ,C 制造业,akshare_metadata_cache,706,112,True,False
+301469.SZ,C 制造业,akshare_metadata_cache,685,0,True,False
+301486.SZ,C 制造业,akshare_metadata_cache,707,436,True,False
+301488.SZ,C 制造业,akshare_metadata_cache,720,252,True,False
+301489.SZ,C 制造业,akshare_metadata_cache,646,365,True,False
+301499.SZ,C 制造业,akshare_metadata_cache,707,25,True,False
+301500.SZ,C 制造业,akshare_metadata_cache,663,110,True,False
+301502.SZ,C 制造业,akshare_metadata_cache,574,0,True,False
+301503.SZ,C 制造业,akshare_metadata_cache,711,24,True,False
+301509.SZ,C 制造业,akshare_metadata_cache,698,109,True,False
+301513.SZ,C 制造业,akshare_metadata_cache,45,0,True,False
+301517.SZ,C 制造业,akshare_metadata_cache,642,270,True,False
+301522.SZ,C 制造业,akshare_metadata_cache,410,46,True,False
+301528.SZ,C 制造业,akshare_metadata_cache,681,0,True,False
+301529.SZ,C 制造业,akshare_metadata_cache,671,87,True,False
+301531.SZ,C 制造业,akshare_metadata_cache,32,0,True,False
+301533.SZ,C 制造业,akshare_metadata_cache,687,0,True,False
+301552.SZ,C 制造业,akshare_metadata_cache,465,0,True,False
+301556.SZ,I 信息技术,akshare_metadata_cache,409,41,True,False
+301557.SZ,C 制造业,akshare_metadata_cache,318,0,True,False
+301558.SZ,F 批发零售,akshare_metadata_cache,658,86,True,False
+301565.SZ,C 制造业,akshare_metadata_cache,487,16,True,False
+301568.SZ,C 制造业,akshare_metadata_cache,621,79,True,False
+301571.SZ,C 制造业,akshare_metadata_cache,443,7,True,False
+301575.SZ,C 制造业,akshare_metadata_cache,187,0,True,False
+301577.SZ,C 制造业,akshare_metadata_cache,581,36,True,False
+301578.SZ,C 制造业,akshare_metadata_cache,599,46,True,False
+301588.SZ,C 制造业,akshare_metadata_cache,552,0,True,False
+301592.SZ,I 信息技术,akshare_metadata_cache,404,5,True,False
+301595.SZ,C 制造业,akshare_metadata_cache,268,0,True,False
+301601.SZ,M 科研服务,akshare_metadata_cache,346,0,True,False
+301602.SZ,C 制造业,akshare_metadata_cache,341,0,True,False
+301611.SZ,C 制造业,akshare_metadata_cache,446,233,True,False
+301613.SZ,C 制造业,akshare_metadata_cache,393,48,True,False
+301617.SZ,C 制造业,akshare_metadata_cache,370,46,True,False
+301618.SZ,C 制造业,akshare_metadata_cache,417,0,True,False
+301626.SZ,C 制造业,akshare_metadata_cache,404,146,True,False
+301631.SZ,C 制造业,akshare_metadata_cache,383,3,True,False
+301638.SZ,I 信息技术,akshare_metadata_cache,144,66,True,False
+301656.SZ,C 制造业,akshare_metadata_cache,176,0,True,False
+301658.SZ,C 制造业,akshare_metadata_cache,297,43,True,False
+301665.SZ,C 制造业,akshare_metadata_cache,291,0,True,False
+301678.SZ,C 制造业,akshare_metadata_cache,245,14,True,False
+301680.SZ,C 制造业,akshare_metadata_cache,74,0,True,False
+600004.SH,航空机场,akshare_metadata_cache,2054,1464,True,False
+600006.SH,商用载货车,akshare_metadata_cache,2049,944,True,False
+600008.SH,环境治理,eastmoney_board_industry,2048,941,True,False
+600010.SH,板材,eastmoney_board_industry,2045,2045,True,False
+600011.SH,火力发电,akshare_metadata_cache,2054,1812,True,False
+600016.SH,股份制银行Ⅲ,akshare_metadata_cache,2054,1990,True,False
+600017.SH,航运港口,akshare_metadata_cache,2054,135,True,False
+600018.SH,航运港口,eastmoney_board_industry,2054,1090,True,False
+600021.SH,火力发电,eastmoney_board_industry,2054,1170,True,False
+600023.SH,火力发电,akshare_metadata_cache,2054,882,True,False
+600025.SH,公用事业,akshare_metadata_cache,2054,1290,True,False
+600027.SH,火力发电,eastmoney_board_industry,2043,1700,True,False
+600030.SH,非银金融,akshare_metadata_cache,2037,2037,True,False
+600033.SH,交通运输,akshare_metadata_cache,2054,27,True,False
+600036.SH,股份制银行Ⅲ,akshare_metadata_cache,2054,2054,True,False
+600037.SH,电视广播Ⅱ,akshare_metadata_cache,2048,586,True,False
+600050.SH,通信,akshare_metadata_cache,2054,2054,True,False
+600061.SH,金融控股,akshare_metadata_cache,2054,1319,True,False
+600062.SH,化学制剂,eastmoney_board_industry,2054,1196,True,False
+600063.SH,化学纤维,akshare_metadata_cache,2053,696,True,False
+600064.SH,住宅开发,akshare_metadata_cache,2053,392,True,False
+600066.SH,汽车,akshare_metadata_cache,2053,1814,True,False
+600067.SH,线缆部件及其他,eastmoney_board_industry,2054,112,True,False
+600072.SH,电力设备,akshare_metadata_cache,2033,1399,True,False
+600073.SH,食品饮料,akshare_metadata_cache,2054,599,True,False
+600076.SH,综合包装,akshare_metadata_cache,1974,246,True,False
+600081.SH,汽车零部件,eastmoney_board_industry,2033,390,True,False
+600085.SH,医药生物,akshare_metadata_cache,2054,1823,True,False
+600088.SH,影视动漫制作,eastmoney_board_industry,2054,524,True,False
+600094.SH,住宅开发,eastmoney_board_industry,2054,495,True,False
+600103.SH,特种纸,akshare_metadata_cache,2054,337,True,False
+600104.SH,乘用车,akshare_metadata_cache,2054,2054,True,False
+600105.SH,通信线缆及配套,eastmoney_board_industry,2054,1177,True,False
+600109.SH,非银金融,eastmoney_board_industry,2044,1783,True,False
+600110.SH,电池,eastmoney_board_industry,2046,1354,True,False
+600113.SH,商业物业经营,eastmoney_board_industry,2046,345,True,False
+600115.SH,航空运输,eastmoney_board_industry,2054,1704,True,False
+600117.SH,特钢Ⅱ,akshare_metadata_cache,2019,214,True,False
+600120.SH,金融控股,eastmoney_board_industry,2054,813,True,False
+600126.SH,板材,eastmoney_board_industry,2047,809,True,False
+600127.SH,农产品加工,akshare_metadata_cache,2053,734,True,False
+600137.SH,纺织服饰,akshare_metadata_cache,2054,33,True,False
+600141.SH,磷肥及磷化工,akshare_metadata_cache,2053,1832,True,False
+600143.SH,塑料,akshare_metadata_cache,2054,1331,True,False
+600150.SH,航海装备Ⅱ,eastmoney_board_industry,1976,1935,True,False
+600152.SH,电池,eastmoney_board_industry,2054,522,True,False
+600157.SH,火力发电,eastmoney_board_industry,1874,1752,True,False
+600160.SH,氟化工,akshare_metadata_cache,2044,1937,True,False
+600170.SH,房屋建设Ⅱ,akshare_metadata_cache,2054,1045,True,False
+600172.SH,磨具磨料,akshare_metadata_cache,2049,1257,True,False
+600173.SH,住宅开发,akshare_metadata_cache,2054,95,True,False
+600179.SH,航运,akshare_metadata_cache,2009,255,True,False
+600184.SH,地面兵装Ⅱ,eastmoney_board_industry,2054,207,True,False
+600185.SH,旅游零售Ⅱ,akshare_metadata_cache,2039,924,True,False
+600191.SH,其他农产品加工,eastmoney_board_industry,2051,252,True,False
+600212.SH,其他电源设备Ⅱ,eastmoney_board_industry,1981,479,True,False
+600215.SH,自动化设备,akshare_metadata_cache,2042,120,True,False
+600216.SH,化学制药,eastmoney_board_industry,2054,1523,True,False
+600221.SH,航空运输,eastmoney_board_industry,1923,1342,True,False
+600223.SH,美容护理,akshare_metadata_cache,2054,689,True,False
+600227.SH,氮肥,eastmoney_board_industry,2012,202,True,False
+600228.SH,数字媒体,akshare_metadata_cache,2024,155,True,False
+600233.SH,交通运输,akshare_metadata_cache,2054,1347,True,False
+600234.SH,建筑装饰,eastmoney_board_industry,2047,3,True,False
+600237.SH,元件,eastmoney_board_industry,2054,590,True,False
+600251.SH,农产品加工,eastmoney_board_industry,2054,511,True,False
+600256.SH,煤炭,eastmoney_board_industry,2041,1673,True,False
+600259.SH,稀土,akshare_metadata_cache,2054,1623,True,False
+600261.SH,家用电器,akshare_metadata_cache,2054,103,True,False
+600262.SH,机械设备,eastmoney_board_industry,2054,38,True,False
+600268.SH,电网设备,akshare_metadata_cache,2054,745,True,False
+600276.SH,化学制剂,akshare_metadata_cache,2054,2054,True,False
+600283.SH,环境治理,eastmoney_board_industry,2046,199,True,False
+600287.SH,商贸零售,akshare_metadata_cache,2052,55,True,False
+600288.SH,计算机,eastmoney_board_industry,2054,367,True,False
+600293.SH,建筑材料,akshare_metadata_cache,1986,170,True,False
+600295.SH,钢铁,eastmoney_board_industry,2053,716,True,False
+600298.SH,调味发酵品Ⅱ,akshare_metadata_cache,2054,1722,True,False
+600300.SH,食品饮料,akshare_metadata_cache,2050,396,True,False
+600303.SH,汽车,akshare_metadata_cache,2040,291,True,False
+600307.SH,板材,akshare_metadata_cache,2054,516,True,False
+600308.SH,造纸,eastmoney_board_industry,2054,242,True,False
+600309.SH,基础化工,akshare_metadata_cache,1948,1948,True,False
+600316.SH,航空装备Ⅱ,eastmoney_board_industry,2054,1615,True,False
+600319.SH,化学原料,eastmoney_board_industry,2030,99,True,False
+600327.SH,百货,akshare_metadata_cache,2054,239,True,False
+600328.SH,化学原料,akshare_metadata_cache,2027,754,True,False
+600333.SH,燃气Ⅱ,akshare_metadata_cache,2054,340,True,False
+600336.SH,家用电器,akshare_metadata_cache,2054,487,True,False
+600338.SH,工业金属,akshare_metadata_cache,2054,1711,True,False
+600339.SH,油气及炼化工程,akshare_metadata_cache,2054,690,True,False
+600350.SH,交通运输,eastmoney_board_industry,2054,123,True,False
+600354.SH,种植业,akshare_metadata_cache,2040,742,True,False
+600356.SH,特种纸,eastmoney_board_industry,2045,20,True,False
+600362.SH,铜,eastmoney_board_industry,2054,2022,True,False
+600373.SH,传媒,eastmoney_board_industry,2051,960,True,False
+600377.SH,交通运输,akshare_metadata_cache,2054,94,True,False
+600386.SH,汽车,akshare_metadata_cache,2054,140,True,False
+600388.SH,环保,akshare_metadata_cache,2048,608,True,False
+600391.SH,航空装备Ⅱ,eastmoney_board_industry,2054,1136,True,False
+600403.SH,煤炭,eastmoney_board_industry,2051,243,True,False
+600406.SH,电网设备,eastmoney_board_industry,2054,2054,True,False
+600410.SH,IT服务Ⅱ,akshare_metadata_cache,2054,1515,True,False
+600415.SH,商业物业经营,akshare_metadata_cache,2054,1297,True,False
+600416.SH,电机Ⅱ,akshare_metadata_cache,2052,1147,True,False
+600418.SH,商用载货车,akshare_metadata_cache,2054,1821,True,False
+600419.SH,食品饮料,akshare_metadata_cache,2047,181,True,False
+600438.SH,电力设备,akshare_metadata_cache,2044,2044,True,False
+600446.SH,IT服务Ⅱ,akshare_metadata_cache,2039,1526,True,False
+600448.SH,印染,eastmoney_board_industry,2054,348,True,False
+600455.SH,垂直应用软件,akshare_metadata_cache,2053,50,True,False
+600459.SH,有色金属,eastmoney_board_industry,2042,1156,True,False
+600460.SH,分立器件,akshare_metadata_cache,2043,2043,True,False
+600461.SH,环境治理,eastmoney_board_industry,2043,76,True,False
+600467.SH,水产养殖,eastmoney_board_industry,2054,276,True,False
+600468.SH,电网设备,eastmoney_board_industry,2053,337,True,False
+600469.SH,汽车零部件,eastmoney_board_industry,2049,63,True,False
+600477.SH,建筑装饰,akshare_metadata_cache,2054,543,True,False
+600481.SH,电力设备,akshare_metadata_cache,2054,1103,True,False
+600483.SH,电能综合服务,akshare_metadata_cache,2045,611,True,False
+600486.SH,农化制品,eastmoney_board_industry,2049,1177,True,False
+600488.SH,化学制药,akshare_metadata_cache,2053,56,True,False
+600489.SH,贵金属,eastmoney_board_industry,2043,2019,True,False
+600506.SH,石油石化,eastmoney_board_industry,1986,324,True,False
+600508.SH,焦煤,akshare_metadata_cache,2054,351,True,False
+600509.SH,火力发电,eastmoney_board_industry,2054,629,True,False
+600510.SH,住宅开发,eastmoney_board_industry,2044,192,True,False
+600512.SH,基础建设,akshare_metadata_cache,2018,391,True,False
+600516.SH,钢铁,eastmoney_board_industry,2054,1412,True,False
+600519.SH,白酒Ⅱ,eastmoney_board_industry,2054,2054,True,False
+600520.SH,机械设备,akshare_metadata_cache,2049,735,True,False
+600521.SH,化学制剂,akshare_metadata_cache,2054,1776,True,False
+600530.SH,保健品,akshare_metadata_cache,2003,143,True,False
+600533.SH,住宅开发,akshare_metadata_cache,2054,200,True,False
+600535.SH,医药生物,eastmoney_board_industry,2052,1318,True,False
+600536.SH,IT服务Ⅱ,eastmoney_board_industry,2052,2045,True,False
+600539.SH,商贸零售,akshare_metadata_cache,1972,50,True,False
+600545.SH,机械设备,eastmoney_board_industry,2054,158,True,False
+600546.SH,煤炭,akshare_metadata_cache,2009,1537,True,False
+600549.SH,有色金属,akshare_metadata_cache,2054,1866,True,False
+600550.SH,输变电设备,eastmoney_board_industry,2054,690,True,False
+600551.SH,传媒,akshare_metadata_cache,2054,104,True,False
+600556.SH,传媒,eastmoney_board_industry,2051,799,True,False
+600557.SH,医药生物,eastmoney_board_industry,2054,784,True,False
+600558.SH,金属制品,akshare_metadata_cache,2054,60,True,False
+600559.SH,白酒Ⅱ,akshare_metadata_cache,2049,1746,True,False
+600560.SH,机械设备,akshare_metadata_cache,2054,250,True,False
+600572.SH,医药生物,eastmoney_board_industry,2053,1125,True,False
+600579.SH,机械设备,akshare_metadata_cache,2036,223,True,False
+600587.SH,医疗设备,akshare_metadata_cache,2054,810,True,False
+600588.SH,计算机,akshare_metadata_cache,2054,2054,True,False
+600592.SH,金属制品,akshare_metadata_cache,2054,557,True,False
+600598.SH,种植业,eastmoney_board_industry,2054,1666,True,False
+600600.SH,啤酒,eastmoney_board_industry,2054,1891,True,False
+600605.SH,商业物业经营,akshare_metadata_cache,2048,53,True,False
+600606.SH,住宅开发,eastmoney_board_industry,2049,1291,True,False
+600608.SH,商贸零售,eastmoney_board_industry,2028,0,True,False
+600609.SH,汽车零部件,akshare_metadata_cache,2054,218,True,False
+600612.SH,钟表珠宝,akshare_metadata_cache,2054,351,True,False
+600615.SH,工业金属,eastmoney_board_industry,2039,98,True,False
+600618.SH,化学原料,akshare_metadata_cache,2054,285,True,False
+600636.SH,社会服务,eastmoney_board_industry,2031,354,True,False
+600644.SH,电能综合服务,eastmoney_board_industry,2054,288,True,False
+600648.SH,房地产开发,akshare_metadata_cache,2054,228,True,False
+600649.SH,住宅开发,akshare_metadata_cache,2054,375,True,False
+600650.SH,公交,eastmoney_board_industry,2054,242,True,False
+600651.SH,汽车零部件,eastmoney_board_industry,2038,332,True,False
+600660.SH,汽车零部件,akshare_metadata_cache,2054,2054,True,False
+600662.SH,人力资源服务,akshare_metadata_cache,2043,229,True,False
+600663.SH,房地产开发,eastmoney_board_industry,2044,217,True,False
+600664.SH,化学制剂,akshare_metadata_cache,2018,439,True,False
+600666.SH,电子,akshare_metadata_cache,1966,534,True,False
+600667.SH,工程咨询服务Ⅱ,eastmoney_board_industry,2054,1592,True,False
+600668.SH,水泥制造,eastmoney_board_industry,2054,620,True,False
+600673.SH,综合Ⅱ,eastmoney_board_industry,2024,1300,True,False
+600681.SH,燃气Ⅱ,eastmoney_board_industry,2054,110,True,False
+600683.SH,住宅开发,eastmoney_board_industry,2054,291,True,False
+600688.SH,石油石化,akshare_metadata_cache,2054,430,True,False
+600689.SH,综合Ⅱ,eastmoney_board_industry,2052,313,True,False
+600694.SH,一般零售,eastmoney_board_industry,2054,141,True,False
+600697.SH,一般零售,akshare_metadata_cache,2054,40,True,False
+600698.SH,底盘与发动机系统,eastmoney_board_industry,2051,471,True,False
+600704.SH,交通运输,akshare_metadata_cache,2054,1070,True,False
+600707.SH,电子,eastmoney_board_industry,2053,846,True,False
+600710.SH,商贸零售,akshare_metadata_cache,2048,402,True,False
+600715.SH,游戏Ⅱ,akshare_metadata_cache,2024,381,True,False
+600716.SH,住宅开发,akshare_metadata_cache,2054,87,True,False
+600719.SH,公用事业,eastmoney_board_industry,2034,246,True,False
+600721.SH,医药生物,akshare_metadata_cache,2040,251,True,False
+600722.SH,煤化工,eastmoney_board_industry,2054,409,True,False
+600729.SH,一般零售,eastmoney_board_industry,2031,614,True,False
+600731.SH,农化制品,akshare_metadata_cache,2054,108,True,False
+600738.SH,百货,eastmoney_board_industry,2051,263,True,False
+600739.SH,生物制品,akshare_metadata_cache,2054,972,True,False
+600741.SH,汽车零部件,akshare_metadata_cache,2054,1753,True,False
+600746.SH,煤化工,akshare_metadata_cache,2052,306,True,False
+600750.SH,医药生物,eastmoney_board_industry,1989,887,True,False
+600751.SH,航运,eastmoney_board_industry,1883,528,True,False
+600754.SH,酒店,eastmoney_board_industry,2054,1621,True,False
+600755.SH,交通运输,akshare_metadata_cache,2053,977,True,False
+600761.SH,机械设备,eastmoney_board_industry,2054,742,True,False
+600768.SH,工业金属,eastmoney_board_industry,1976,23,True,False
+600771.SH,医药生物,akshare_metadata_cache,2054,1350,True,False
+600773.SH,住宅开发,akshare_metadata_cache,2054,912,True,False
+600776.SH,通信设备,akshare_metadata_cache,2054,1011,True,False
+600777.SH,油气开采Ⅱ,eastmoney_board_industry,1961,1329,True,False
+600782.SH,板材,akshare_metadata_cache,2054,1111,True,False
+600784.SH,化学原料,akshare_metadata_cache,1937,17,True,False
+600787.SH,交通运输,eastmoney_board_industry,2054,496,True,False
+600794.SH,交通运输,akshare_metadata_cache,1954,260,True,False
+600798.SH,航运,akshare_metadata_cache,1973,355,True,False
+600801.SH,水泥制造,akshare_metadata_cache,2052,1306,True,False
+600803.SH,燃气Ⅱ,eastmoney_board_industry,2022,1013,True,False
+600812.SH,化学制剂,akshare_metadata_cache,2045,537,True,False
+600820.SH,基础建设,eastmoney_board_industry,2054,684,True,False
+600824.SH,一般零售,eastmoney_board_industry,2044,140,True,False
+600828.SH,百货,akshare_metadata_cache,2054,126,True,False
+600833.SH,线下药店,eastmoney_board_industry,2054,121,True,False
+600835.SH,机械设备,eastmoney_board_industry,2054,645,True,False
+600839.SH,彩电,akshare_metadata_cache,2054,1536,True,False
+600841.SH,底盘与发动机系统,eastmoney_board_industry,2043,138,True,False
+600848.SH,房地产开发,akshare_metadata_cache,1977,627,True,False
+600850.SH,IT服务Ⅱ,eastmoney_board_industry,1973,911,True,False
+600854.SH,住宅开发,akshare_metadata_cache,2054,77,True,False
+600855.SH,军工电子Ⅱ,eastmoney_board_industry,2044,837,True,False
+600859.SH,百货,akshare_metadata_cache,2036,1711,True,False
+600864.SH,非银金融,eastmoney_board_industry,2054,1015,True,False
+600866.SH,食品及饲料添加剂,eastmoney_board_industry,1982,397,True,False
+600867.SH,其他生物制品,eastmoney_board_industry,2054,1315,True,False
+600871.SH,油服工程,akshare_metadata_cache,2052,364,True,False
+600872.SH,调味发酵品Ⅱ,akshare_metadata_cache,2054,1713,True,False
+600875.SH,综合电力设备商,akshare_metadata_cache,2049,1917,True,False
+600880.SH,社会服务,akshare_metadata_cache,1970,432,True,False
+600881.SH,综合Ⅱ,eastmoney_board_industry,2054,143,True,False
+600882.SH,食品饮料,akshare_metadata_cache,2038,744,True,False
+600884.SH,电池化学品,eastmoney_board_industry,2054,1868,True,False
+600886.SH,公用事业,akshare_metadata_cache,2054,1592,True,False
+600893.SH,航空装备Ⅱ,eastmoney_board_industry,2043,2043,True,False
+600897.SH,航空机场,akshare_metadata_cache,2054,16,True,False
+600900.SH,公用事业,akshare_metadata_cache,2043,2043,True,False
+600901.SH,多元金融,akshare_metadata_cache,2017,548,True,False
+600916.SH,钟表珠宝,eastmoney_board_industry,1300,596,True,False
+600917.SH,燃气Ⅱ,akshare_metadata_cache,2049,190,True,False
+600918.SH,非银金融,eastmoney_board_industry,1468,658,True,False
+600919.SH,银行Ⅱ,eastmoney_board_industry,2048,2048,True,False
+600927.SH,期货,akshare_metadata_cache,1088,84,True,False
+600933.SH,底盘与发动机系统,eastmoney_board_industry,2046,418,True,False
+600936.SH,IT服务Ⅱ,eastmoney_board_industry,2054,123,True,False
+600956.SH,公用事业,eastmoney_board_industry,1452,268,True,False
+600958.SH,非银金融,akshare_metadata_cache,2038,2038,True,False
+600961.SH,工业金属,eastmoney_board_industry,2043,430,True,False
+600966.SH,造纸,akshare_metadata_cache,2052,548,True,False
+600969.SH,电能综合服务,akshare_metadata_cache,2054,101,True,False
+600977.SH,影视动漫制作,eastmoney_board_industry,2054,1402,True,False
+600980.SH,机械设备,akshare_metadata_cache,2043,246,True,False
+600982.SH,公用事业,akshare_metadata_cache,2053,326,True,False
+600985.SH,焦煤,akshare_metadata_cache,2049,1174,True,False
+600987.SH,印染,akshare_metadata_cache,1996,29,True,False
+600992.SH,金属制品,eastmoney_board_industry,2054,354,True,False
+600993.SH,医药生物,eastmoney_board_industry,2054,833,True,False
+600995.SH,电能综合服务,akshare_metadata_cache,2043,328,True,False
+600996.SH,电视广播Ⅱ,eastmoney_board_industry,2054,852,True,False
+601008.SH,航运港口,eastmoney_board_industry,2054,300,True,False
+601009.SH,银行Ⅱ,akshare_metadata_cache,2054,1916,True,False
+601011.SH,焦炭Ⅱ,akshare_metadata_cache,2054,901,True,False
+601015.SH,焦炭Ⅱ,akshare_metadata_cache,2048,678,True,False
+601016.SH,公用事业,eastmoney_board_industry,2048,911,True,False
+601026.SH,电力设备,akshare_metadata_cache,166,0,True,False
+601059.SH,非银金融,eastmoney_board_industry,803,621,True,False
+601065.SH,纯碱,akshare_metadata_cache,776,45,True,False
+601069.SH,贵金属,eastmoney_board_industry,2039,1146,True,False
+601077.SH,银行Ⅱ,akshare_metadata_cache,1613,1056,True,False
+601083.SH,航运,akshare_metadata_cache,616,90,True,False
+601086.SH,百货,akshare_metadata_cache,2054,356,True,False
+601098.SH,传媒,eastmoney_board_industry,2054,425,True,False
+601100.SH,机械设备,akshare_metadata_cache,2054,2024,True,False
+601107.SH,交通运输,eastmoney_board_industry,2044,57,True,False
+601116.SH,超市,eastmoney_board_industry,2054,657,True,False
+601118.SH,其他种植业,akshare_metadata_cache,1941,979,True,False
+601126.SH,电网设备,eastmoney_board_industry,2054,860,True,False
+601127.SH,电动乘用车,akshare_metadata_cache,2050,1376,True,False
+601128.SH,银行Ⅱ,akshare_metadata_cache,2054,1597,True,False
+601137.SH,有色金属,akshare_metadata_cache,2052,1088,True,False
+601155.SH,房地产开发,eastmoney_board_industry,2054,1700,True,False
+601156.SH,跨境物流,akshare_metadata_cache,1221,385,True,False
+601162.SH,非银金融,eastmoney_board_industry,1856,1742,True,False
+601177.SH,金属制品,eastmoney_board_industry,2051,165,True,False
+601199.SH,环境治理,eastmoney_board_industry,2054,47,True,False
+601200.SH,固废治理,akshare_metadata_cache,2054,395,True,False
+601211.SH,非银金融,akshare_metadata_cache,2035,2035,True,False
+601218.SH,电力设备,akshare_metadata_cache,2054,366,True,False
+601225.SH,煤炭,eastmoney_board_industry,2054,2049,True,False
+601226.SH,建筑装饰,eastmoney_board_industry,2054,196,True,False
+601231.SH,消费电子,eastmoney_board_industry,2046,1504,True,False
+601319.SH,保险Ⅱ,akshare_metadata_cache,1842,1690,True,False
+601328.SH,银行Ⅱ,eastmoney_board_industry,2054,2054,True,False
+601339.SH,棉纺,akshare_metadata_cache,2053,43,True,False
+601375.SH,非银金融,eastmoney_board_industry,2054,1075,True,False
+601388.SH,工业金属,eastmoney_board_industry,2054,659,True,False
+601390.SH,基础建设,akshare_metadata_cache,1980,1980,True,False
+601399.SH,机械设备,akshare_metadata_cache,1464,224,True,False
+601456.SH,非银金融,akshare_metadata_cache,1408,1158,True,False
+601500.SH,汽车零部件,eastmoney_board_industry,2047,238,True,False
+601519.SH,垂直应用软件,akshare_metadata_cache,2043,1282,True,False
+601528.SH,银行Ⅱ,akshare_metadata_cache,1210,117,True,False
+601568.SH,化学原料,eastmoney_board_industry,1377,45,True,False
+601579.SH,食品饮料,akshare_metadata_cache,2054,412,True,False
+601588.SH,住宅开发,eastmoney_board_industry,2054,179,True,False
+601599.SH,其他纺织,akshare_metadata_cache,2049,222,True,False
+601601.SH,保险Ⅱ,eastmoney_board_industry,2054,2054,True,False
+601606.SH,地面兵装Ⅱ,akshare_metadata_cache,1910,1088,True,False
+601607.SH,医药生物,eastmoney_board_industry,2054,1632,True,False
+601619.SH,公用事业,akshare_metadata_cache,1969,559,True,False
+601666.SH,焦煤,akshare_metadata_cache,2054,1246,True,False
+601668.SH,房屋建设Ⅱ,eastmoney_board_industry,2054,2054,True,False
+601669.SH,基础建设,akshare_metadata_cache,2054,1905,True,False
+601688.SH,非银金融,eastmoney_board_industry,2054,2054,True,False
+601696.SH,非银金融,eastmoney_board_industry,1534,1332,True,False
+601698.SH,国防军工,akshare_metadata_cache,1694,1262,True,False
+601700.SH,线缆部件及其他,akshare_metadata_cache,2023,461,True,False
+601728.SH,通信,eastmoney_board_industry,1170,1064,True,False
+601808.SH,油服工程,akshare_metadata_cache,2054,865,True,False
+601827.SH,固废治理,akshare_metadata_cache,1466,48,True,False
+601838.SH,银行Ⅱ,eastmoney_board_industry,2033,1828,True,False
+601868.SH,基础建设,akshare_metadata_cache,1145,1065,True,False
+601869.SH,通信线缆及配套,akshare_metadata_cache,1921,674,True,False
+601880.SH,航运港口,eastmoney_board_industry,2038,221,True,False
+601890.SH,航海装备Ⅱ,akshare_metadata_cache,2054,1172,True,False
+601898.SH,煤炭,akshare_metadata_cache,2054,1413,True,False
+601899.SH,铜,eastmoney_board_industry,2050,2050,True,False
+601900.SH,传媒,eastmoney_board_industry,2054,340,True,False
+601908.SH,公用事业,eastmoney_board_industry,2054,862,True,False
+601916.SH,股份制银行Ⅲ,eastmoney_board_industry,1587,919,True,False
+601939.SH,银行Ⅱ,eastmoney_board_industry,2054,2054,True,False
+601966.SH,汽车零部件,eastmoney_board_industry,2050,1475,True,False
+601975.SH,航运,akshare_metadata_cache,1806,1169,True,False
+601992.SH,水泥制造,akshare_metadata_cache,2054,551,True,False
+601996.SH,其他家居用品,akshare_metadata_cache,2054,43,True,False
+601999.SH,传媒,eastmoney_board_industry,2054,125,True,False
+603001.SH,鞋帽及其他,eastmoney_board_industry,2042,0,True,False
+603002.SH,电子,eastmoney_board_industry,2043,451,True,False
+603004.SH,基础化工,akshare_metadata_cache,600,40,True,False
+603007.SH,底盘与发动机系统,akshare_metadata_cache,2043,35,True,False
+603014.SH,医疗耗材,eastmoney_board_industry,258,0,True,False
+603017.SH,工程咨询服务Ⅱ,eastmoney_board_industry,2054,164,True,False
+603019.SH,其他计算机设备,akshare_metadata_cache,2041,2041,True,False
+603020.SH,食品及饲料添加剂,akshare_metadata_cache,2054,91,True,False
+603028.SH,金属制品,akshare_metadata_cache,2034,8,True,False
+603029.SH,农用机械,akshare_metadata_cache,2044,192,True,False
+603035.SH,汽车零部件,akshare_metadata_cache,2054,523,True,False
+603036.SH,机械设备,eastmoney_board_industry,2049,72,True,False
+603038.SH,其他建材Ⅲ,akshare_metadata_cache,2052,115,True,False
+603041.SH,基础化工,akshare_metadata_cache,2054,0,True,False
+603048.SH,汽车零部件,akshare_metadata_cache,1115,0,True,False
+603050.SH,电网设备,akshare_metadata_cache,2053,346,True,False
+603052.SH,消费电子,akshare_metadata_cache,898,143,True,False
+603061.SH,电子,eastmoney_board_industry,801,123,True,False
+603068.SH,模拟芯片设计,eastmoney_board_industry,1744,626,True,False
+603069.SH,公交,eastmoney_board_industry,2036,669,True,False
+603072.SH,磁性材料,eastmoney_board_industry,354,92,True,False
+603077.SH,磷肥及磷化工,eastmoney_board_industry,2054,1295,True,False
+603078.SH,电子,eastmoney_board_industry,2047,952,True,False
+603080.SH,燃气Ⅱ,akshare_metadata_cache,2051,337,True,False
+603082.SH,其他自动化设备,eastmoney_board_industry,572,49,True,False
+603083.SH,通信设备,eastmoney_board_industry,2054,1456,True,False
+603087.SH,其他生物制品,eastmoney_board_industry,1452,1153,True,False
+603088.SH,机床工具,eastmoney_board_industry,2037,188,True,False
+603089.SH,底盘与发动机系统,akshare_metadata_cache,2054,37,True,False
+603095.SH,机械设备,eastmoney_board_industry,1500,0,True,False
+603096.SH,传媒,eastmoney_board_industry,2054,26,True,False
+603097.SH,输变电设备,eastmoney_board_industry,999,127,True,False
+603098.SH,建筑装饰,eastmoney_board_industry,2053,287,True,False
+603099.SH,旅游及景区,eastmoney_board_industry,2054,486,True,False
+603107.SH,底盘与发动机系统,akshare_metadata_cache,640,39,True,False
+603108.SH,其他医疗服务,akshare_metadata_cache,2015,995,True,False
+603110.SH,基础化工,akshare_metadata_cache,2052,272,True,False
+603112.SH,家电零部件Ⅱ,eastmoney_board_industry,1394,62,True,False
+603113.SH,化学原料,eastmoney_board_industry,2054,600,True,False
+603118.SH,通信设备,akshare_metadata_cache,2049,969,True,False
+603119.SH,汽车零部件,akshare_metadata_cache,700,355,True,False
+603126.SH,环保,eastmoney_board_industry,2054,300,True,False
+603128.SH,跨境物流,eastmoney_board_industry,2054,892,True,False
+603129.SH,汽车,eastmoney_board_industry,2054,894,True,False
+603135.SH,机械设备,akshare_metadata_cache,776,20,True,False
+603136.SH,旅游及景区,akshare_metadata_cache,2054,93,True,False
+603137.SH,建筑装饰,eastmoney_board_industry,763,16,True,False
+603150.SH,塑料,akshare_metadata_cache,1067,0,True,False
+603151.SH,农林牧渔,akshare_metadata_cache,884,0,True,False
+603155.SH,基础化工,eastmoney_board_industry,1406,65,True,False
+603161.SH,底盘与发动机系统,eastmoney_board_industry,2036,63,True,False
+603168.SH,化学制剂,akshare_metadata_cache,2054,217,True,False
+603171.SH,IT服务Ⅱ,eastmoney_board_industry,1207,160,True,False
+603176.SH,基础建设,akshare_metadata_cache,1082,40,True,False
+603181.SH,基础化工,akshare_metadata_cache,2054,163,True,False
+603183.SH,专业服务,eastmoney_board_industry,2048,325,True,False
+603185.SH,电力设备,eastmoney_board_industry,1812,1336,True,False
+603192.SH,基础化工,eastmoney_board_industry,1894,55,True,False
+603193.SH,洗护用品,akshare_metadata_cache,651,18,True,False
+603197.SH,汽车零部件,eastmoney_board_industry,2054,804,True,False
+603198.SH,白酒Ⅱ,akshare_metadata_cache,2054,1572,True,False
+603199.SH,旅游及景区,akshare_metadata_cache,2054,77,True,False
+603200.SH,环境治理,eastmoney_board_industry,2054,507,True,False
+603205.SH,医疗耗材,eastmoney_board_industry,394,0,True,False
+603209.SH,航运,akshare_metadata_cache,1029,3,True,False
+603211.SH,汽车零部件,akshare_metadata_cache,948,226,True,False
+603216.SH,轻工制造,eastmoney_board_industry,1085,15,True,False
+603218.SH,电力设备,akshare_metadata_cache,2054,813,True,False
+603221.SH,轻工制造,akshare_metadata_cache,1516,0,True,False
+603227.SH,基础化工,akshare_metadata_cache,2041,243,True,False
+603232.SH,垂直应用软件,eastmoney_board_industry,2054,441,True,False
+603233.SH,线下药店,eastmoney_board_industry,2054,965,True,False
+603238.SH,美容护理,eastmoney_board_industry,2054,15,True,False
+603239.SH,汽车零部件,akshare_metadata_cache,2054,57,True,False
+603248.SH,电力设备,eastmoney_board_industry,119,5,True,False
+603256.SH,建筑材料,eastmoney_board_industry,1679,353,True,False
+603259.SH,医药生物,akshare_metadata_cache,1973,1888,True,False
+603261.SH,航空装备Ⅱ,eastmoney_board_industry,1034,77,True,False
+603267.SH,军工电子Ⅱ,akshare_metadata_cache,1725,1286,True,False
+603269.SH,通用设备,akshare_metadata_cache,2048,185,True,False
+603273.SH,机械设备,eastmoney_board_industry,647,38,True,False
+603280.SH,机械设备,eastmoney_board_industry,878,35,True,False
+603285.SH,基础化工,akshare_metadata_cache,476,0,True,False
+603288.SH,调味发酵品Ⅱ,akshare_metadata_cache,2054,2054,True,False
+603290.SH,分立器件,akshare_metadata_cache,1550,1380,True,False
+603296.SH,消费电子,akshare_metadata_cache,695,565,True,False
+603297.SH,电子,eastmoney_board_industry,1885,392,True,False
+603300.SH,多元金融,akshare_metadata_cache,2052,624,True,False
+603303.SH,家用电器,akshare_metadata_cache,2054,1,True,False
+603305.SH,底盘与发动机系统,akshare_metadata_cache,2047,1448,True,False
+603306.SH,汽车零部件,akshare_metadata_cache,2037,796,True,False
+603309.SH,医疗耗材,eastmoney_board_industry,1985,65,True,False
+603312.SH,输变电设备,eastmoney_board_industry,590,16,True,False
+603315.SH,大气治理,akshare_metadata_cache,1963,45,True,False
+603316.SH,园林工程,eastmoney_board_industry,2054,109,True,False
+603317.SH,调味发酵品Ⅱ,eastmoney_board_industry,1743,548,True,False
+603319.SH,底盘与发动机系统,eastmoney_board_industry,2054,562,True,False
+603321.SH,机械设备,akshare_metadata_cache,2054,69,True,False
+603323.SH,银行Ⅱ,eastmoney_board_industry,2054,575,True,False
+603327.SH,消费电子,akshare_metadata_cache,1719,326,True,False
+603329.SH,交通运输,akshare_metadata_cache,2048,356,True,False
+603331.SH,通用设备,eastmoney_board_industry,2054,41,True,False
+603333.SH,线缆部件及其他,akshare_metadata_cache,2018,126,True,False
+603335.SH,汽车零部件,akshare_metadata_cache,2054,249,True,False
+603336.SH,其他种植业,eastmoney_board_industry,2047,616,True,False
+603339.SH,制冷空调设备,akshare_metadata_cache,2054,33,True,False
+603344.SH,电机Ⅱ,akshare_metadata_cache,547,1,True,False
+603345.SH,食品饮料,akshare_metadata_cache,2054,1734,True,False
+603353.SH,油品石化贸易,eastmoney_board_industry,1506,113,True,False
+603357.SH,工程咨询服务Ⅱ,eastmoney_board_industry,2054,476,True,False
+603360.SH,农化制品,eastmoney_board_industry,2054,349,True,False
+603363.SH,农林牧渔,akshare_metadata_cache,2052,1087,True,False
+603365.SH,纺织服饰,akshare_metadata_cache,2054,168,True,False
+603366.SH,厨卫电器,akshare_metadata_cache,2054,494,True,False
+603368.SH,医药生物,akshare_metadata_cache,2054,483,True,False
+603369.SH,白酒Ⅱ,eastmoney_board_industry,2054,1884,True,False
+603370.SH,电机Ⅱ,akshare_metadata_cache,190,0,True,False
+603375.SH,模拟芯片设计,eastmoney_board_industry,581,29,True,False
+603382.SH,锦纶,akshare_metadata_cache,251,0,True,False
+603383.SH,垂直应用软件,akshare_metadata_cache,2052,863,True,False
+603386.SH,印制电路板,eastmoney_board_industry,1966,406,True,False
+603390.SH,汽车零部件,akshare_metadata_cache,1594,198,True,False
+603395.SH,农化制品,akshare_metadata_cache,381,8,True,False
+603396.SH,电力设备,eastmoney_board_industry,2054,655,True,False
+603406.SH,化学纤维,akshare_metadata_cache,210,0,True,False
+603408.SH,轻工制造,eastmoney_board_industry,1429,0,True,False
+603416.SH,自动化设备,eastmoney_board_industry,2054,156,True,False
+603439.SH,医药生物,eastmoney_board_industry,1491,246,True,False
+603444.SH,游戏Ⅱ,eastmoney_board_industry,2054,1970,True,False
+603456.SH,医药生物,eastmoney_board_industry,2031,1496,True,False
+603458.SH,工程咨询服务Ⅱ,eastmoney_board_industry,2052,227,True,False
+603477.SH,农林牧渔,akshare_metadata_cache,2043,1111,True,False
+603486.SH,清洁小家电,eastmoney_board_industry,1959,1480,True,False
+603496.SH,其他计算机设备,eastmoney_board_industry,2045,786,True,False
+603499.SH,包装印刷,eastmoney_board_industry,2053,213,True,False
+603505.SH,氟化工,akshare_metadata_cache,2054,768,True,False
+603520.SH,化学制药,akshare_metadata_cache,1953,636,True,False
+603527.SH,铜,eastmoney_board_industry,2054,184,True,False
+603556.SH,电网设备,eastmoney_board_industry,2054,227,True,False
+603566.SH,动物保健Ⅱ,akshare_metadata_cache,2054,164,True,False
+603567.SH,医药生物,akshare_metadata_cache,2054,49,True,False
+603569.SH,交通运输,eastmoney_board_industry,2054,159,True,False
+603586.SH,底盘与发动机系统,akshare_metadata_cache,2054,68,True,False
+603587.SH,纺织服饰,akshare_metadata_cache,1941,105,True,False
+603588.SH,固废治理,akshare_metadata_cache,2049,555,True,False
+603589.SH,白酒Ⅱ,eastmoney_board_industry,2054,1676,True,False
+603598.SH,传媒,eastmoney_board_industry,2013,810,True,False
+603600.SH,轻工制造,eastmoney_board_industry,2054,69,True,False
+603601.SH,建筑装饰,akshare_metadata_cache,2054,383,True,False
+603605.SH,美容护理,akshare_metadata_cache,2054,1737,True,False
+603606.SH,线缆部件及其他,akshare_metadata_cache,2054,1685,True,False
+603608.SH,鞋帽及其他,akshare_metadata_cache,2047,141,True,False
+603611.SH,机械设备,akshare_metadata_cache,2054,57,True,False
+603616.SH,水泥,eastmoney_board_industry,2042,431,True,False
+603629.SH,消费电子,akshare_metadata_cache,1816,531,True,False
+603636.SH,IT服务Ⅱ,eastmoney_board_industry,1979,974,True,False
+603637.SH,化学工程,eastmoney_board_industry,2052,68,True,False
+603638.SH,机械设备,eastmoney_board_industry,2054,59,True,False
+603656.SH,机械设备,eastmoney_board_industry,2054,45,True,False
+603657.SH,家电零部件Ⅱ,eastmoney_board_industry,1915,133,True,False
+603658.SH,医药生物,akshare_metadata_cache,2054,1197,True,False
+603659.SH,电池化学品,eastmoney_board_industry,1998,1801,True,False
+603662.SH,通用设备,eastmoney_board_industry,1667,699,True,False
+603663.SH,化学原料,akshare_metadata_cache,2054,574,True,False
+603666.SH,自动化设备,eastmoney_board_industry,1948,425,True,False
+603677.SH,家电零部件Ⅱ,akshare_metadata_cache,2051,48,True,False
+603680.SH,机械设备,akshare_metadata_cache,2019,57,True,False
+603683.SH,胶黏剂及胶带,akshare_metadata_cache,2054,180,True,False
+603686.SH,综合环境治理,akshare_metadata_cache,2054,887,True,False
+603687.SH,包装印刷,akshare_metadata_cache,1674,141,True,False
+603689.SH,燃气Ⅱ,eastmoney_board_industry,2054,160,True,False
+603698.SH,机械设备,akshare_metadata_cache,2054,263,True,False
+603700.SH,通用设备,eastmoney_board_industry,1797,6,True,False
+603701.SH,底盘与发动机系统,eastmoney_board_industry,2044,213,True,False
+603707.SH,化学制剂,eastmoney_board_industry,2054,715,True,False
+603708.SH,超市,akshare_metadata_cache,2054,294,True,False
+603712.SH,军工电子Ⅱ,eastmoney_board_industry,2017,1464,True,False
+603717.SH,园林工程,eastmoney_board_industry,2054,122,True,False
+603719.SH,零食,eastmoney_board_industry,1531,290,True,False
+603725.SH,轻工制造,eastmoney_board_industry,2039,65,True,False
+603726.SH,家电零部件Ⅱ,akshare_metadata_cache,2048,111,True,False
+603728.SH,电机Ⅱ,akshare_metadata_cache,2054,946,True,False
+603733.SH,特种纸,eastmoney_board_industry,1983,391,True,False
+603757.SH,通用设备,akshare_metadata_cache,2054,202,True,False
+603758.SH,底盘与发动机系统,eastmoney_board_industry,2040,21,True,False
+603759.SH,环境治理,eastmoney_board_industry,1270,16,True,False
+603766.SH,汽车,eastmoney_board_industry,2053,530,True,False
+603773.SH,电子,akshare_metadata_cache,1986,634,True,False
+603786.SH,汽车零部件,akshare_metadata_cache,1623,118,True,False
+603787.SH,汽车,eastmoney_board_industry,2054,209,True,False
+603790.SH,纺织化学制品,eastmoney_board_industry,1872,157,True,False
+603798.SH,其他石化,eastmoney_board_industry,2053,103,True,False
+603800.SH,机械设备,eastmoney_board_industry,2048,278,True,False
+603803.SH,通信设备,akshare_metadata_cache,2051,601,True,False
+603808.SH,纺织服饰,eastmoney_board_industry,2054,101,True,False
+603811.SH,化学制剂,eastmoney_board_industry,2054,92,True,False
+603813.SH,交通运输,eastmoney_board_industry,2052,152,True,False
+603823.SH,基础化工,akshare_metadata_cache,2054,168,True,False
+603826.SH,非金属材料Ⅱ,akshare_metadata_cache,2054,301,True,False
+603833.SH,轻工制造,eastmoney_board_industry,2054,1547,True,False
+603839.SH,纺织服饰,eastmoney_board_industry,2054,36,True,False
+603848.SH,轻工制造,akshare_metadata_cache,2054,110,True,False
+603856.SH,装修建材,akshare_metadata_cache,2054,186,True,False
+603858.SH,医药生物,eastmoney_board_industry,2054,1058,True,False
+603863.SH,造纸,akshare_metadata_cache,1692,274,True,False
+603867.SH,基础化工,eastmoney_board_industry,1695,256,True,False
+603871.SH,跨境物流,akshare_metadata_cache,2029,171,True,False
+603876.SH,工业金属,eastmoney_board_industry,1985,946,True,False
+603878.SH,普钢,akshare_metadata_cache,2054,22,True,False
+603881.SH,通信,akshare_metadata_cache,2054,1625,True,False
+603886.SH,烘焙食品,eastmoney_board_industry,2054,53,True,False
+603888.SH,数字媒体,akshare_metadata_cache,2054,1062,True,False
+603889.SH,其他纺织,akshare_metadata_cache,2054,25,True,False
+603893.SH,数字芯片设计,eastmoney_board_industry,1547,1323,True,False
+603896.SH,医药生物,eastmoney_board_industry,2054,213,True,False
+603898.SH,轻工制造,akshare_metadata_cache,2054,3,True,False
+603909.SH,工程咨询服务Ⅱ,eastmoney_board_industry,2050,21,True,False
+603912.SH,制冷空调设备,akshare_metadata_cache,2054,740,True,False
+603920.SH,印制电路板,eastmoney_board_industry,2051,1157,True,False
+603926.SH,底盘与发动机系统,eastmoney_board_industry,2054,0,True,False
+603931.SH,电子,akshare_metadata_cache,1415,127,True,False
+603933.SH,其他电子Ⅱ,akshare_metadata_cache,2044,372,True,False
+603936.SH,印制电路板,akshare_metadata_cache,2049,1004,True,False
+603937.SH,工业金属,akshare_metadata_cache,2054,155,True,False
+603938.SH,化学原料,akshare_metadata_cache,2054,632,True,False
+603956.SH,机械设备,akshare_metadata_cache,1779,130,True,False
+603958.SH,鞋帽及其他,akshare_metadata_cache,2029,60,True,False
+603966.SH,机械设备,eastmoney_board_industry,2051,21,True,False
+603978.SH,有色金属,eastmoney_board_industry,2051,492,True,False
+603980.SH,纺织化学制品,akshare_metadata_cache,2048,200,True,False
+603987.SH,医疗耗材,eastmoney_board_industry,2054,346,True,False
+603989.SH,元件,eastmoney_board_industry,2054,75,True,False
+603993.SH,铜,eastmoney_board_industry,2054,2054,True,False
+603995.SH,特钢Ⅱ,akshare_metadata_cache,1573,61,True,False
+603997.SH,汽车零部件,akshare_metadata_cache,1963,276,True,False
+605003.SH,纺织服饰,akshare_metadata_cache,1401,0,True,False
+605006.SH,建筑材料,akshare_metadata_cache,1404,195,True,False
+605011.SH,公用事业,eastmoney_board_industry,1207,258,True,False
+605016.SH,食品及饲料添加剂,eastmoney_board_industry,1253,9,True,False
+605018.SH,汽车零部件,eastmoney_board_industry,1386,41,True,False
+605033.SH,农化制品,akshare_metadata_cache,1151,35,True,False
+605058.SH,印制电路板,eastmoney_board_industry,1376,11,True,False
+605068.SH,汽车零部件,eastmoney_board_industry,1353,0,True,False
+605077.SH,食品及饲料添加剂,akshare_metadata_cache,1293,0,True,False
+605086.SH,非金属材料Ⅱ,akshare_metadata_cache,1256,45,True,False
+605088.SH,底盘与发动机系统,eastmoney_board_industry,1417,100,True,False
+605099.SH,其他家居用品,eastmoney_board_industry,1385,49,True,False
+605100.SH,金属制品,akshare_metadata_cache,1421,65,True,False
+605136.SH,商贸零售,akshare_metadata_cache,1386,303,True,False
+605151.SH,汽车零部件,eastmoney_board_industry,1337,17,True,False
+605162.SH,公用事业,akshare_metadata_cache,1202,89,True,False
+605166.SH,锦纶,eastmoney_board_industry,1457,10,True,False
+605168.SH,传媒,eastmoney_board_industry,1472,411,True,False
+605178.SH,建筑装饰,eastmoney_board_industry,1399,94,True,False
+605179.SH,食品饮料,akshare_metadata_cache,1328,193,True,False
+605180.SH,其他纺织,akshare_metadata_cache,1246,19,True,False
+605196.SH,线缆部件及其他,akshare_metadata_cache,1242,249,True,False
+605208.SH,工业金属,eastmoney_board_industry,1284,158,True,False
+605258.SH,印制电路板,eastmoney_board_industry,1345,70,True,False
+605259.SH,机械设备,eastmoney_board_industry,1218,0,True,False
+605277.SH,消费电子,akshare_metadata_cache,1322,317,True,False
+605288.SH,自动化设备,akshare_metadata_cache,1470,0,True,False
+605298.SH,机械设备,akshare_metadata_cache,1289,5,True,False
+605299.SH,文娱用品,akshare_metadata_cache,1337,133,True,False
+605338.SH,食品饮料,akshare_metadata_cache,1383,23,True,False
+605339.SH,烘焙食品,akshare_metadata_cache,1237,0,True,False
+605366.SH,基础化工,akshare_metadata_cache,1420,176,True,False
+605376.SH,有色金属,eastmoney_board_industry,1342,426,True,False
+605378.SH,电池,eastmoney_board_industry,1260,104,True,False
+605398.SH,IT服务Ⅱ,eastmoney_board_industry,1311,124,True,False
+605488.SH,膜材料,akshare_metadata_cache,1240,225,True,False
+605499.SH,食品饮料,eastmoney_board_industry,1230,673,True,False
+605555.SH,清洁小家电,eastmoney_board_industry,1129,123,True,False
+605577.SH,传媒,eastmoney_board_industry,1168,183,True,False
+605588.SH,电子,eastmoney_board_industry,1176,189,True,False
+605589.SH,塑料,akshare_metadata_cache,1178,789,True,False
+605598.SH,建筑装饰,akshare_metadata_cache,1150,148,True,False
+688001.SH,通用设备,akshare_metadata_cache,1678,158,True,False
+688004.SH,IT服务Ⅱ,akshare_metadata_cache,1461,17,True,False
+688006.SH,电池,akshare_metadata_cache,1678,462,True,False
+688007.SH,品牌消费电子,akshare_metadata_cache,1678,266,True,False
+688009.SH,机械设备,eastmoney_board_industry,1678,503,True,False
+688010.SH,电子,eastmoney_board_industry,1678,116,True,False
+688015.SH,机械设备,eastmoney_board_industry,1678,69,True,False
+688017.SH,自动化设备,akshare_metadata_cache,1408,1044,True,False
+688018.SH,数字芯片设计,akshare_metadata_cache,1678,911,True,False
+688019.SH,电子,eastmoney_board_industry,1678,1362,True,False
+688020.SH,印制电路板,akshare_metadata_cache,1678,116,True,False
+688026.SH,医疗耗材,eastmoney_board_industry,1553,81,True,False
+688027.SH,通信设备,eastmoney_board_industry,1440,710,True,False
+688038.SH,垂直应用软件,akshare_metadata_cache,1188,0,True,False
+688041.SH,数字芯片设计,eastmoney_board_industry,924,844,True,False
+688045.SH,模拟芯片设计,akshare_metadata_cache,989,0,True,False
+688048.SH,分立器件,eastmoney_board_industry,1023,619,True,False
+688049.SH,数字芯片设计,akshare_metadata_cache,1106,236,True,False
+688052.SH,模拟芯片设计,eastmoney_board_industry,1010,848,True,False
+688055.SH,电子,akshare_metadata_cache,1417,13,True,False
+688061.SH,模拟芯片设计,akshare_metadata_cache,893,0,True,False
+688062.SH,化学制剂,akshare_metadata_cache,1071,149,True,False
+688063.SH,电池,eastmoney_board_industry,1326,1035,True,False
+688070.SH,航空装备Ⅱ,akshare_metadata_cache,1297,2,True,False
+688077.SH,磁性材料,eastmoney_board_industry,1435,89,True,False
+688080.SH,通信设备,eastmoney_board_industry,1544,8,True,False
+688083.SH,垂直应用软件,eastmoney_board_industry,1281,152,True,False
+688088.SH,IT服务Ⅱ,akshare_metadata_cache,1678,917,True,False
+688089.SH,食品及饲料添加剂,akshare_metadata_cache,1566,28,True,False
+688093.SH,其他电子Ⅱ,akshare_metadata_cache,1385,0,True,False
+688099.SH,数字芯片设计,akshare_metadata_cache,1665,1478,True,False
+688100.SH,通信设备,akshare_metadata_cache,1554,8,True,False
+688102.SH,有色金属,eastmoney_board_industry,1035,200,True,False
+688106.SH,电子,eastmoney_board_industry,1459,184,True,False
+688109.SH,垂直应用软件,akshare_metadata_cache,1263,58,True,False
+688110.SH,数字芯片设计,eastmoney_board_industry,1094,764,True,False
+688111.SH,计算机,eastmoney_board_industry,1599,1520,True,False
+688114.SH,医疗设备,eastmoney_board_industry,914,159,True,False
+688116.SH,电池化学品,eastmoney_board_industry,1632,1341,True,False
+688120.SH,电子,akshare_metadata_cache,981,899,True,False
+688123.SH,数字芯片设计,akshare_metadata_cache,1574,911,True,False
+688125.SH,其他自动化设备,eastmoney_board_industry,1015,0,True,False
+688126.SH,电子,akshare_metadata_cache,1487,1214,True,False
+688129.SH,基础化工,akshare_metadata_cache,1374,0,True,False
+688130.SH,模拟芯片设计,eastmoney_board_industry,944,0,True,False
+688131.SH,医药生物,eastmoney_board_industry,1212,216,True,False
+688138.SH,电子,eastmoney_board_industry,1597,95,True,False
+688139.SH,医疗设备,eastmoney_board_industry,1605,404,True,False
+688147.SH,电子,akshare_metadata_cache,845,206,True,False
+688148.SH,电池化学品,eastmoney_board_industry,1180,50,True,False
+688151.SH,医疗耗材,akshare_metadata_cache,1101,19,True,False
+688152.SH,计算机,akshare_metadata_cache,885,56,True,False
+688153.SH,模拟芯片设计,eastmoney_board_industry,1018,41,True,False
+688158.SH,IT服务Ⅱ,eastmoney_board_industry,1555,658,True,False
+688159.SH,通信设备,eastmoney_board_industry,1552,171,True,False
+688160.SH,自动化设备,akshare_metadata_cache,1360,209,True,False
+688176.SH,化学制剂,akshare_metadata_cache,1078,15,True,False
+688177.SH,其他生物制品,akshare_metadata_cache,1537,18,True,False
+688179.SH,基础化工,akshare_metadata_cache,1373,11,True,False
+688183.SH,印制电路板,akshare_metadata_cache,1291,523,True,False
+688185.SH,生物制品,akshare_metadata_cache,1419,641,True,False
+688187.SH,机械设备,akshare_metadata_cache,1158,623,True,False
+688188.SH,其他计算机设备,eastmoney_board_industry,1665,580,True,False
+688193.SH,医药生物,akshare_metadata_cache,1020,0,True,False
+688196.SH,基础化工,eastmoney_board_industry,1596,11,True,False
+688198.SH,医疗耗材,eastmoney_board_industry,1584,28,True,False
+688207.SH,IT服务Ⅱ,akshare_metadata_cache,1034,106,True,False
+688208.SH,其他计算机设备,akshare_metadata_cache,1543,944,True,False
+688209.SH,模拟芯片设计,eastmoney_board_industry,1003,1,True,False
+688211.SH,机械设备,eastmoney_board_industry,1130,0,True,False
+688212.SH,医疗设备,akshare_metadata_cache,1116,2,True,False
+688215.SH,其他自动化设备,eastmoney_board_industry,1408,0,True,False
+688216.SH,电子,akshare_metadata_cache,1212,0,True,False
+688217.SH,医药生物,akshare_metadata_cache,1238,0,True,False
+688221.SH,化学制剂,eastmoney_board_industry,1371,195,True,False
+688222.SH,医药生物,akshare_metadata_cache,1499,189,True,False
+688223.SH,电力设备,eastmoney_board_industry,1065,953,True,False
+688227.SH,IT服务Ⅱ,eastmoney_board_industry,1083,79,True,False
+688229.SH,IT服务Ⅱ,akshare_metadata_cache,1417,0,True,False
+688237.SH,航空装备Ⅱ,eastmoney_board_industry,959,0,True,False
+688239.SH,航空装备Ⅱ,eastmoney_board_industry,1204,217,True,False
+688248.SH,电网设备,eastmoney_board_industry,1089,355,True,False
+688249.SH,集成电路制造,eastmoney_board_industry,760,417,True,False
+688255.SH,自动化设备,akshare_metadata_cache,1131,34,True,False
+688265.SH,医药生物,akshare_metadata_cache,1085,0,True,False
+688272.SH,军工电子Ⅱ,akshare_metadata_cache,1134,0,True,False
+688277.SH,医疗设备,eastmoney_board_industry,1446,27,True,False
+688281.SH,航空装备Ⅱ,eastmoney_board_industry,1042,0,True,False
+688290.SH,自动化设备,akshare_metadata_cache,1005,0,True,False
+688291.SH,垂直应用软件,eastmoney_board_industry,878,4,True,False
+688296.SH,垂直应用软件,eastmoney_board_industry,1188,0,True,False
+688300.SH,非金属材料Ⅱ,akshare_metadata_cache,1600,236,True,False
+688302.SH,化学制剂,eastmoney_board_industry,1018,13,True,False
+688305.SH,机床工具,akshare_metadata_cache,1200,55,True,False
+688306.SH,其他自动化设备,akshare_metadata_cache,1031,178,True,False
+688308.SH,金属制品,akshare_metadata_cache,1340,85,True,False
+688311.SH,军工电子Ⅱ,akshare_metadata_cache,1428,232,True,False
+688314.SH,医疗耗材,akshare_metadata_cache,1237,0,True,False
+688316.SH,IT服务Ⅱ,eastmoney_board_industry,1278,209,True,False
+688320.SH,自动化设备,eastmoney_board_industry,1006,180,True,False
+688323.SH,膜材料,akshare_metadata_cache,1248,38,True,False
+688325.SH,模拟芯片设计,akshare_metadata_cache,1010,0,True,False
+688330.SH,电网设备,akshare_metadata_cache,1380,27,True,False
+688333.SH,通用设备,akshare_metadata_cache,1678,649,True,False
+688335.SH,环境治理,akshare_metadata_cache,1417,0,True,False
+688337.SH,通用设备,akshare_metadata_cache,1010,52,True,False
+688339.SH,电池,akshare_metadata_cache,1412,358,True,False
+688345.SH,电池,eastmoney_board_industry,1219,0,True,False
+688349.SH,电力设备,eastmoney_board_industry,971,21,True,False
+688350.SH,基础化工,eastmoney_board_industry,1301,0,True,False
+688351.SH,医疗耗材,eastmoney_board_industry,921,0,True,False
+688352.SH,电子,akshare_metadata_cache,768,22,True,False
+688358.SH,医疗设备,akshare_metadata_cache,1588,36,True,False
+688362.SH,电子,akshare_metadata_cache,872,468,True,False
+688365.SH,IT服务Ⅱ,eastmoney_board_industry,1490,216,True,False
+688366.SH,医疗耗材,eastmoney_board_industry,1612,179,True,False
+688369.SH,计算机,eastmoney_board_industry,1611,34,True,False
+688370.SH,固废治理,eastmoney_board_industry,925,0,True,False
+688371.SH,电子,akshare_metadata_cache,942,23,True,False
+688375.SH,军工电子Ⅱ,eastmoney_board_industry,949,129,True,False
+688376.SH,环保,eastmoney_board_industry,870,0,True,False
+688377.SH,机械设备,eastmoney_board_industry,1445,0,True,False
+688378.SH,电子,eastmoney_board_industry,1404,18,True,False
+688379.SH,金属制品,eastmoney_board_industry,1415,21,True,False
+688383.SH,机械设备,eastmoney_board_industry,1248,33,True,False
+688385.SH,数字芯片设计,eastmoney_board_industry,1182,1044,True,False
+688393.SH,医药生物,akshare_metadata_cache,1414,18,True,False
+688403.SH,电子,akshare_metadata_cache,930,242,True,False
+688409.SH,电子,akshare_metadata_cache,899,455,True,False
+688416.SH,数字芯片设计,akshare_metadata_cache,923,234,True,False
+688426.SH,医药生物,akshare_metadata_cache,888,0,True,False
+688429.SH,电力设备,akshare_metadata_cache,723,0,True,False
+688435.SH,计算机,eastmoney_board_industry,827,15,True,False
+688439.SH,军工电子Ⅱ,akshare_metadata_cache,924,78,True,False
+688443.SH,其他生物制品,akshare_metadata_cache,728,0,True,False
+688449.SH,数字芯片设计,akshare_metadata_cache,378,129,True,False
+688450.SH,通用设备,akshare_metadata_cache,706,0,True,False
+688466.SH,环境治理,akshare_metadata_cache,1486,0,True,False
+688468.SH,医药生物,eastmoney_board_industry,1261,0,True,False
+688469.SH,集成电路制造,akshare_metadata_cache,757,423,True,False
+688472.SH,电力设备,eastmoney_board_industry,735,557,True,False
+688480.SH,综合环境治理,akshare_metadata_cache,865,17,True,False
+688484.SH,模拟芯片设计,akshare_metadata_cache,777,276,True,False
+688498.SH,分立器件,eastmoney_board_industry,847,743,True,False
+688506.SH,其他生物制品,akshare_metadata_cache,836,413,True,False
+688511.SH,军工电子Ⅱ,eastmoney_board_industry,1183,0,True,False
+688513.SH,化学制剂,akshare_metadata_cache,1405,0,True,False
+688518.SH,自动化设备,eastmoney_board_industry,1455,522,True,False
+688520.SH,其他生物制品,eastmoney_board_industry,1455,130,True,False
+688521.SH,数字芯片设计,eastmoney_board_industry,1406,1058,True,False
+688522.SH,军工电子Ⅱ,eastmoney_board_industry,793,123,True,False
+688526.SH,动物保健Ⅱ,akshare_metadata_cache,1391,24,True,False
+688529.SH,机械设备,akshare_metadata_cache,1363,0,True,False
+688533.SH,汽车零部件,eastmoney_board_industry,1255,44,True,False
+688536.SH,模拟芯片设计,eastmoney_board_industry,1372,1041,True,False
+688538.SH,电子,eastmoney_board_industry,1229,20,True,False
+688548.SH,电子,eastmoney_board_industry,690,106,True,False
+688549.SH,电子,akshare_metadata_cache,672,130,True,False
+688551.SH,其他电源设备Ⅱ,eastmoney_board_industry,1399,10,True,False
+688556.SH,电力设备,akshare_metadata_cache,1423,817,True,False
+688558.SH,机床工具,akshare_metadata_cache,1451,21,True,False
+688565.SH,环境治理,akshare_metadata_cache,1240,16,True,False
+688566.SH,化学制剂,akshare_metadata_cache,1480,0,True,False
+688569.SH,机械设备,akshare_metadata_cache,1407,43,True,False
+688576.SH,医疗耗材,eastmoney_board_industry,738,0,True,False
+688578.SH,化学制剂,eastmoney_board_industry,1346,591,True,False
+688583.SH,通用设备,akshare_metadata_cache,346,17,True,False
+688584.SH,电子,eastmoney_board_industry,570,37,True,False
+688585.SH,塑料,eastmoney_board_industry,1373,211,True,False
+688596.SH,机械设备,eastmoney_board_industry,1414,295,True,False
+688599.SH,电力设备,akshare_metadata_cache,1463,1382,True,False
+688602.SH,化学制剂,akshare_metadata_cache,708,34,True,False
+688606.SH,医药生物,akshare_metadata_cache,1271,105,True,False
+688608.SH,数字芯片设计,eastmoney_board_industry,1336,840,True,False
+688609.SH,黑色家电,akshare_metadata_cache,1273,373,True,False
+688610.SH,通用设备,akshare_metadata_cache,709,2,True,False
+688611.SH,电网设备,akshare_metadata_cache,1260,0,True,False
+688615.SH,垂直应用软件,akshare_metadata_cache,419,247,True,False
+688618.SH,通信设备,eastmoney_board_industry,1326,0,True,False
+688619.SH,计算机,eastmoney_board_industry,1293,27,True,False
+688620.SH,数字芯片设计,eastmoney_board_industry,725,30,True,False
+688623.SH,其他自动化设备,akshare_metadata_cache,736,0,True,False
+688625.SH,基础化工,eastmoney_board_industry,1223,22,True,False
+688626.SH,医疗设备,akshare_metadata_cache,1267,20,True,False
+688627.SH,通用设备,eastmoney_board_industry,710,198,True,False
+688631.SH,垂直应用软件,eastmoney_board_industry,724,248,True,False
+688633.SH,机械设备,eastmoney_board_industry,1272,0,True,False
+688635.SH,通信线缆及配套,akshare_metadata_cache,20,0,True,False
+688651.SH,计算机,eastmoney_board_industry,704,0,True,False
+688659.SH,基础化工,eastmoney_board_industry,1267,87,True,False
+688662.SH,其他电子Ⅱ,akshare_metadata_cache,1266,166,True,False
+688670.SH,生物制品,akshare_metadata_cache,1184,0,True,False
+688671.SH,环保,akshare_metadata_cache,694,0,True,False
+688678.SH,消费电子,eastmoney_board_industry,1331,131,True,False
+688687.SH,其他生物制品,eastmoney_board_industry,1299,138,True,False
+688690.SH,化学制药,eastmoney_board_industry,1212,90,True,False
+688692.SH,垂直应用软件,eastmoney_board_industry,493,222,True,False
+688693.SH,分立器件,eastmoney_board_industry,677,83,True,False
+688695.SH,计算机,akshare_metadata_cache,552,0,True,False
+688702.SH,数字芯片设计,eastmoney_board_industry,668,247,True,False
+688716.SH,塑料,akshare_metadata_cache,664,125,True,False
+688721.SH,电子,akshare_metadata_cache,454,0,True,False
+688722.SH,化学纤维,akshare_metadata_cache,1135,23,True,False
+688726.SH,电力设备,akshare_metadata_cache,401,97,True,False
+688733.SH,电池化学品,eastmoney_board_industry,1173,59,True,False
+688737.SH,汽车零部件,akshare_metadata_cache,1132,0,True,False
+688750.SH,有色金属,akshare_metadata_cache,385,0,True,False
+688755.SH,机械设备,eastmoney_board_industry,269,0,True,False
+688757.SH,专业服务,eastmoney_board_industry,303,7,True,False
+688758.SH,化学制药,eastmoney_board_industry,349,0,True,False
+688765.SH,其他生物制品,eastmoney_board_industry,159,0,True,False
+688767.SH,医药生物,eastmoney_board_industry,1157,68,True,False
+688781.SH,电子,akshare_metadata_cache,61,0,True,False
+688783.SH,电子,akshare_metadata_cache,159,31,True,False
+688785.SH,其他电源设备Ⅱ,eastmoney_board_industry,95,11,True,False
+688788.SH,军工电子Ⅱ,akshare_metadata_cache,1375,32,True,False
+688789.SH,机械设备,eastmoney_board_industry,1201,0,True,False
+688796.SH,医药生物,akshare_metadata_cache,128,0,True,False
+688797.SH,电子,akshare_metadata_cache,1,0,True,False
+688798.SH,模拟芯片设计,akshare_metadata_cache,1174,143,True,False
+688799.SH,化学制剂,akshare_metadata_cache,1198,59,True,False
+688802.SH,数字芯片设计,akshare_metadata_cache,123,46,True,False
+688808.SH,通用设备,akshare_metadata_cache,40,0,True,False
+688818.SH,国防军工,eastmoney_board_industry,86,10,True,False
+688819.SH,电池,akshare_metadata_cache,1314,160,True,False
+688981.SH,集成电路制造,eastmoney_board_industry,1433,1353,True,False
+920000.BJ,底盘与发动机系统,eastmoney_board_industry,1331,0,True,False
+920002.BJ,金属制品,eastmoney_board_industry,501,57,True,False
+920005.BJ,消费电子,akshare_metadata_cache,216,0,True,False
+920006.BJ,航空装备Ⅱ,akshare_metadata_cache,751,46,True,False
+920009.BJ,医药生物,eastmoney_board_industry,155,0,True,False
+920010.BJ,燃气Ⅱ,akshare_metadata_cache,1432,17,True,False
+920011.BJ,电机Ⅱ,akshare_metadata_cache,52,0,True,False
+920018.BJ,线缆部件及其他,akshare_metadata_cache,202,0,True,False
+920033.BJ,基础化工,akshare_metadata_cache,847,0,True,False
+920035.BJ,其他自动化设备,eastmoney_board_industry,134,0,True,False
+920036.BJ,计算机,eastmoney_board_industry,73,0,True,False
+920057.BJ,建筑装饰,eastmoney_board_industry,794,0,True,False
+920058.BJ,汽车,akshare_metadata_cache,683,0,True,False
+920060.BJ,印制电路板,eastmoney_board_industry,386,21,True,False
+920062.BJ,输变电设备,eastmoney_board_industry,956,0,True,False
+920066.BJ,塑料,akshare_metadata_cache,399,0,True,False
+920069.BJ,医疗耗材,eastmoney_board_industry,59,0,True,False
+920087.BJ,种植业,eastmoney_board_industry,857,41,True,False
+920089.BJ,塑料,akshare_metadata_cache,1120,0,True,False
+920091.BJ,机械设备,eastmoney_board_industry,141,0,True,False
+920099.BJ,基础化工,akshare_metadata_cache,420,0,True,False
+920118.BJ,线缆部件及其他,akshare_metadata_cache,442,0,True,False
+920126.BJ,机械设备,akshare_metadata_cache,7,0,True,False
+920139.BJ,电子,eastmoney_board_industry,885,130,True,False
+920146.BJ,底盘与发动机系统,akshare_metadata_cache,1193,16,True,False
+920149.BJ,工程咨询服务Ⅱ,akshare_metadata_cache,1432,0,True,False
+920158.BJ,机械设备,eastmoney_board_industry,167,0,True,False
+920160.BJ,专业服务,eastmoney_board_industry,144,0,True,False
+920168.BJ,汽车零部件,akshare_metadata_cache,80,0,True,False
+920171.BJ,IT服务Ⅱ,eastmoney_board_industry,1113,96,True,False
+920179.BJ,电子,akshare_metadata_cache,1038,27,True,False
+920180.BJ,医疗耗材,eastmoney_board_industry,86,0,True,False
+920186.BJ,通用设备,eastmoney_board_industry,37,0,True,False
+920187.BJ,汽车零部件,akshare_metadata_cache,75,0,True,False
+920188.BJ,其他橡胶制品,akshare_metadata_cache,58,0,True,False
+920190.BJ,其他计算机设备,akshare_metadata_cache,845,82,True,False
+920195.BJ,底盘与发动机系统,akshare_metadata_cache,840,0,True,False
+920200.BJ,电力设备,akshare_metadata_cache,34,0,True,False
+920206.BJ,基础化工,eastmoney_board_industry,12,0,True,False
+920207.BJ,垂直应用软件,akshare_metadata_cache,905,20,True,False
+920208.BJ,工程咨询服务Ⅱ,eastmoney_board_industry,723,0,True,False
+920211.BJ,自动化设备,eastmoney_board_industry,13,0,True,False
+920225.BJ,其他橡胶制品,eastmoney_board_industry,1291,0,True,False
+920239.BJ,电池,eastmoney_board_industry,1290,20,True,False
+920249.BJ,通信设备,akshare_metadata_cache,811,50,True,False
+920252.BJ,电池,akshare_metadata_cache,827,26,True,False
+920260.BJ,金属制品,eastmoney_board_industry,1116,0,True,False
+920261.BJ,基础化工,akshare_metadata_cache,780,0,True,False
+920267.BJ,消费电子,eastmoney_board_industry,988,0,True,False
+920274.BJ,塑料包装,eastmoney_board_industry,687,0,True,False
+920278.BJ,医疗设备,akshare_metadata_cache,1432,0,True,False
+920284.BJ,机械设备,eastmoney_board_industry,606,88,True,False
+920339.BJ,家用电器,eastmoney_board_industry,871,0,True,False
+920344.BJ,其他生物制品,akshare_metadata_cache,1320,0,True,False
+920367.BJ,化学制药,akshare_metadata_cache,817,0,True,False
+920368.BJ,电力设备,akshare_metadata_cache,1432,94,True,False
+920371.BJ,其他农产品加工,eastmoney_board_industry,828,11,True,False
+920392.BJ,包装印刷,akshare_metadata_cache,840,0,True,False
+920395.BJ,机械设备,eastmoney_board_industry,920,0,True,False
+920396.BJ,其他自动化设备,eastmoney_board_industry,1356,55,True,False
+920405.BJ,自动化设备,akshare_metadata_cache,1122,0,True,False
+920422.BJ,食品及饲料添加剂,akshare_metadata_cache,803,0,True,False
+920436.BJ,汽车零部件,akshare_metadata_cache,1116,0,True,False
+920478.BJ,化学制药,akshare_metadata_cache,807,5,True,False
+920489.BJ,化学原料,akshare_metadata_cache,1432,59,True,False
+920493.BJ,IT服务Ⅱ,eastmoney_board_industry,640,238,True,False
+920505.BJ,金属制品,akshare_metadata_cache,847,42,True,False
+920508.BJ,电网设备,eastmoney_board_industry,1432,0,True,False
+920522.BJ,电池,akshare_metadata_cache,629,109,True,False
+920526.BJ,电子,akshare_metadata_cache,843,65,True,False
+920553.BJ,印刷包装机械,akshare_metadata_cache,1180,0,True,False
+920556.BJ,电网设备,akshare_metadata_cache,791,0,True,False
+920564.BJ,IT服务Ⅱ,eastmoney_board_industry,974,0,True,False
+920566.BJ,化学制剂,akshare_metadata_cache,1175,0,True,False
+920576.BJ,有色金属,eastmoney_board_industry,714,56,True,False
+920580.BJ,装修建材,eastmoney_board_industry,998,0,True,False
+920593.BJ,自动化设备,akshare_metadata_cache,773,116,True,False
+920599.BJ,机械设备,akshare_metadata_cache,1294,0,True,False
+920651.BJ,通用设备,akshare_metadata_cache,725,0,True,False
+920663.BJ,汽车零部件,akshare_metadata_cache,793,0,True,False
+920675.BJ,非金属材料Ⅱ,eastmoney_board_industry,1318,0,True,False
+920685.BJ,通用设备,eastmoney_board_industry,899,0,True,False
+920689.BJ,通用设备,akshare_metadata_cache,1032,38,True,False
+920690.BJ,汽车零部件,akshare_metadata_cache,594,0,True,False
+920699.BJ,家电零部件Ⅱ,eastmoney_board_industry,758,0,True,False
+920701.BJ,消费电子,eastmoney_board_industry,709,0,True,False
+920703.BJ,机械设备,eastmoney_board_industry,616,0,True,False
+920718.BJ,家电零部件Ⅱ,eastmoney_board_industry,846,0,True,False
+920720.BJ,金属制品,akshare_metadata_cache,1109,25,True,False
+920725.BJ,磨具磨料,akshare_metadata_cache,953,35,True,False
+920748.BJ,IT服务Ⅱ,eastmoney_board_industry,689,24,True,False
+920751.BJ,有色金属,eastmoney_board_industry,711,0,True,False
+920765.BJ,轻工制造,akshare_metadata_cache,1204,0,True,False
+920770.BJ,电力设备,eastmoney_board_industry,804,38,True,False
+920792.BJ,装修建材,eastmoney_board_industry,782,0,True,False
+920802.BJ,大气治理,akshare_metadata_cache,820,0,True,False
+920809.BJ,电池化学品,akshare_metadata_cache,787,20,True,False
+920826.BJ,食品饮料,eastmoney_board_industry,1318,19,True,False
+920837.BJ,底盘与发动机系统,eastmoney_board_industry,754,0,True,False
+920839.BJ,机械设备,akshare_metadata_cache,1363,0,True,False
+920855.BJ,机械设备,eastmoney_board_industry,841,0,True,False
+920856.BJ,机械设备,eastmoney_board_industry,1319,0,True,False
+920866.BJ,农化制品,eastmoney_board_industry,855,0,True,False
+920871.BJ,底盘与发动机系统,akshare_metadata_cache,949,0,True,False
+920879.BJ,通用设备,akshare_metadata_cache,848,15,True,False
+920895.BJ,农用机械,eastmoney_board_industry,778,0,True,False
+920896.BJ,底盘与发动机系统,akshare_metadata_cache,769,0,True,False
+920925.BJ,医疗设备,akshare_metadata_cache,1131,0,True,False
+920932.BJ,垂直应用软件,eastmoney_board_industry,1116,0,True,False
+920953.BJ,IT服务Ⅱ,eastmoney_board_industry,684,21,True,False
+920961.BJ,通用设备,eastmoney_board_industry,1427,59,True,False
+920970.BJ,动物保健Ⅱ,akshare_metadata_cache,995,0,True,False
+920971.BJ,非金属材料Ⅱ,eastmoney_board_industry,903,23,True,False
+920981.BJ,元件,akshare_metadata_cache,1116,0,True,False

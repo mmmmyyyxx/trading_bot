@@ -1,0 +1,24 @@
+{
+  "symbol_level_coverage": 1.0,
+  "row_level_coverage": 1.0,
+  "selected_universe_coverage": 1.0,
+  "position_weighted_coverage": null,
+  "unknown_symbol_count": 0,
+  "unknown_selected_avg_ratio": 0.0,
+  "unknown_position_weight_avg": null,
+  "industry_source_distribution": {
+    "akshare_metadata_cache": 2878169,
+    "eastmoney_board_industry": 322814
+  },
+  "industry_source_top": "akshare_metadata_cache",
+  "industry_quality_status": "passed",
+  "quality_status": "passed",
+  "reports": {
+    "industry_metadata_coverage": "reports\\quality_csi1800_current_2018_2026\\industry\\industry_metadata_coverage.csv",
+    "industry_source_distribution": "reports\\quality_csi1800_current_2018_2026\\industry\\industry_source_distribution.csv",
+    "industry_unknown_by_date": "reports\\quality_csi1800_current_2018_2026\\industry\\industry_unknown_by_date.csv",
+    "industry_unknown_by_selected_universe": "reports\\quality_csi1800_current_2018_2026\\industry\\industry_unknown_by_selected_universe.csv",
+    "industry_unknown_by_position": "reports\\quality_csi1800_current_2018_2026\\industry\\industry_unknown_by_position.csv",
+    "summary": "reports\\quality_csi1800_current_2018_2026\\industry\\industry_coverage_summary.json"
+  }
+}

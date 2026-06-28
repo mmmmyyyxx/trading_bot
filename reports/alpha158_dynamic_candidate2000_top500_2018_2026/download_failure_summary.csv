@@ -1,0 +1,8 @@
+symbol,source,attempt_order,status,rows,fallback_used,error
+001399.SZ,eastmoney,1,empty,0,False,empty
+001399.SZ,tencent_tx,2,empty,0,True,empty
+001399.SZ,eastmoney,1,empty,0,False,empty
+001399.SZ,tencent_tx,2,empty,0,True,empty
+001399.SZ,eastmoney,1,empty,0,False,empty
+001399.SZ,tencent_tx,2,empty,0,True,empty
+001399.SZ,,,missing_after_update,0,False,no_bars_after_update

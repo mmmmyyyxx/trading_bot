@@ -370,6 +370,10 @@ def build_data_quality_report(bars: pd.DataFrame, selected_col: str = "selected"
     if not extreme_amount_jump_rows.empty:
         extreme_amount_jump_rows["previous_amount"] = previous_amount.loc[extreme_amount_jump_rows.index]
         extreme_amount_jump_rows["amount_pct_change"] = amount_change.loc[extreme_amount_jump_rows.index]
+    invalid_ohlc_rows = _flagged_rows(data, row_quality, "invalid_ohlc")
+    invalid_limit_rows = _flagged_rows(data, row_quality, "invalid_limit")
+    vwap_outlier_rows = _flagged_rows(data, row_quality, "vwap_unit_outlier")
+    selected_quality_year = _selected_quality_by_year(row_quality)
 
     return {
         "summary": summary,
@@ -385,6 +389,10 @@ def build_data_quality_report(bars: pd.DataFrame, selected_col: str = "selected"
         "duplicate_rows": duplicate_rows,
         "extreme_return_rows": extreme_rows,
         "extreme_amount_jump_rows": extreme_amount_jump_rows,
+        "invalid_ohlc_rows": invalid_ohlc_rows,
+        "invalid_limit_rows": invalid_limit_rows,
+        "vwap_unit_outlier_rows": vwap_outlier_rows,
+        "selected_quality_by_year": selected_quality_year,
     }
 
 
@@ -393,6 +401,7 @@ def write_data_quality_report(
     output_dir: str | Path,
     *,
     selected_col: str = "selected",
+    positions: pd.DataFrame | None = None,
     fail_on_error: bool = False,
 ) -> dict[str, Any]:
     """Write data quality reports and optionally raise on failed status."""
@@ -416,6 +425,10 @@ def write_data_quality_report(
         "duplicate_rows": "duplicate_rows.csv",
         "extreme_return_rows": "extreme_return_rows.csv",
         "extreme_amount_jump_rows": "extreme_amount_jump_rows.csv",
+        "invalid_ohlc_rows": "invalid_ohlc_rows.csv",
+        "invalid_limit_rows": "invalid_limit_rows.csv",
+        "vwap_unit_outlier_rows": "vwap_unit_outlier_rows.csv",
+        "selected_quality_by_year": "selected_quality_by_year.csv",
     }
     for key, filename in file_map.items():
         frame = report[key]
@@ -423,6 +436,12 @@ def write_data_quality_report(
         assert isinstance(frame, pd.DataFrame)
         frame.to_csv(path, index=False)
         summary["reports"][key] = str(path)
+    if positions is not None and not positions.empty:
+        overlap = position_quality_overlap(positions, report["row_quality"])
+        assert isinstance(overlap, pd.DataFrame)
+        overlap_path = out / "position_quality_overlap.csv"
+        overlap.to_csv(overlap_path, index=False)
+        summary["reports"]["position_quality_overlap"] = str(overlap_path)
 
     summary_path = out / "data_quality_summary.json"
     summary["reports"]["summary"] = str(summary_path)
@@ -430,6 +449,55 @@ def write_data_quality_report(
     if fail_on_error and summary.get("quality_status") == "failed":
         raise RuntimeError(f"Data quality audit failed: {summary.get('failure_reason', 'unknown')}")
     return summary
+
+
+def position_quality_overlap(positions: pd.DataFrame, row_quality: pd.DataFrame) -> pd.DataFrame:
+    """Summarize whether held positions overlap with flagged bar-quality rows."""
+
+    if positions is None or positions.empty or row_quality.empty:
+        return pd.DataFrame(
+            columns=[
+                "date",
+                "position_count",
+                "invalid_ohlc_positions",
+                "invalid_limit_positions",
+                "vwap_unit_outlier_positions",
+                "failed_positions",
+                "warning_positions",
+                "invalid_ohlc_weight",
+                "invalid_limit_weight",
+                "vwap_unit_outlier_weight",
+            ]
+        )
+    pos = positions.copy()
+    pos["date"] = pd.to_datetime(pos["date"], errors="coerce")
+    pos["symbol"] = pos["symbol"].fillna("").astype(str)
+    if "weight" not in pos.columns:
+        pos["weight"] = 0.0
+    pos["weight"] = pd.to_numeric(pos["weight"], errors="coerce").fillna(0.0).abs()
+    quality = row_quality[["date", "symbol", "quality_status", "quality_flags"]].copy()
+    quality["date"] = pd.to_datetime(quality["date"], errors="coerce")
+    quality["symbol"] = quality["symbol"].fillna("").astype(str)
+    merged = pos.merge(quality, on=["date", "symbol"], how="left")
+    flags = merged["quality_flags"].fillna("").astype(str)
+    merged["_invalid_ohlc"] = flags.str.contains("invalid_ohlc", regex=False)
+    merged["_invalid_limit"] = flags.str.contains("invalid_limit", regex=False)
+    merged["_vwap_unit_outlier"] = flags.str.contains("vwap_unit_outlier", regex=False)
+    merged["_failed"] = merged["quality_status"].fillna("").astype(str).eq("failed")
+    merged["_warning"] = merged["quality_status"].fillna("").astype(str).eq("warning")
+    grouped = merged.groupby("date")
+    result = grouped.agg(
+        position_count=("symbol", "count"),
+        invalid_ohlc_positions=("_invalid_ohlc", "sum"),
+        invalid_limit_positions=("_invalid_limit", "sum"),
+        vwap_unit_outlier_positions=("_vwap_unit_outlier", "sum"),
+        failed_positions=("_failed", "sum"),
+        warning_positions=("_warning", "sum"),
+        invalid_ohlc_weight=("weight", lambda values: float(values[merged.loc[values.index, "_invalid_ohlc"]].sum())),
+        invalid_limit_weight=("weight", lambda values: float(values[merged.loc[values.index, "_invalid_limit"]].sum())),
+        vwap_unit_outlier_weight=("weight", lambda values: float(values[merged.loc[values.index, "_vwap_unit_outlier"]].sum())),
+    ).reset_index()
+    return result.sort_values("date").reset_index(drop=True)
 
 
 def write_qlib_quality_sidecars(
@@ -494,6 +562,61 @@ def _missing_bars_by_symbol(data: pd.DataFrame) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows)
+
+
+def _flagged_rows(data: pd.DataFrame, row_quality: pd.DataFrame, flag: str) -> pd.DataFrame:
+    if row_quality.empty:
+        return data.iloc[0:0].copy()
+    flags = row_quality["quality_flags"].fillna("").astype(str).str.contains(flag, regex=False)
+    keys = row_quality.loc[flags, ["date", "symbol", "is_selected", "quality_status", "quality_flags"]].copy()
+    if keys.empty:
+        columns = list(data.columns) + ["is_selected", "quality_status", "quality_flags", "year"]
+        return pd.DataFrame(columns=list(dict.fromkeys(columns)))
+    source = data.copy()
+    source["date"] = pd.to_datetime(source["date"], errors="coerce")
+    keys["date"] = pd.to_datetime(keys["date"], errors="coerce")
+    merged = keys.merge(source, on=["date", "symbol"], how="left")
+    merged["year"] = merged["date"].dt.year
+    return merged.sort_values(["date", "symbol"]).reset_index(drop=True)
+
+
+def _selected_quality_by_year(row_quality: pd.DataFrame) -> pd.DataFrame:
+    if row_quality.empty:
+        return pd.DataFrame(
+            columns=[
+                "year",
+                "selected_rows",
+                "invalid_ohlc_selected_rows",
+                "invalid_limit_selected_rows",
+                "vwap_unit_outlier_selected_rows",
+                "failed_selected_rows",
+                "warning_selected_rows",
+            ]
+        )
+    data = row_quality.copy()
+    data["date"] = pd.to_datetime(data["date"], errors="coerce")
+    data["year"] = data["date"].dt.year
+    selected = data[data["is_selected"].fillna(False).astype(bool)].copy()
+    if selected.empty:
+        return pd.DataFrame(columns=["year", "selected_rows"])
+    flags = selected["quality_flags"].fillna("").astype(str)
+    selected["_invalid_ohlc"] = flags.str.contains("invalid_ohlc", regex=False)
+    selected["_invalid_limit"] = flags.str.contains("invalid_limit", regex=False)
+    selected["_vwap_unit_outlier"] = flags.str.contains("vwap_unit_outlier", regex=False)
+    selected["_failed"] = selected["quality_status"].fillna("").astype(str).eq("failed")
+    selected["_warning"] = selected["quality_status"].fillna("").astype(str).eq("warning")
+    result = selected.groupby("year").agg(
+        selected_rows=("symbol", "count"),
+        invalid_ohlc_selected_rows=("_invalid_ohlc", "sum"),
+        invalid_limit_selected_rows=("_invalid_limit", "sum"),
+        vwap_unit_outlier_selected_rows=("_vwap_unit_outlier", "sum"),
+        failed_selected_rows=("_failed", "sum"),
+        warning_selected_rows=("_warning", "sum"),
+    ).reset_index()
+    for col in ["invalid_ohlc", "invalid_limit", "vwap_unit_outlier", "failed", "warning"]:
+        count_col = f"{col}_selected_rows"
+        result[f"{col}_selected_ratio"] = result[count_col] / result["selected_rows"].where(result["selected_rows"] != 0)
+    return result.sort_values("year").reset_index(drop=True)
 
 
 def _failure_reason(metrics: dict[str, Any]) -> str:

@@ -1,0 +1,29 @@
+{
+  "data_type": "real_akshare",
+  "synthetic_data": false,
+  "mock_data": false,
+  "download_source": "akshare",
+  "universe_name": "csi800_current_2018_2026",
+  "bars_path": "data/csi800_current_2018_2026_bars.parquet",
+  "data_start": "2018-01-02",
+  "data_end": "2026-06-24",
+  "requested_symbols": 800,
+  "actual_symbols": 800,
+  "missing_symbols_count": 0,
+  "data_quality_status": "warning",
+  "industry_quality_status": "passed",
+  "reports": {
+    "download_summary": "reports\\quality_csi800_current_2018_2026\\download_summary.json",
+    "download_source_summary": "reports\\quality_csi800_current_2018_2026\\download_source_summary.csv",
+    "download_failure_summary": "reports\\quality_csi800_current_2018_2026\\download_failure_summary.csv",
+    "source_fallback_summary": "reports\\quality_csi800_current_2018_2026\\source_fallback_summary.csv",
+    "data_quality_summary": "reports\\quality_csi800_current_2018_2026\\data_quality\\data_quality_summary.json",
+    "extreme_amount_jump_rows": "reports\\quality_csi800_current_2018_2026\\data_quality\\extreme_amount_jump_rows.csv",
+    "industry_coverage_summary": "reports\\quality_csi800_current_2018_2026\\industry\\industry_coverage_summary.json"
+  },
+  "caveats": [
+    "Quality-only report; no Alpha158 performance result is claimed here.",
+    "Current constituent/current listed candidate bias remains where applicable.",
+    "Industry metadata is current/latest metadata unless historical point-in-time classification is supplied."
+  ]
+}

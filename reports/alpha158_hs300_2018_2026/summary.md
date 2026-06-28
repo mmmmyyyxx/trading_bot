@@ -98,3 +98,22 @@ This result should be interpreted as a data-quality-sensitive research result, n
 - The 2026 period is year-to-date, not a complete calendar year.
 - Qlib baseline backtests use the configured uniform limit_threshold and do not fully enforce per-stock A-share board/ST limit rules.
 - Industry and active-exposure diagnostics depend on metadata coverage; inspect unknown industry weight before using industry conclusions.
+
+## Data Quality Warning Explanation
+
+HS300 data quality status is warning, not passed. Key ratios are:
+
+- invalid_ohlc_ratio: 0.003584
+- invalid_limit_ratio: 0.016407
+- vwap_unit_outlier_ratio: 0.015342
+- extreme_amount_jump_ratio: 0.000111
+
+Detail files are available under `reports/alpha158_hs300_2018_2026/data_quality/`:
+
+- invalid_ohlc_rows.csv: 2035 rows, 2034 selected rows.
+- invalid_limit_rows.csv: 9315 rows, 9013 selected rows.
+- vwap_unit_outlier_rows.csv: 8710 rows, 8622 selected rows.
+- selected_quality_by_year.csv: max yearly selected warning ratio 0.042610.
+- position_quality_overlap.csv: invalid-limit overlap with exported positions totals 189 position rows; invalid-limit absolute weight sum 3.973436.
+
+Interpretation: these warnings are not catastrophic, but they are not cosmetic either. Limit-field anomalies do overlap exported positions, so HS300 results should be interpreted as data-quality-sensitive Qlib baseline results until the affected rows are corrected, excluded, or checked against a stricter A-share exchange/order filter.

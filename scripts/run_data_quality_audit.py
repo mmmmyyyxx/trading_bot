@@ -28,6 +28,7 @@ def main() -> None:
         bars,
         output_dir=args.output_dir,
         selected_col=args.selected_col,
+        positions=positions,
         fail_on_error=args.fail_on_error,
     )
     print(f"Data quality status: {summary.get('quality_status')}")
