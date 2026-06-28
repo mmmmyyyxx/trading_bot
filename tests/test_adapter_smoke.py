@@ -12,7 +12,13 @@ from ashare_adapter.benchmarks import dump_benchmarks_to_qlib
 from ashare_adapter.config import UniverseConfig
 from ashare_adapter.diagnostics import compute_group_returns, compute_ic, compute_turnover, split_oos
 from ashare_adapter.factors import reversal_lowvol_scores
-from ashare_adapter.industry_metadata import industry_coverage, merge_industry_map, parse_cninfo_industry
+from ashare_adapter.industry_metadata import (
+    industry_coverage,
+    industry_unknown_by_date,
+    industry_unknown_by_position,
+    merge_industry_map,
+    parse_cninfo_industry,
+)
 from ashare_adapter.manifest import build_run_manifest
 from ashare_adapter.metadata import limit_rate, normalize_symbol, to_qlib_symbol, write_metadata_sidecar
 from ashare_adapter.qlib_converter import dump_qlib_bin, prepare_qlib_frame
@@ -231,6 +237,55 @@ def test_run_manifest_marks_eligible_only_when_top_n_is_absent(tmp_path) -> None
     assert manifest["universe"]["data_sufficient_for_dynamic_top_n"] is None
 
 
+def test_run_manifest_marks_dynamic_top_n_without_extra_separator(tmp_path) -> None:
+    summary_path = tmp_path / "summary.json"
+    runtime_config_path = tmp_path / "runtime.yaml"
+    diagnostics_path = tmp_path / "universe_diagnostics.csv"
+
+    summary_path.write_text(
+        """
+{
+  "run": {"run_id": "abc", "experiment_id": "1"},
+  "data": {"requested_symbols": 1000, "symbols": 940, "missing_symbols": []}
+}
+""".strip(),
+        encoding="utf-8",
+    )
+    runtime_config_path.write_text(
+        yaml.safe_dump(
+            {
+                "benchmark": "SH000905",
+                "task": {
+                    "dataset": {
+                        "kwargs": {
+                            "segments": {
+                                "train": ["2018-01-01", "2020-12-31"],
+                                "valid": ["2021-01-01", "2021-12-31"],
+                                "test": ["2022-01-01", "2022-12-31"],
+                            }
+                        }
+                    },
+                    "record": [],
+                },
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    pd.DataFrame(
+        {
+            "date": pd.date_range("2022-01-01", periods=2),
+            "selected_universe_count": [300, 299],
+            "configured_top_n": [300, 300],
+        }
+    ).to_csv(diagnostics_path, index=False)
+
+    manifest = build_run_manifest(summary_path, runtime_config_path, diagnostics_path)
+
+    assert manifest["universe"]["selected_mode"] == "dynamic_liquidity_top300"
+    assert "selected_mode=dynamic_liquidity_top300" in manifest["caveats"][1]
+
+
 def test_dynamic_top_n_sufficiency_marks_underfilled_candidate_pool() -> None:
     assessment = assess_data_sufficiency(
         data={"requested_symbols": 1000, "symbols": 158},
@@ -366,6 +421,7 @@ def test_rolling_2018_2026_comparison_merge_keeps_other_universes(tmp_path) -> N
     )
 
     assert set(merged["universe_name"]) == {"hs300_current_2018_2026", "csi800_current_2018_2026"}
+    assert {"beta_hs300", "beta_csi500", "beta_csi1000", "industry_unknown_weight"}.issubset(merged.columns)
 
 
 def test_rolling_2018_2026_caveats_mark_only_ytd_window() -> None:
@@ -421,6 +477,8 @@ def test_metadata_sidecar_writes_industry_and_list_date(tmp_path) -> None:
             "is_st": [False],
             "list_date": [pd.Timestamp("1991-04-03")],
             "industry": ["bank"],
+            "industry_source": ["unit_test"],
+            "industry_update_date": [pd.Timestamp("2024-01-02")],
         }
     )
 
@@ -429,6 +487,8 @@ def test_metadata_sidecar_writes_industry_and_list_date(tmp_path) -> None:
 
     assert frame.loc[0, "qlib_symbol"] == "SZ000001"
     assert frame.loc[0, "industry"] == "bank"
+    assert frame.loc[0, "industry_source"] == "unit_test"
+    assert pd.Timestamp(frame.loc[0, "industry_update_date"]).date().isoformat() == "2024-01-02"
     assert pd.Timestamp(frame.loc[0, "list_date"]).date().isoformat() == "1991-04-03"
 
 
@@ -444,6 +504,7 @@ def test_industry_metadata_merge_and_coverage() -> None:
             "symbol": ["600000.SH", "000001.SZ"],
             "industry": ["bank", "finance"],
             "industry_source": ["cninfo", "cninfo"],
+            "industry_update_date": [pd.Timestamp("2024-01-01"), pd.Timestamp("2024-01-02")],
         }
     )
 
@@ -451,8 +512,28 @@ def test_industry_metadata_merge_and_coverage() -> None:
     coverage = industry_coverage(merged)
 
     assert merged.loc[merged["symbol"] == "600000.SH", "industry"].iloc[0] == "bank"
+    assert merged.loc[merged["symbol"] == "600000.SH", "industry_source"].iloc[0] == "cninfo"
     assert merged.loc[merged["symbol"] == "000001.SZ", "industry"].iloc[0] == "bank"
     assert coverage["industry_nonempty"] == 2
+
+
+def test_industry_unknown_reports() -> None:
+    bars = _make_bars(symbol_count=2, periods=3)
+    bars.loc[bars["symbol"] == "000002.SZ", "industry"] = ""
+    bars["selected"] = True
+    positions = pd.DataFrame(
+        {
+            "date": [bars["date"].min(), bars["date"].min()],
+            "symbol": ["000001.SZ", "000002.SZ"],
+            "weight": [0.4, 0.6],
+        }
+    )
+
+    by_date = industry_unknown_by_date(bars)
+    by_position = industry_unknown_by_position(positions, bars)
+
+    assert by_date["unknown_selected_ratio"].iloc[0] == 0.5
+    assert by_position["unknown_weight_ratio"].iloc[0] == 0.6
 
 
 def test_parse_cninfo_industry_uses_latest_detailed_value() -> None:

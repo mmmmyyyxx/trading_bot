@@ -20,6 +20,11 @@ reports/*
 !reports/universe_expansion_comparison.csv
 !reports/universe_expansion_comparison.md
 !reports/run_manifest.json
+!reports/industry_metadata_coverage.csv
+!reports/industry_metadata_failures.csv
+!reports/industry_metadata_summary.json
+!reports/industry_unknown_by_date.csv
+!reports/industry_unknown_by_position.csv
 !reports/alpha158_hs300_full/
 reports/alpha158_hs300_full/*
 !reports/alpha158_hs300_full/summary.json

@@ -18,6 +18,8 @@ from ashare_adapter.industry_metadata import (
     fetch_cninfo_industry_map,
     fetch_eastmoney_industry_map,
     industry_coverage,
+    industry_unknown_by_date,
+    industry_unknown_by_position,
     merge_industry_map,
     missing_industry_symbols,
     update_bars_industry,
@@ -33,7 +35,7 @@ def main() -> None:
 
     metadata_path = Path(args.metadata_cache)
     metadata = _read_table(metadata_path) if metadata_path.exists() else pd.DataFrame(columns=["symbol", "name", "is_st", "industry", "list_date"])
-    metadata["symbol"] = metadata["symbol"].map(normalize_symbol) if "symbol" in metadata.columns else pd.Series(dtype=str)
+    metadata = _prepare_metadata(metadata)
     target_symbols = _target_symbols(args, metadata)
     report_rows = [_coverage_row("metadata_cache", str(metadata_path), "before", metadata)]
 
@@ -69,13 +71,24 @@ def main() -> None:
     industry_map = _combine_industry_maps(industry_maps)
     if not industry_map.empty:
         metadata = merge_industry_map(metadata, industry_map, overwrite=args.overwrite_industry)
-        _write_table(normalize_metadata_frame(metadata), metadata_path)
+    metadata = _prepare_metadata(metadata)
+    _write_table(metadata, metadata_path)
     report_rows.append(_coverage_row("metadata_cache", str(metadata_path), "after", metadata))
 
+    unknown_by_date_frames = []
+    unknown_by_position_frames = []
     for bars_path in args.bars:
-        before, after = update_bars_industry(bars_path, metadata[["symbol", "industry"]], overwrite=args.overwrite_industry)
+        before, after = update_bars_industry(bars_path, _industry_metadata_map(metadata), overwrite=args.overwrite_industry)
         report_rows.append({"dataset": "bars", "path": bars_path, "stage": "before", **before})
         report_rows.append({"dataset": "bars", "path": bars_path, "stage": "after", **after})
+        bars_frame = _read_table(Path(bars_path))
+        unknown_by_date_frames.append(industry_unknown_by_date(bars_frame).assign(path=bars_path))
+
+        report_dir = _infer_report_dir_from_bars(bars_path)
+        positions_path = report_dir / "qlib_records" / "positions.csv" if report_dir is not None else None
+        if positions_path is not None and positions_path.exists():
+            positions = pd.read_csv(positions_path)
+            unknown_by_position_frames.append(industry_unknown_by_position(positions, bars_frame).assign(path=bars_path))
 
     for qlib_dir in args.qlib_dir:
         before, after = _update_qlib_sidecar(Path(qlib_dir), metadata, overwrite=args.overwrite_industry)
@@ -91,6 +104,14 @@ def main() -> None:
     failure_path.parent.mkdir(parents=True, exist_ok=True)
     failures.to_csv(failure_path, index=False)
 
+    unknown_by_date_path = Path(args.unknown_by_date_report)
+    unknown_by_date_path.parent.mkdir(parents=True, exist_ok=True)
+    _concat_or_empty(unknown_by_date_frames).to_csv(unknown_by_date_path, index=False)
+
+    unknown_by_position_path = Path(args.unknown_by_position_report)
+    unknown_by_position_path.parent.mkdir(parents=True, exist_ok=True)
+    _concat_or_empty(unknown_by_position_frames).to_csv(unknown_by_position_path, index=False)
+
     summary = {
         "metadata_cache": str(metadata_path),
         "target_symbols": len(target_symbols),
@@ -98,6 +119,8 @@ def main() -> None:
         "failures": int(len(failures)),
         "coverage_report": str(report_path),
         "failure_report": str(failure_path),
+        "unknown_by_date_report": str(unknown_by_date_path),
+        "unknown_by_position_report": str(unknown_by_position_path),
         "overwrite_industry": bool(args.overwrite_industry),
     }
     Path(args.output_summary).write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -121,6 +144,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cninfo-end-date", default="20260627")
     parser.add_argument("--output-report", default="reports/industry_metadata_coverage.csv")
     parser.add_argument("--failure-report", default="reports/industry_metadata_failures.csv")
+    parser.add_argument("--unknown-by-date-report", default="reports/industry_unknown_by_date.csv")
+    parser.add_argument("--unknown-by-position-report", default="reports/industry_unknown_by_position.csv")
     parser.add_argument("--output-summary", default="reports/industry_metadata_summary.json")
     return parser.parse_args()
 
@@ -149,6 +174,14 @@ def _combine_industry_maps(frames: list[pd.DataFrame]) -> pd.DataFrame:
     return data.drop_duplicates("symbol", keep="last")
 
 
+def _prepare_metadata(metadata: pd.DataFrame) -> pd.DataFrame:
+    data = normalize_metadata_frame(metadata)
+    has_industry = data["industry"].fillna("").astype(str).str.strip().ne("")
+    missing_source = data["industry_source"].fillna("").astype(str).str.strip().eq("")
+    data.loc[has_industry & missing_source, "industry_source"] = "akshare_metadata_cache"
+    return data
+
+
 def _update_qlib_sidecar(qlib_dir: Path, metadata: pd.DataFrame, overwrite: bool) -> tuple[dict[str, object], dict[str, object]]:
     sidecar = qlib_dir / "metadata" / "instruments.parquet"
     if not sidecar.exists():
@@ -158,10 +191,36 @@ def _update_qlib_sidecar(qlib_dir: Path, metadata: pd.DataFrame, overwrite: bool
     else:
         current = metadata.copy()
     before = industry_coverage(current)
-    updated = merge_industry_map(current, metadata[["symbol", "industry"]], overwrite=overwrite)
+    updated = merge_industry_map(current, _industry_metadata_map(metadata), overwrite=overwrite)
     after = industry_coverage(updated)
     write_metadata_sidecar(updated, qlib_dir / "metadata")
     return before, after
+
+
+def _industry_metadata_map(metadata: pd.DataFrame) -> pd.DataFrame:
+    columns = [column for column in ["symbol", "industry", "industry_source", "industry_update_date"] if column in metadata.columns]
+    return metadata[columns].copy()
+
+
+def _infer_report_dir_from_bars(bars_path: str) -> Path | None:
+    stem = Path(bars_path).stem
+    suffix = "_bars"
+    if not stem.endswith(suffix):
+        return None
+    name = stem[: -len(suffix)]
+    candidates = [
+        Path("reports") / f"alpha158_{name}",
+        Path("reports") / name,
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _concat_or_empty(frames: list[pd.DataFrame]) -> pd.DataFrame:
+    valid = [frame for frame in frames if frame is not None and not frame.empty]
+    return pd.concat(valid, ignore_index=True) if valid else pd.DataFrame()
 
 
 def _coverage_row(dataset: str, path: str, stage: str, frame: pd.DataFrame) -> dict[str, object]:

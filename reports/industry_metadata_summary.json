@@ -1,0 +1,11 @@
+{
+  "metadata_cache": "data\\cache\\akshare_metadata.parquet",
+  "target_symbols": 2997,
+  "fetched_industry_rows": 0,
+  "failures": 0,
+  "coverage_report": "reports\\industry_metadata_coverage.csv",
+  "failure_report": "reports\\industry_metadata_failures.csv",
+  "unknown_by_date_report": "reports\\industry_unknown_by_date.csv",
+  "unknown_by_position_report": "reports\\industry_unknown_by_position.csv",
+  "overwrite_industry": false
+}

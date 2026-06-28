@@ -2,7 +2,7 @@
 
 Run: `23711ce6b42549a69a0e8ac95d99ec0a`  
 Data: 1880 symbols, 3169631 rows, 2018-01-02 to 2026-06-24
-Universe: dynamic_liquidity_top_500; selected filter: `$selected > 0.5`
+Universe: dynamic_liquidity_top500; selected filter: `$selected > 0.5`
 
 ## Signal
 
@@ -66,7 +66,7 @@ dynamic top500 selected count reached the configured target.
 ## Caveats
 
 - Results inherit the survivorship properties of the supplied symbol universe; current-constituent or current-listed universes are not historical membership backtests.
-- selected_mode=dynamic_liquidity_top_500; verify the candidate universe construction separately.
+- selected_mode=dynamic_liquidity_top500; verify the candidate universe construction separately.
 - The 2026 period is year-to-date, not a complete calendar year.
 - Qlib baseline backtests use the configured uniform limit_threshold and do not fully enforce per-stock A-share board/ST limit rules.
 - Industry and active-exposure diagnostics depend on metadata coverage; inspect unknown industry weight before using industry conclusions.

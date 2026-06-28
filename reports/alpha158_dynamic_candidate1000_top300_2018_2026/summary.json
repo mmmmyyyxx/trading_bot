@@ -88,7 +88,7 @@
   },
   "universe": {
     "dynamic_liquidity_top_n": 300,
-    "selected_mode": "dynamic_liquidity_top_300",
+    "selected_mode": "dynamic_liquidity_top300",
     "avg_selected_universe_count": 290.2039922103213,
     "min_selected_universe_count": 268,
     "max_selected_universe_count": 300
@@ -188,7 +188,7 @@
   },
   "caveats": [
     "Results inherit the survivorship properties of the supplied symbol universe; current-constituent or current-listed universes are not historical membership backtests.",
-    "selected_mode=dynamic_liquidity_top_300; verify the candidate universe construction separately.",
+    "selected_mode=dynamic_liquidity_top300; verify the candidate universe construction separately.",
     "The 2026 period is year-to-date, not a complete calendar year.",
     "Qlib baseline backtests use the configured uniform limit_threshold and do not fully enforce per-stock A-share board/ST limit rules.",
     "Industry and active-exposure diagnostics depend on metadata coverage; inspect unknown industry weight before using industry conclusions.",

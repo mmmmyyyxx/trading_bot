@@ -119,7 +119,7 @@ def _summarize_universe(path: str | Path | None) -> dict[str, Any]:
     selected = pd.to_numeric(data.get("selected_universe_count", pd.Series(dtype=float)), errors="coerce").dropna()
     return {
         "dynamic_liquidity_top_n": top_n,
-        "selected_mode": f"dynamic_liquidity_top_{top_n}" if top_n else "eligible_only",
+        "selected_mode": f"dynamic_liquidity_top{top_n}" if top_n else "eligible_only",
         "avg_selected_universe_count": float(selected.mean()) if not selected.empty else None,
         "min_selected_universe_count": int(selected.min()) if not selected.empty else None,
         "max_selected_universe_count": int(selected.max()) if not selected.empty else None,
@@ -153,7 +153,7 @@ def _selected_mode_caveat(universe: dict[str, Any]) -> str:
     mode = universe.get("selected_mode")
     if mode == "eligible_only":
         return "selected_mode=eligible_only; no dynamic liquidity top-N filter was applied."
-    if isinstance(mode, str) and mode.startswith("dynamic_liquidity_top_"):
+    if isinstance(mode, str) and mode.startswith("dynamic_liquidity_top"):
         return f"selected_mode={mode}; verify the candidate universe and backward-looking liquidity window."
     return "selected universe mode is unknown; verify universe diagnostics before interpreting results."
 

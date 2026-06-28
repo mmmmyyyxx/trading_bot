@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from ashare_adapter.exposure import beta_exposure, industry_exposure
+from ashare_adapter.qlib_converter import read_bars
+
 from scripts.run_rolling_baselines import (
     MODEL_SPECS,
     build_workflow_config,
@@ -66,6 +69,8 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     universe_summary = _summarize_universe(args.universe_diagnostics)
+    exposure_summary = _summarize_exposure(args.bars, args.equity, args.benchmarks, args.exposure_dir)
+    selected_mode = _normalize_selected_mode(args.selected_mode)
     rows = []
     for window in _windows(args.end_date):
         for model_name in args.models:
@@ -95,7 +100,7 @@ def main() -> None:
             row = {
                 "universe_name": args.universe_name,
                 "universe_mode": args.universe_mode,
-                "selected_mode": args.selected_mode,
+                "selected_mode": selected_mode,
                 "dynamic_liquidity_top_n": args.dynamic_liquidity_top_n,
                 "candidate_pool_size": args.candidate_pool_size,
                 "requested_symbols": args.requested_symbols,
@@ -123,6 +128,7 @@ def main() -> None:
                 "config_path": str(config_path),
                 "log_path": str(log_path),
                 "caveats": _caveats(args, window),
+                **exposure_summary,
             }
             if args.execute:
                 run_info = run_qrun(config_path, log_path)
@@ -154,7 +160,7 @@ def _windows(end_date: str) -> list[dict[str, Any]]:
 def _merge_comparison(path: Path, rows: list[dict[str, Any]]) -> pd.DataFrame:
     new_rows = pd.DataFrame(rows)
     if not path.exists():
-        return new_rows
+        return _ensure_report_columns(new_rows)
     existing = pd.read_csv(path)
     key_cols = [
         "universe_name",
@@ -168,13 +174,28 @@ def _merge_comparison(path: Path, rows: list[dict[str, Any]]) -> pd.DataFrame:
         "test_end",
     ]
     if existing.empty or new_rows.empty or not set(key_cols).issubset(existing.columns) or not set(key_cols).issubset(new_rows.columns):
-        return new_rows
+        return _ensure_report_columns(new_rows)
     old_keys = existing[key_cols].astype(str).agg("\x1f".join, axis=1)
     new_keys = set(new_rows[key_cols].astype(str).agg("\x1f".join, axis=1))
     kept = existing.loc[~old_keys.isin(new_keys)].copy()
     merged = pd.concat([kept, new_rows], ignore_index=True)
+    merged = _ensure_report_columns(merged)
     sort_cols = [column for column in ["universe_name", "model_key", "test_start"] if column in merged.columns]
     return merged.sort_values(sort_cols, kind="stable").reset_index(drop=True) if sort_cols else merged
+
+
+def _ensure_report_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    required = [
+        "beta_hs300",
+        "beta_csi500",
+        "beta_csi1000",
+        "industry_unknown_weight",
+    ]
+    data = frame.copy()
+    for column in required:
+        if column not in data.columns:
+            data[column] = None
+    return data
 
 
 def _summarize_universe(path: str | None) -> dict[str, Any]:
@@ -191,6 +212,52 @@ def _summarize_universe(path: str | None) -> dict[str, Any]:
         "min_selected_universe_count": int(selected.min()) if not selected.empty else None,
         "max_selected_universe_count": int(selected.max()) if not selected.empty else None,
     }
+
+
+def _summarize_exposure(
+    bars_path: str | None,
+    equity_path: str | None,
+    benchmarks_path: str | None,
+    exposure_dir: str | None,
+) -> dict[str, Any]:
+    summary = {
+        "beta_hs300": None,
+        "beta_csi500": None,
+        "beta_csi1000": None,
+        "industry_unknown_weight": None,
+    }
+    beta_frame = _read_optional_csv(Path(exposure_dir) / "beta_exposure.csv" if exposure_dir else None)
+    if beta_frame is None and equity_path and benchmarks_path and Path(equity_path).exists() and Path(benchmarks_path).exists():
+        beta_frame = beta_exposure(_read_frame(equity_path), _read_frame(benchmarks_path))
+    if beta_frame is not None and not beta_frame.empty:
+        for benchmark, key in [("hs300", "beta_hs300"), ("csi500", "beta_csi500"), ("csi1000", "beta_csi1000")]:
+            match = beta_frame.loc[beta_frame["benchmark"].astype(str).str.lower().eq(benchmark), "beta"]
+            if not match.empty:
+                summary[key] = float(match.iloc[0])
+
+    industry_frame = _read_optional_csv(Path(exposure_dir) / "industry_exposure_summary.csv" if exposure_dir else None)
+    if industry_frame is None and bars_path and Path(bars_path).exists() and exposure_dir:
+        positions = _read_optional_csv(Path(exposure_dir).parent / "qlib_records" / "positions.csv")
+        if positions is not None:
+            _, industry_frame = industry_exposure(positions, read_bars(bars_path))
+    if industry_frame is not None and not industry_frame.empty and "industry" in industry_frame.columns:
+        unknown = industry_frame.loc[industry_frame["industry"].astype(str).str.lower().eq("unknown")]
+        if not unknown.empty and "avg_weight" in unknown.columns:
+            summary["industry_unknown_weight"] = float(pd.to_numeric(unknown["avg_weight"], errors="coerce").fillna(0.0).iloc[0])
+    return summary
+
+
+def _read_optional_csv(path: Path | None) -> pd.DataFrame | None:
+    if path is None or not path.exists():
+        return None
+    return pd.read_csv(path)
+
+
+def _read_frame(path: str | Path) -> pd.DataFrame:
+    source = Path(path)
+    if source.suffix.lower() in {".parquet", ".pq"}:
+        return pd.read_parquet(source)
+    return pd.read_csv(source)
 
 
 def _coverage(requested_symbols: int | None, actual_symbols: int | None) -> float | None:
@@ -225,7 +292,7 @@ def _data_sufficient_for_dynamic_top_n(
 def _caveats(args: argparse.Namespace, window: dict[str, Any]) -> str:
     caveats = [
         "current_constituent_bias" if args.universe_mode == "current_constituent" else "current_listed_candidate_bias",
-        args.selected_mode,
+        _normalize_selected_mode(args.selected_mode),
         "2026_ytd_window" if window.get("is_ytd") else "complete_calendar_test_window",
         (
             f"ashare_exchange_limit_up_down_buffer_{getattr(args, 'limit_price_buffer', 0.001)}"
@@ -235,6 +302,12 @@ def _caveats(args: argparse.Namespace, window: dict[str, Any]) -> str:
         "industry_metadata_coverage_required",
     ]
     return "; ".join(caveats)
+
+
+def _normalize_selected_mode(mode: str | None) -> str:
+    if not mode:
+        return "unknown"
+    return str(mode).replace("dynamic_liquidity_top_", "dynamic_liquidity_top")
 
 
 def _render_markdown(comparison: pd.DataFrame, executed: bool) -> str:
@@ -257,6 +330,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--actual-symbols", type=int, default=None)
     parser.add_argument("--missing-symbols-count", type=int, default=None)
     parser.add_argument("--universe-diagnostics", default=None)
+    parser.add_argument("--bars", default=None)
+    parser.add_argument("--equity", default=None)
+    parser.add_argument("--benchmarks", default=None)
+    parser.add_argument("--exposure-dir", default=None)
     parser.add_argument("--end-date", default="2026-06-24")
     parser.add_argument("--output-dir", default="reports/rolling_baselines_2018_2026")
     parser.add_argument("--comparison-csv", default="reports/rolling_baseline_comparison_2018_2026.csv")

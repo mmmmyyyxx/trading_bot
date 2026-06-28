@@ -18,6 +18,8 @@ class InstrumentMetadata:
     is_st: bool = False
     list_date: pd.Timestamp | None = None
     industry: str = ""
+    industry_source: str = ""
+    industry_update_date: pd.Timestamp | None = None
 
 
 def normalize_symbol(value: object) -> str:
@@ -116,7 +118,18 @@ def normalize_metadata_frame(frame: pd.DataFrame) -> pd.DataFrame:
     """Normalize metadata columns for sidecar storage."""
 
     if frame.empty:
-        return pd.DataFrame(columns=["symbol", "qlib_symbol", "name", "is_st", "list_date", "industry"])
+        return pd.DataFrame(
+            columns=[
+                "symbol",
+                "qlib_symbol",
+                "name",
+                "is_st",
+                "list_date",
+                "industry",
+                "industry_source",
+                "industry_update_date",
+            ]
+        )
     data = frame.copy()
     if "symbol" not in data.columns and "code" in data.columns:
         data["symbol"] = data["code"].map(symbol_from_code)
@@ -132,7 +145,23 @@ def normalize_metadata_frame(frame: pd.DataFrame) -> pd.DataFrame:
         data["list_date"] = pd.NaT
     if "industry" not in data.columns:
         data["industry"] = ""
-    return data[["symbol", "qlib_symbol", "name", "is_st", "list_date", "industry"]].drop_duplicates("symbol")
+    if "industry_source" not in data.columns:
+        data["industry_source"] = ""
+    if "industry_update_date" in data.columns:
+        data["industry_update_date"] = pd.to_datetime(data["industry_update_date"], errors="coerce")
+    else:
+        data["industry_update_date"] = pd.NaT
+    columns = [
+        "symbol",
+        "qlib_symbol",
+        "name",
+        "is_st",
+        "list_date",
+        "industry",
+        "industry_source",
+        "industry_update_date",
+    ]
+    return data[columns].drop_duplicates("symbol")
 
 
 def write_metadata_sidecar(frame: pd.DataFrame, output_dir: str | Path) -> Path:

@@ -207,7 +207,7 @@ def _summary(
             "min_amount": config.min_amount,
             "liquidity_window": config.liquidity_window,
             "dynamic_liquidity_top_n": config.dynamic_liquidity_top_n,
-            "selected_mode": f"dynamic_liquidity_top_{config.dynamic_liquidity_top_n}"
+            "selected_mode": f"dynamic_liquidity_top{config.dynamic_liquidity_top_n}"
             if config.dynamic_liquidity_top_n
             else "eligible_only",
         },

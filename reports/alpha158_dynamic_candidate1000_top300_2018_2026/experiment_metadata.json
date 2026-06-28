@@ -163,7 +163,7 @@
       "min_amount": 10000000.0,
       "liquidity_window": 20,
       "dynamic_liquidity_top_n": 300,
-      "selected_mode": "dynamic_liquidity_top_300"
+      "selected_mode": "dynamic_liquidity_top300"
     },
     "caveats": [
       "Current universe symbols are used historically unless historical membership data is supplied.",
@@ -272,7 +272,7 @@
         "920971.BJ"
       ],
       "dynamic_liquidity_top_n": 300,
-      "selected_mode": "dynamic_liquidity_top_300",
+      "selected_mode": "dynamic_liquidity_top300",
       "selected_filter": "$selected > 0.5",
       "avg_selected_universe_count": 290.2039922103213,
       "min_selected_universe_count": 268,
@@ -315,7 +315,7 @@
     },
     "caveats": [
       "The supplied universe may carry current-constituent or current-listed survivorship bias unless historical membership is provided.",
-      "selected_mode=dynamic_liquidity_top_300; verify the candidate universe and backward-looking liquidity window.",
+      "selected_mode=dynamic_liquidity_top300; verify the candidate universe and backward-looking liquidity window.",
       "The 2026 test period is year-to-date, not a complete calendar year.",
       "Qlib backtest uses a uniform limit_threshold, not full per-stock A-share board/ST limit rules.",
       "Industry metadata coverage should be checked before relying on industry attribution.",

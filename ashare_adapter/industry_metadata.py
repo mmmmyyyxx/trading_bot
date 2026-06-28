@@ -16,6 +16,7 @@ from ashare_adapter.qlib_converter import read_bars, write_bars
 LOGGER = logging.getLogger(__name__)
 
 EMPTY_TEXT = {"", "nan", "none", "null", "--", "-", "na", "n/a"}
+INDUSTRY_META_COLUMNS = ["industry", "industry_source", "industry_update_date"]
 
 
 def industry_coverage(frame: pd.DataFrame, industry_col: str = "industry") -> dict[str, object]:
@@ -57,12 +58,23 @@ def merge_industry_map(
     existing = data[industry_col].map(_clean_text)
     should_update = incoming.ne("") & (overwrite | existing.eq(""))
     data.loc[should_update, industry_col] = incoming[should_update]
+    same_industry = incoming.ne("") & existing.eq(incoming)
     if "industry_source" in mapping.columns:
         if "industry_source" not in data.columns:
             data["industry_source"] = ""
         source_by_symbol = mapping.set_index("symbol")["industry_source"].fillna("").astype(str)
         incoming_source = data["symbol"].map(source_by_symbol).fillna("")
-        data.loc[should_update, "industry_source"] = incoming_source[should_update]
+        missing_source = data["industry_source"].fillna("").astype(str).str.strip().eq("")
+        source_update = incoming_source.ne("") & (should_update | (same_industry & missing_source))
+        data.loc[source_update, "industry_source"] = incoming_source[source_update]
+    if "industry_update_date" in mapping.columns:
+        if "industry_update_date" not in data.columns:
+            data["industry_update_date"] = pd.NaT
+        update_by_symbol = pd.to_datetime(mapping.set_index("symbol")["industry_update_date"], errors="coerce")
+        incoming_update = data["symbol"].map(update_by_symbol)
+        existing_update = pd.to_datetime(data["industry_update_date"], errors="coerce")
+        update_mask = incoming_update.notna() & (should_update | (same_industry & existing_update.isna()))
+        data.loc[update_mask, "industry_update_date"] = incoming_update[update_mask]
     return data
 
 
@@ -115,6 +127,7 @@ def fetch_eastmoney_industry_map(ak_module, sleep: float = 0.05) -> pd.DataFrame
                     "symbol": symbol,
                     "industry": industry,
                     "industry_source": "eastmoney_board_industry",
+                    "industry_update_date": pd.Timestamp.today().normalize(),
                     "name": "" if name_col_cons is None or pd.isna(row[name_col_cons]) else str(row[name_col_cons]),
                 }
             )
@@ -144,11 +157,13 @@ def fetch_cninfo_industry_map(
                 raw = ak_module.stock_industry_change_cninfo(symbol=code, start_date=start_date, end_date=end_date)
                 industry = parse_cninfo_industry(raw)
                 if industry:
+                    update_date = parse_cninfo_update_date(raw)
                     return (
                         {
                             "symbol": symbol,
                             "industry": industry,
                             "industry_source": "cninfo_industry_change",
+                            "industry_update_date": update_date,
                         },
                         None,
                     )
@@ -191,6 +206,17 @@ def parse_cninfo_industry(raw: pd.DataFrame) -> str:
     return ""
 
 
+def parse_cninfo_update_date(raw: pd.DataFrame) -> pd.Timestamp | None:
+    """Parse one CNINFO industry-change response into its latest update date."""
+
+    if raw.empty:
+        return None
+    parsed = pd.to_datetime(raw.iloc[:, -1], errors="coerce").dropna()
+    if parsed.empty:
+        return None
+    return pd.Timestamp(parsed.max()).normalize()
+
+
 def update_bars_industry(path: str | Path, industry_map: pd.DataFrame, overwrite: bool = False) -> tuple[dict[str, object], dict[str, object]]:
     """Update the industry column in a bars file in place."""
 
@@ -201,6 +227,88 @@ def update_bars_industry(path: str | Path, industry_map: pd.DataFrame, overwrite
     after = industry_coverage(updated)
     write_bars(updated, bars_path)
     return before, after
+
+
+def industry_unknown_by_date(
+    bars: pd.DataFrame,
+    selected_col: str = "selected",
+) -> pd.DataFrame:
+    """Summarize unknown industry share by date for a bars/universe frame."""
+
+    if bars.empty:
+        return pd.DataFrame(
+            columns=[
+                "date",
+                "rows",
+                "selected_count",
+                "unknown_rows",
+                "unknown_selected_count",
+                "unknown_row_ratio",
+                "unknown_selected_ratio",
+            ]
+        )
+    data = bars.copy()
+    data["date"] = pd.to_datetime(data["date"])
+    if "industry" not in data.columns:
+        data["industry"] = ""
+    if selected_col not in data.columns:
+        selected_col = "eligible" if "eligible" in data.columns else selected_col
+    if selected_col not in data.columns:
+        data[selected_col] = True
+    data["industry"] = data["industry"].map(_clean_text)
+    unknown = data["industry"].eq("")
+    selected = data[selected_col].fillna(False).astype(bool)
+    grouped = data.assign(_unknown=unknown, _selected=selected, _unknown_selected=unknown & selected).groupby("date")
+    result = grouped.agg(
+        rows=("symbol", "count"),
+        selected_count=("_selected", "sum"),
+        unknown_rows=("_unknown", "sum"),
+        unknown_selected_count=("_unknown_selected", "sum"),
+    ).reset_index()
+    result["unknown_row_ratio"] = result["unknown_rows"] / result["rows"].where(result["rows"] != 0)
+    result["unknown_selected_ratio"] = result["unknown_selected_count"] / result["selected_count"].where(result["selected_count"] != 0)
+    return result.sort_values("date").reset_index(drop=True)
+
+
+def industry_unknown_by_position(positions: pd.DataFrame, bars: pd.DataFrame) -> pd.DataFrame:
+    """Summarize position-weighted unknown industry exposure by date."""
+
+    if positions.empty:
+        return pd.DataFrame(
+            columns=[
+                "date",
+                "position_count",
+                "unknown_position_count",
+                "gross_weight",
+                "unknown_weight",
+                "unknown_position_ratio",
+                "unknown_weight_ratio",
+            ]
+        )
+    pos = positions.copy()
+    pos["date"] = pd.to_datetime(pos["date"])
+    pos["symbol"] = pos["symbol"].map(normalize_symbol)
+    pos["weight"] = pd.to_numeric(pos["weight"], errors="coerce").fillna(0.0)
+
+    meta = bars[["date", "symbol", "industry"]].copy()
+    meta["date"] = pd.to_datetime(meta["date"])
+    meta["symbol"] = meta["symbol"].map(normalize_symbol)
+    meta["industry"] = meta["industry"].map(_clean_text)
+    meta = meta.drop_duplicates(["date", "symbol"])
+    merged = pos.merge(meta, on=["date", "symbol"], how="left")
+    merged["industry"] = merged["industry"].map(_clean_text)
+    merged["_unknown"] = merged["industry"].eq("")
+    merged["_abs_weight"] = merged["weight"].abs()
+    grouped = merged.groupby("date")
+    result = grouped.agg(
+        position_count=("symbol", "count"),
+        unknown_position_count=("_unknown", "sum"),
+        gross_weight=("_abs_weight", "sum"),
+        unknown_weight=("_abs_weight", lambda values: float(values[merged.loc[values.index, "_unknown"]].sum())),
+    ).reset_index()
+    result["unknown_position_ratio"] = result["unknown_position_count"] / result["position_count"].where(result["position_count"] != 0)
+    result["unknown_weight_ratio"] = result["unknown_weight"] / result["gross_weight"].where(result["gross_weight"] != 0)
+    return result.sort_values("date").reset_index(drop=True)
 
 
 def _find_column(frame: pd.DataFrame, keywords: list[str], fallback_idx: int | None = None) -> str | None:

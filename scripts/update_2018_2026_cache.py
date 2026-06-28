@@ -155,7 +155,7 @@ def update_cache(
             "min_amount": min_amount,
             "liquidity_window": liquidity_window,
             "dynamic_liquidity_top_n": dynamic_liquidity_top_n,
-            "selected_mode": f"dynamic_liquidity_top_{dynamic_liquidity_top_n}" if dynamic_liquidity_top_n else "eligible_only",
+            "selected_mode": f"dynamic_liquidity_top{dynamic_liquidity_top_n}" if dynamic_liquidity_top_n else "eligible_only",
         },
         "caveats": [
             "Current universe symbols are used historically unless historical membership data is supplied.",
