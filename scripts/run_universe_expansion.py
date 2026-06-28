@@ -376,6 +376,7 @@ def _comparison_row(args: argparse.Namespace, output_dir: Path, summary: dict, m
     return {
         "universe_name": args.universe_name,
         "scenario": args.scenario_name,
+        "result_role": _result_role(args.universe_name, args.selected_mode, sufficiency),
         "data_type": data.get("data_type"),
         "synthetic_data": data.get("synthetic_data"),
         "mock_data": data.get("mock_data"),
@@ -432,6 +433,16 @@ def _comparison_row(args: argparse.Namespace, output_dir: Path, summary: dict, m
 def _model_name(summary: dict, scenario_name: str | None) -> str:
     base = summary.get("model", {}).get("name", "Alpha158 + LightGBM")
     return f"{base} ({scenario_name})" if scenario_name else base
+
+
+def _result_role(universe_name: str, selected_mode: str, sufficiency: dict[str, Any]) -> str:
+    if str(selected_mode).startswith("dynamic_liquidity"):
+        if not bool(sufficiency.get("data_sufficient_for_dynamic_top_n")):
+            return "supplementary_insufficient_topn"
+        if "candidate2000" in universe_name and "top450" in universe_name:
+            return "primary_dynamic_large_candidate"
+        return "primary_dynamic_candidate"
+    return "primary_current_constituent"
 
 
 def _read_beta(path: Path) -> dict[str, float]:

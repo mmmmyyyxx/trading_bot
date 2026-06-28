@@ -1,0 +1,18 @@
+{
+  "data_type": "real_akshare",
+  "synthetic_data": false,
+  "mock_data": false,
+  "download_source": "akshare",
+  "index_key": "hs300",
+  "index_symbol": "000300",
+  "requested_start_date": "2018-01-01",
+  "requested_end_date": "2026-06-24",
+  "report_time": "2026-06-28T23:43:41",
+  "current_snapshot_available": true,
+  "current_snapshot_symbols": 300,
+  "historical_membership_available": false,
+  "coverage_status": "insufficient_historical_membership",
+  "source": "akshare_current_constituent_snapshot",
+  "reason": "Project AKShare helpers expose current constituents only; no complete historical membership endpoint is available here.",
+  "caveat": "Current constituent snapshots must not be used as historical membership. Strategy reports should keep current-constituent bias caveats until historical membership is available."
+}

@@ -28,6 +28,10 @@ from ashare_adapter.universe import build_dynamic_universe, build_universe_diagn
 from scripts.build_expanded_universe import build_universe
 from scripts.run_rolling_baselines import MODEL_SPECS, ROLLING_WINDOWS, build_workflow_config, parse_qrun_log
 from scripts.run_rolling_baselines_2018_2026 import ROLLING_WINDOWS_2018_2026, _caveats, _merge_comparison
+from scripts.prepare_historical_index_constituents import build_coverage_report
+from scripts.update_universe_result_roles import update_result_roles
+from scripts.write_exchange_rolling_stability_summary import summarize_exchange_stability
+from scripts.write_low_turnover_rolling_stability_summary import summarize_low_turnover_stability
 from scripts.write_rolling_stability_summary import summarize_stability
 
 
@@ -500,6 +504,100 @@ def test_rolling_stability_marks_recent_weakness() -> None:
 
     assert summary.loc[0, "positive_excess_windows"] == 2
     assert summary.loc[0, "conclusion_tag"] == "mostly_positive_but_recent_weakness"
+
+
+def test_universe_result_roles_mark_top500_supplementary_and_top450_primary() -> None:
+    table = pd.DataFrame(
+        {
+            "universe_name": [
+                "dynamic_candidate2000_top500_2018_2026",
+                "dynamic_candidate2000_top450_2018_2026",
+                "hs300_current_2018_2026",
+            ],
+            "selected_mode": ["dynamic_liquidity_top500", "dynamic_liquidity_top450", "eligible_only"],
+            "data_sufficient_for_dynamic_top_n": [False, True, np.nan],
+            "model": ["Alpha158 + LightGBM"] * 3,
+        }
+    )
+
+    updated = update_result_roles(table)
+
+    roles = dict(zip(updated["universe_name"], updated["result_role"]))
+    assert roles["dynamic_candidate2000_top500_2018_2026"] == "supplementary_insufficient_topn"
+    assert roles["dynamic_candidate2000_top450_2018_2026"] == "primary_dynamic_large_candidate"
+    assert roles["hs300_current_2018_2026"] == "primary_current_constituent"
+
+
+def test_exchange_stability_marks_ytd_weakness() -> None:
+    rows = pd.DataFrame(
+        {
+            "data_type": ["real_akshare"] * 3,
+            "synthetic_data": [False] * 3,
+            "mock_data": [False] * 3,
+            "download_source": ["akshare"] * 3,
+            "exchange_scenario": ["uniform_limit_threshold_0.095"] * 3,
+            "exchange_mode": ["uniform_limit_threshold"] * 3,
+            "limit_price_buffer": [np.nan] * 3,
+            "is_ytd": [False, False, True],
+            "excess_annualized_return_with_cost": [0.1, 0.2, -0.01],
+            "excess_information_ratio_with_cost": [1.0, 2.0, -0.1],
+            "turnover": [0.2, 0.3, 0.4],
+            "data_quality_status": ["passed"] * 3,
+            "industry_quality_status": ["passed"] * 3,
+        }
+    )
+
+    summary = summarize_exchange_stability(rows)
+
+    assert summary.loc[0, "positive_excess_windows"] == 2
+    assert summary.loc[0, "conclusion_tag"] == "mostly_positive_but_recent_weakness"
+    assert summary.loc[0, "mean_turnover"] == 0.3
+
+
+def test_low_turnover_stability_keeps_weekly_and_monthly_separate() -> None:
+    rows = pd.DataFrame(
+        {
+            "data_type": ["real_akshare"] * 4,
+            "synthetic_data": [False] * 4,
+            "mock_data": [False] * 4,
+            "download_source": ["akshare"] * 4,
+            "scenario": ["weekly_topk50_drop10", "weekly_topk50_drop10", "monthly_topk50_drop10", "monthly_topk50_drop10"],
+            "universe_name": ["dynamic_candidate1000_top300_2018_2026"] * 4,
+            "model": ["Alpha158 + LightGBM"] * 4,
+            "model_key": ["alpha158_lgb"] * 4,
+            "topk": [50] * 4,
+            "n_drop": [10] * 4,
+            "rebalance_step": [5, 5, 20, 20],
+            "is_ytd": [False, True, False, True],
+            "excess_annualized_return_with_cost": [0.2, -0.1, 0.3, 0.4],
+            "excess_information_ratio_with_cost": [2.0, -1.0, 3.0, 4.0],
+            "excess_max_drawdown_with_cost": [-0.1, -0.2, -0.05, -0.06],
+            "turnover": [0.08, 0.09, 0.02, 0.03],
+            "data_quality_status": ["passed"] * 4,
+            "industry_quality_status": ["passed"] * 4,
+        }
+    )
+
+    summary = summarize_low_turnover_stability(rows)
+
+    assert set(summary["scenario"]) == {"weekly_topk50_drop10", "monthly_topk50_drop10"}
+    weekly = summary.loc[summary["scenario"] == "weekly_topk50_drop10"].iloc[0]
+    monthly = summary.loc[summary["scenario"] == "monthly_topk50_drop10"].iloc[0]
+    assert weekly["conclusion_tag"] == "unstable_recent_weakness"
+    assert monthly["conclusion_tag"] == "stable_positive"
+
+
+def test_historical_constituent_coverage_does_not_claim_history() -> None:
+    args = SimpleNamespace(index_key="hs300", start_date="2018-01-01", end_date="2026-06-24")
+    current = pd.DataFrame({"symbol": ["000001.SZ", "000002.SZ"]})
+
+    report = build_coverage_report(args, current)
+
+    assert report["data_type"] == "real_akshare"
+    assert report["current_snapshot_available"] is True
+    assert report["current_snapshot_symbols"] == 2
+    assert report["historical_membership_available"] is False
+    assert report["coverage_status"] == "insufficient_historical_membership"
 
 
 def test_rolling_2018_2026_windows_mark_ytd() -> None:

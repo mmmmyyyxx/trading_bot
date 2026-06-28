@@ -33,9 +33,18 @@ def is_formal_report_path(path: str | Path) -> bool:
         "reports/low_turnover_workflow_comparison_real.md",
         "reports/exchange_rolling_comparison_real.csv",
         "reports/exchange_rolling_comparison_real.md",
+        "reports/exchange_rolling_stability_summary_real.csv",
+        "reports/exchange_rolling_stability_summary_real.md",
         "reports/hs300_quality_clean_sensitivity_real.csv",
         "reports/hs300_quality_clean_sensitivity_real.md",
+        "reports/low_turnover_rolling_comparison_real.csv",
+        "reports/low_turnover_rolling_comparison_real.md",
+        "reports/low_turnover_rolling_stability_summary_real.csv",
+        "reports/low_turnover_rolling_stability_summary_real.md",
+        "reports/research_status_summary_real.md",
     }:
+        return True
+    if normalized.startswith("reports/historical_constituents/"):
         return True
     if normalized.startswith("reports/rolling_baseline_comparison"):
         return True

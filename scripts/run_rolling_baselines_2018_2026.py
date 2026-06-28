@@ -106,6 +106,7 @@ def main() -> None:
             row = {
                 **markers,
                 "universe_name": args.universe_name,
+                "scenario": args.scenario_name,
                 "universe_mode": args.universe_mode,
                 "selected_mode": selected_mode,
                 "start_date": args.start_date,
@@ -201,7 +202,7 @@ def _merge_comparison(path: Path, rows: list[dict[str, Any]]) -> pd.DataFrame:
         "test_start",
         "test_end",
     ]
-    optional_key_cols = ["topk", "n_drop", "rebalance_step", "exchange_mode", "limit_price_buffer"]
+    optional_key_cols = ["scenario", "topk", "n_drop", "rebalance_step", "exchange_mode", "limit_price_buffer"]
     key_cols = base_key_cols + [
         column for column in optional_key_cols if column in existing.columns and column in new_rows.columns
     ]
@@ -226,6 +227,7 @@ def _ensure_report_columns(frame: pd.DataFrame) -> pd.DataFrame:
         "end_date",
         "data_quality_status",
         "industry_quality_status",
+        "scenario",
         "beta_hs300",
         "beta_csi500",
         "beta_csi1000",
@@ -376,6 +378,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--market", default="all")
     parser.add_argument("--benchmark", default="SH000300")
     parser.add_argument("--universe-name", required=True)
+    parser.add_argument("--scenario-name", default=None)
     parser.add_argument("--universe-mode", default="current_constituent")
     parser.add_argument("--selected-mode", default="eligible_only")
     parser.add_argument("--dynamic-liquidity-top-n", type=int, default=None)

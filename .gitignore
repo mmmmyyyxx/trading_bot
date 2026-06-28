@@ -33,8 +33,15 @@ reports/*
 !reports/low_turnover_workflow_comparison_real.md
 !reports/exchange_rolling_comparison_real.csv
 !reports/exchange_rolling_comparison_real.md
+!reports/exchange_rolling_stability_summary_real.csv
+!reports/exchange_rolling_stability_summary_real.md
 !reports/hs300_quality_clean_sensitivity_real.csv
 !reports/hs300_quality_clean_sensitivity_real.md
+!reports/low_turnover_rolling_comparison_real.csv
+!reports/low_turnover_rolling_comparison_real.md
+!reports/low_turnover_rolling_stability_summary_real.csv
+!reports/low_turnover_rolling_stability_summary_real.md
+!reports/research_status_summary_real.md
 !reports/smoke_test_summary.md
 !reports/run_manifest.json
 !reports/industry_metadata_coverage.csv
@@ -104,3 +111,11 @@ reports/quality_*_2018_2026/data_quality/*
 reports/quality_*_2018_2026/industry/*
 !reports/quality_*_2018_2026/industry/industry_coverage_summary.json
 !reports/quality_*_2018_2026/industry/industry_metadata_coverage.csv
+!reports/historical_constituents/
+reports/historical_constituents/*
+!reports/historical_constituents/hs300/
+reports/historical_constituents/hs300/*
+!reports/historical_constituents/hs300/coverage_report.csv
+!reports/historical_constituents/hs300/coverage_report.json
+!reports/historical_constituents/hs300/coverage_report.md
+!reports/historical_constituents/hs300/current_snapshot.csv
