@@ -23,6 +23,7 @@ from ashare_adapter.benchmarks import (
     load_akshare_benchmarks,
     write_benchmarks,
 )
+from ashare_adapter.exchange import ashare_exchange_kwargs
 from ashare_adapter.config import UniverseConfig
 from ashare_adapter.indexes import load_index_constituents, symbols_from_constituents, write_constituents
 from ashare_adapter.metadata import normalize_symbol
@@ -172,24 +173,16 @@ def write_runtime_config(args: argparse.Namespace, output_path: Path) -> None:
                 "keep": False,
             }
         ]
+    strategy = _strategy_config(args)
+    exchange_kwargs = _exchange_kwargs(args, benchmark_symbol)
     port_analysis_config = {
-        "strategy": {
-            "class": "TopkDropoutStrategy",
-            "module_path": "qlib.contrib.strategy",
-            "kwargs": {"signal": "<PRED>", "topk": args.topk, "n_drop": args.n_drop},
-        },
+        "strategy": strategy,
         "backtest": {
             "start_time": args.test_start_date,
             "end_time": args.end_date,
             "account": args.account,
             "benchmark": benchmark_symbol,
-            "exchange_kwargs": {
-                "limit_threshold": 0.095,
-                "deal_price": "close",
-                "open_cost": args.open_cost,
-                "close_cost": args.close_cost,
-                "min_cost": args.min_cost,
-            },
+            "exchange_kwargs": exchange_kwargs,
         },
     }
     config["task"] = {
@@ -248,6 +241,8 @@ def run_qrun(config_path: Path, log_path: Path) -> None:
         env = dict(**os.environ)
         env.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
         env.setdefault("PYTHONIOENCODING", "utf-8")
+        existing_pythonpath = env.get("PYTHONPATH")
+        env["PYTHONPATH"] = str(ROOT) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
         env.setdefault("OPENBLAS_NUM_THREADS", "1")
         env.setdefault("OMP_NUM_THREADS", "1")
         env.setdefault("MKL_NUM_THREADS", "1")
@@ -305,11 +300,59 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--open-cost", type=float, default=0.00031)
     parser.add_argument("--close-cost", type=float, default=0.00081)
     parser.add_argument("--min-cost", type=float, default=5.0)
+    parser.add_argument("--limit-threshold", type=float, default=0.095)
+    parser.add_argument("--use-ashare-exchange", action="store_true")
+    parser.add_argument("--limit-price-buffer", type=float, default=0.001)
+    parser.add_argument("--rebalance-step", type=int, default=1)
     parser.add_argument("--learning-rate", type=float, default=0.05)
     parser.add_argument("--num-threads", type=int, default=8)
     parser.add_argument("--qlib-kernels", type=int, default=1)
     parser.add_argument("--joblib-backend", default="threading")
     return parser.parse_args()
+
+
+def _strategy_config(args: argparse.Namespace) -> dict:
+    rebalance_step = max(1, int(getattr(args, "rebalance_step", 1) or 1))
+    if rebalance_step > 1:
+        return {
+            "class": "PeriodicTopkDropoutStrategy",
+            "module_path": "ashare_adapter.strategy",
+            "kwargs": {
+                "signal": "<PRED>",
+                "topk": args.topk,
+                "n_drop": args.n_drop,
+                "rebalance_step": rebalance_step,
+            },
+        }
+    return {
+        "class": "TopkDropoutStrategy",
+        "module_path": "qlib.contrib.strategy",
+        "kwargs": {"signal": "<PRED>", "topk": args.topk, "n_drop": args.n_drop},
+    }
+
+
+def _exchange_kwargs(args: argparse.Namespace, benchmark_symbol: str) -> dict:
+    del benchmark_symbol
+    limit_threshold = float(getattr(args, "limit_threshold", 0.095))
+    if getattr(args, "use_ashare_exchange", False):
+        return ashare_exchange_kwargs(
+            start_time=args.test_start_date,
+            end_time=args.end_date,
+            codes=args.market,
+            deal_price="close",
+            open_cost=args.open_cost,
+            close_cost=args.close_cost,
+            min_cost=args.min_cost,
+            limit_threshold=limit_threshold,
+            limit_price_buffer=float(getattr(args, "limit_price_buffer", 0.001)),
+        )
+    return {
+        "limit_threshold": limit_threshold,
+        "deal_price": "close",
+        "open_cost": args.open_cost,
+        "close_cost": args.close_cost,
+        "min_cost": args.min_cost,
+    }
 
 
 def _remove_dir_checked(path: Path) -> None:

@@ -178,12 +178,18 @@ def _ensure_basic_filter_columns(data: pd.DataFrame) -> pd.DataFrame:
     result = data.sort_values(["symbol", "date"]).copy()
     grouped = result.groupby("symbol", group_keys=False)
     list_date = pd.to_datetime(result.get("list_date"), errors="coerce")
-    result["listed_days"] = (result["date"] - list_date).dt.days
+    if "listed_days" not in result.columns:
+        result["listed_days"] = (result["date"] - list_date).dt.days
+    else:
+        result["listed_days"] = pd.to_numeric(result["listed_days"], errors="coerce")
     missing = result["listed_days"].isna()
     result.loc[missing, "listed_days"] = grouped.cumcount()[missing] + 1
-    result["avg_amount"] = grouped["amount"].transform(lambda series: series.rolling(20, min_periods=1).mean())
-    result["eligible"] = True
-    result["selected"] = True
+    if "avg_amount" not in result.columns:
+        result["avg_amount"] = grouped["amount"].transform(lambda series: series.rolling(20, min_periods=1).mean())
+    if "eligible" not in result.columns:
+        result["eligible"] = True
+    if "selected" not in result.columns:
+        result["selected"] = True
     return result
 
 

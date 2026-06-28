@@ -1,0 +1,219 @@
+{
+  "run": {
+    "experiment_id": "298310488399560478",
+    "run_id": "bb7fe07c6a444d44ab3803cdf573cee2",
+    "run_dir": "mlruns\\298310488399560478\\bb7fe07c6a444d44ab3803cdf573cee2",
+    "status": "3",
+    "qrun_log": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\qrun_alpha158.log"
+  },
+  "data": {
+    "data_type": "real_akshare",
+    "synthetic_data": false,
+    "mock_data": false,
+    "download_source": "akshare",
+    "bars_path": "data\\dynamic_candidate2000_top450_2018_2026_bars.parquet",
+    "symbols": 1999,
+    "rows": 3268352,
+    "start": "2018-01-02",
+    "end": "2026-06-24",
+    "data_sources": {
+      "eastmoney": 3268352
+    },
+    "amount_estimated_rows": 0,
+    "requested_symbols": 2000,
+    "missing_symbols": [
+      "001399.SZ"
+    ],
+    "benchmarks": [
+      "csi1000",
+      "csi500",
+      "hs300"
+    ],
+    "benchmark_sources": {
+      "csi1000": "akshare",
+      "csi500": "akshare",
+      "hs300": "akshare"
+    }
+  },
+  "universe": {
+    "dynamic_liquidity_top_n": 450,
+    "selected_mode": "dynamic_liquidity_top450",
+    "avg_selected_universe_count": 434.18743914313535,
+    "min_selected_universe_count": 398,
+    "max_selected_universe_count": 450
+  },
+  "data_sufficiency": {
+    "requested_symbols": 2000,
+    "actual_symbols": 1999,
+    "candidate_symbol_coverage": 0.9995,
+    "candidate_coverage_threshold": 0.8,
+    "candidate_coverage_ok": true,
+    "dynamic_liquidity_top_n": 450,
+    "avg_selected_universe_count": 434.18743914313535,
+    "min_selected_universe_count": 398,
+    "max_selected_universe_count": 450,
+    "selected_top_n_reached": true,
+    "data_sufficient_for_dynamic_top_n": true,
+    "note": "dynamic top450 selected count reached the configured target."
+  },
+  "data_quality": {
+    "rows": 3268352,
+    "symbols": 1999,
+    "start_date": "2018-01-02",
+    "end_date": "2026-06-24",
+    "unknown_source_ratio": 0.0,
+    "selected_unknown_source_ratio": 0.0,
+    "amount_estimated_ratio": 0.0,
+    "invalid_ohlc_ratio": 0.0004782226638991149,
+    "invalid_amount_ratio": 0.0,
+    "invalid_limit_ratio": 0.015179821512493146,
+    "invalid_volume_ratio": 0.0,
+    "pause_flag_mismatch_ratio": 0.0,
+    "vwap_unit_outlier_ratio": 0.0037783567987780997,
+    "extreme_amount_jump_ratio": 0.00035430700242813505,
+    "duplicate_rows": 0,
+    "missing_required_fields": [],
+    "missing_bars_estimate": 12067,
+    "quality_status": "passed",
+    "reports": {
+      "row_quality": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\row_quality.csv",
+      "data_quality_by_source": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\data_quality_by_source.csv",
+      "data_quality_by_date": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\data_quality_by_date.csv",
+      "data_quality_by_symbol": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\data_quality_by_symbol.csv",
+      "selected_universe_quality": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\selected_universe_quality.csv",
+      "missing_fields_summary": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\missing_fields_summary.csv",
+      "amount_vwap_unit_check": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\amount_vwap_unit_check.csv",
+      "limit_field_coverage": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\limit_field_coverage.csv",
+      "pause_st_coverage": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\pause_st_coverage.csv",
+      "duplicate_rows": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\duplicate_rows.csv",
+      "extreme_return_rows": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\extreme_return_rows.csv",
+      "extreme_amount_jump_rows": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\extreme_amount_jump_rows.csv",
+      "invalid_ohlc_rows": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\invalid_ohlc_rows.csv",
+      "invalid_limit_rows": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\invalid_limit_rows.csv",
+      "vwap_unit_outlier_rows": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\vwap_unit_outlier_rows.csv",
+      "selected_quality_by_year": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\selected_quality_by_year.csv",
+      "summary": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\data_quality\\data_quality_summary.json"
+    }
+  },
+  "industry_quality": {
+    "symbol_level_coverage": 1.0,
+    "row_level_coverage": 1.0,
+    "selected_universe_coverage": 1.0,
+    "position_weighted_coverage": 0.9967856988341647,
+    "unknown_symbol_count": 0,
+    "unknown_selected_avg_ratio": 0.0,
+    "unknown_position_weight_avg": 0.003214301165835375,
+    "industry_source_distribution": {
+      "akshare_metadata_cache": 2550826,
+      "eastmoney_board_industry": 717526
+    },
+    "industry_source_top": "akshare_metadata_cache",
+    "industry_quality_status": "passed",
+    "quality_status": "passed",
+    "reports": {
+      "industry_metadata_coverage": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\industry\\industry_metadata_coverage.csv",
+      "industry_source_distribution": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\industry\\industry_source_distribution.csv",
+      "industry_unknown_by_date": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\industry\\industry_unknown_by_date.csv",
+      "industry_unknown_by_selected_universe": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\industry\\industry_unknown_by_selected_universe.csv",
+      "industry_unknown_by_position": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\industry\\industry_unknown_by_position.csv",
+      "summary": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\industry\\industry_coverage_summary.json"
+    }
+  },
+  "model": {
+    "name": "Alpha158 + LightGBM",
+    "best_iteration": 190,
+    "l2_train": 0.949732312652151,
+    "l2_valid": 0.9952154942422129
+  },
+  "signal": {
+    "IC": 0.05493745488050734,
+    "ICIR": 0.47098657976440805,
+    "Rank IC": 0.054886815921169285,
+    "Rank ICIR": 0.5343818782031606,
+    "test_days": 353
+  },
+  "portfolio": {
+    "benchmark_mean": 0.001323,
+    "benchmark_std": 0.013944,
+    "benchmark_annualized_return": 0.314877,
+    "benchmark_information_ratio": 1.463757,
+    "benchmark_max_drawdown": -0.148604,
+    "excess_without_cost_mean": 0.002106488276520632,
+    "excess_without_cost_std": 0.009662016951956929,
+    "excess_without_cost_annualized_return": 0.5013442098119104,
+    "excess_without_cost_information_ratio": 3.363409370913786,
+    "excess_without_cost_max_drawdown": -0.10749148104420336,
+    "excess_with_cost_mean": 0.0018843086339874133,
+    "excess_with_cost_std": 0.009659648095643295,
+    "excess_with_cost_annualized_return": 0.44846545488900436,
+    "excess_with_cost_information_ratio": 3.009395113209955,
+    "excess_with_cost_max_drawdown": -0.11214621465638708,
+    "account_total_return": 1.910480260524317,
+    "benchmark_total_return": 0.5444203615188599,
+    "avg_daily_turnover": 0.3978772367179647,
+    "avg_daily_total_turnover": 10522487606.990988,
+    "total_cost_sum": 2083708583.3806405,
+    "avg_daily_cost": 0.00022217964253321847,
+    "avg_positions": 49.98309859154929,
+    "max_positions": 52,
+    "ffr": 1.0,
+    "pa": 0.0,
+    "pos": 0.0
+  },
+  "group_returns": {
+    "group_1": {
+      "mean_daily_return": -0.0010618752567097545,
+      "annualized_return_simple": -0.26759257912635803,
+      "volatility_daily": 0.019587721675634384,
+      "count_days": 353.0
+    },
+    "group_2": {
+      "mean_daily_return": 0.0010449340334162116,
+      "annualized_return_simple": 0.2633233666419983,
+      "volatility_daily": 0.015660803765058517,
+      "count_days": 353.0
+    },
+    "group_3": {
+      "mean_daily_return": 0.001224784879013896,
+      "annualized_return_simple": 0.3086457848548889,
+      "volatility_daily": 0.01472805067896843,
+      "count_days": 353.0
+    },
+    "group_4": {
+      "mean_daily_return": 0.001759203732945025,
+      "annualized_return_simple": 0.4433193504810333,
+      "volatility_daily": 0.015910962596535683,
+      "count_days": 353.0
+    },
+    "group_5": {
+      "mean_daily_return": 0.0031080334447324276,
+      "annualized_return_simple": 0.7832244038581848,
+      "volatility_daily": 0.01818706840276718,
+      "count_days": 353.0
+    },
+    "group_5_minus_1": {
+      "mean_daily_return": 0.004169908352196217,
+      "annualized_return_simple": 1.0508168935775757,
+      "volatility_daily": 0.009814356453716755,
+      "count_days": 353.0
+    }
+  },
+  "caveats": [
+    "Results inherit the survivorship properties of the supplied symbol universe; current-constituent or current-listed universes are not historical membership backtests.",
+    "selected_mode=dynamic_liquidity_top450; verify the candidate universe construction separately.",
+    "The 2026 period is year-to-date, not a complete calendar year.",
+    "Qlib baseline backtests use the configured uniform limit_threshold and do not fully enforce per-stock A-share board/ST limit rules.",
+    "Industry and active-exposure diagnostics depend on metadata coverage; inspect unknown industry weight before using industry conclusions."
+  ],
+  "outputs": {
+    "summary_json": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\summary.json",
+    "summary_md": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\summary.md",
+    "port_analysis_csv": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\port_analysis_1day.csv",
+    "report_csv": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\report_normal_1day.csv",
+    "indicator_analysis_csv": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\indicator_analysis_1day.csv",
+    "ic_daily_csv": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\ic_daily.csv",
+    "rank_ic_daily_csv": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\rank_ic_daily.csv",
+    "group_daily_csv": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\factor_group_returns_daily.csv",
+    "group_summary_csv": "reports\\alpha158_dynamic_candidate2000_top450_2018_2026\\factor_group_summary.csv"
+  }
+}

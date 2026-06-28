@@ -78,9 +78,10 @@ def main() -> None:
                 num_threads=args.num_threads,
                 use_ashare_exchange=args.use_ashare_exchange,
                 limit_price_buffer=args.limit_price_buffer,
+                rebalance_step=args.rebalance_step,
             )
             config_path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
-            row = _base_row(window, model_name, spec, config_path, log_path, args.benchmark)
+            row = _base_row(window, model_name, spec, config_path, log_path, args.benchmark, args)
             if args.execute:
                 run_info = run_qrun(config_path, log_path)
                 run_dir = resolve_run_dir(args.mlruns_dir, run_info)
@@ -113,6 +114,7 @@ def build_workflow_config(
     num_threads: int,
     use_ashare_exchange: bool = False,
     limit_price_buffer: float = 0.001,
+    rebalance_step: int = 1,
 ) -> dict[str, Any]:
     """Build a Qlib workflow config for one rolling window/model."""
 
@@ -144,12 +146,9 @@ def build_workflow_config(
             "close_cost": close_cost,
             "min_cost": min_cost,
         }
+    strategy = _strategy_config(topk=topk, n_drop=n_drop, rebalance_step=rebalance_step)
     port_analysis_config = {
-        "strategy": {
-            "class": "TopkDropoutStrategy",
-            "module_path": "qlib.contrib.strategy",
-            "kwargs": {"signal": "<PRED>", "topk": topk, "n_drop": n_drop},
-        },
+        "strategy": strategy,
         "backtest": {
             "start_time": window["test"][0],
             "end_time": window["test"][1],
@@ -271,6 +270,8 @@ def run_qrun(config_path: Path, log_path: Path) -> dict[str, str]:
     env = dict(os.environ)
     env.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
     env.setdefault("PYTHONIOENCODING", "utf-8")
+    existing_pythonpath = env.get("PYTHONPATH")
+    env["PYTHONPATH"] = str(ROOT) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
     for key in ["OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"]:
         env.setdefault(key, "1")
     with log_path.open("w", encoding="utf-8") as log:
@@ -378,13 +379,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num-threads", type=int, default=4)
     parser.add_argument("--use-ashare-exchange", action="store_true")
     parser.add_argument("--limit-price-buffer", type=float, default=0.001)
+    parser.add_argument("--rebalance-step", type=int, default=1)
     return parser.parse_args()
 
 
-def _base_row(window: dict[str, Any], model_name: str, spec: dict[str, Any], config_path: Path, log_path: Path, benchmark: str) -> dict[str, Any]:
+def _base_row(
+    window: dict[str, Any],
+    model_name: str,
+    spec: dict[str, Any],
+    config_path: Path,
+    log_path: Path,
+    benchmark: str,
+    args: argparse.Namespace,
+) -> dict[str, Any]:
     return {
         "model": spec["display"],
         "model_key": model_name,
+        "topk": args.topk,
+        "n_drop": args.n_drop,
+        "rebalance_step": args.rebalance_step,
+        "exchange_mode": "ashare_exchange" if args.use_ashare_exchange else "uniform_limit_threshold",
+        "limit_price_buffer": args.limit_price_buffer if args.use_ashare_exchange else None,
         "train_start": window["train"][0],
         "train_end": window["train"][1],
         "valid_start": window["valid"][0],
@@ -394,6 +409,21 @@ def _base_row(window: dict[str, Any], model_name: str, spec: dict[str, Any], con
         "benchmark": benchmark,
         "config_path": str(config_path),
         "log_path": str(log_path),
+    }
+
+
+def _strategy_config(topk: int, n_drop: int, rebalance_step: int = 1) -> dict[str, Any]:
+    step = max(1, int(rebalance_step or 1))
+    if step > 1:
+        return {
+            "class": "PeriodicTopkDropoutStrategy",
+            "module_path": "ashare_adapter.strategy",
+            "kwargs": {"signal": "<PRED>", "topk": topk, "n_drop": n_drop, "rebalance_step": step},
+        }
+    return {
+        "class": "TopkDropoutStrategy",
+        "module_path": "qlib.contrib.strategy",
+        "kwargs": {"signal": "<PRED>", "topk": topk, "n_drop": n_drop},
     }
 
 

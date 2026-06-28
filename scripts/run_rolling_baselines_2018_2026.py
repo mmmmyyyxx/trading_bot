@@ -100,6 +100,7 @@ def main() -> None:
                 num_threads=args.num_threads,
                 use_ashare_exchange=args.use_ashare_exchange,
                 limit_price_buffer=args.limit_price_buffer,
+                rebalance_step=args.rebalance_step,
             )
             config_path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
             row = {
@@ -125,6 +126,11 @@ def main() -> None:
                 **universe_summary,
                 "model": spec["display"],
                 "model_key": model_name,
+                "topk": args.topk,
+                "n_drop": args.n_drop,
+                "rebalance_step": args.rebalance_step,
+                "exchange_mode": "ashare_exchange" if args.use_ashare_exchange else "uniform_limit_threshold",
+                "limit_price_buffer": args.limit_price_buffer if args.use_ashare_exchange else None,
                 "benchmark": args.benchmark,
                 "train_start": window["train"][0],
                 "train_end": window["train"][1],
@@ -184,7 +190,7 @@ def _merge_comparison(path: Path, rows: list[dict[str, Any]]) -> pd.DataFrame:
     if not path.exists():
         return _ensure_report_columns(new_rows)
     existing = pd.read_csv(path)
-    key_cols = [
+    base_key_cols = [
         "universe_name",
         "model_key",
         "benchmark",
@@ -194,6 +200,10 @@ def _merge_comparison(path: Path, rows: list[dict[str, Any]]) -> pd.DataFrame:
         "valid_end",
         "test_start",
         "test_end",
+    ]
+    optional_key_cols = ["topk", "n_drop", "rebalance_step", "exchange_mode", "limit_price_buffer"]
+    key_cols = base_key_cols + [
+        column for column in optional_key_cols if column in existing.columns and column in new_rows.columns
     ]
     if existing.empty or new_rows.empty or not set(key_cols).issubset(existing.columns) or not set(key_cols).issubset(new_rows.columns):
         return _ensure_report_columns(new_rows)
@@ -220,6 +230,11 @@ def _ensure_report_columns(frame: pd.DataFrame) -> pd.DataFrame:
         "beta_csi500",
         "beta_csi1000",
         "industry_unknown_weight",
+        "topk",
+        "n_drop",
+        "rebalance_step",
+        "exchange_mode",
+        "limit_price_buffer",
     ]
     data = frame.copy()
     for column in required:
@@ -392,6 +407,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num-threads", type=int, default=4)
     parser.add_argument("--use-ashare-exchange", action="store_true")
     parser.add_argument("--limit-price-buffer", type=float, default=0.001)
+    parser.add_argument("--rebalance-step", type=int, default=1)
     return parser.parse_args()
 
 

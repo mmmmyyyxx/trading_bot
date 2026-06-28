@@ -27,6 +27,14 @@ reports/*
 !reports/turnover_sensitivity_comparison_real.md
 !reports/exchange_comparison_real.csv
 !reports/exchange_comparison_real.md
+!reports/rolling_oos_stability_summary_real.csv
+!reports/rolling_oos_stability_summary_real.md
+!reports/low_turnover_workflow_comparison_real.csv
+!reports/low_turnover_workflow_comparison_real.md
+!reports/exchange_rolling_comparison_real.csv
+!reports/exchange_rolling_comparison_real.md
+!reports/hs300_quality_clean_sensitivity_real.csv
+!reports/hs300_quality_clean_sensitivity_real.md
 !reports/smoke_test_summary.md
 !reports/run_manifest.json
 !reports/industry_metadata_coverage.csv
@@ -63,9 +71,6 @@ reports/alpha158_*_2018_2026/*
 !reports/alpha158_*_2018_2026/data_quality/
 reports/alpha158_*_2018_2026/data_quality/*
 !reports/alpha158_*_2018_2026/data_quality/data_quality_summary.json
-!reports/alpha158_*_2018_2026/data_quality/invalid_ohlc_rows.csv
-!reports/alpha158_*_2018_2026/data_quality/invalid_limit_rows.csv
-!reports/alpha158_*_2018_2026/data_quality/vwap_unit_outlier_rows.csv
 !reports/alpha158_*_2018_2026/data_quality/extreme_amount_jump_rows.csv
 !reports/alpha158_*_2018_2026/data_quality/selected_quality_by_year.csv
 !reports/alpha158_*_2018_2026/data_quality/position_quality_overlap.csv
@@ -79,7 +84,6 @@ reports/alpha158_*_2018_2026/exposure/*
 !reports/alpha158_*_2018_2026/exposure/beta_exposure.csv
 !reports/alpha158_*_2018_2026/active_attribution/
 reports/alpha158_*_2018_2026/active_attribution/*
-!reports/alpha158_*_2018_2026/active_attribution/active_industry_weight.csv
 !reports/alpha158_*_2018_2026/active_attribution/monthly_attribution.csv
 !reports/alpha158_*_2018_2026/active_attribution/up_down_market_performance.csv
 !reports/alpha158_*_2018_2026/active_attribution/return_contribution_by_holding.csv

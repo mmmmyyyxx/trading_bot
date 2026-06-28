@@ -37,6 +37,7 @@ def build_run_manifest(
     port_config = _find_port_analysis_config(task.get("record", []))
     strategy_kwargs = port_config.get("strategy", {}).get("kwargs", {})
     exchange_kwargs = port_config.get("backtest", {}).get("exchange_kwargs", {})
+    flat_exchange_kwargs = _flat_exchange_kwargs(exchange_kwargs)
     data_for_sufficiency = {
         "requested_symbols": summary.get("data", {}).get("requested_symbols"),
         "symbols": summary.get("data", {}).get("symbols"),
@@ -88,14 +89,17 @@ def build_run_manifest(
             "benchmark": config.get("benchmark"),
             "topk": strategy_kwargs.get("topk"),
             "n_drop": strategy_kwargs.get("n_drop"),
+            "rebalance_step": strategy_kwargs.get("rebalance_step", 1),
             "account": port_config.get("backtest", {}).get("account"),
             "cost": {
-                "open_cost": exchange_kwargs.get("open_cost"),
-                "close_cost": exchange_kwargs.get("close_cost"),
-                "min_cost": exchange_kwargs.get("min_cost"),
+                "open_cost": flat_exchange_kwargs.get("open_cost"),
+                "close_cost": flat_exchange_kwargs.get("close_cost"),
+                "min_cost": flat_exchange_kwargs.get("min_cost"),
             },
-            "limit_model": f"qlib_uniform_limit_threshold_{exchange_kwargs.get('limit_threshold')}",
-            "deal_price": exchange_kwargs.get("deal_price"),
+            "limit_model": _limit_model(exchange_kwargs, flat_exchange_kwargs),
+            "deal_price": flat_exchange_kwargs.get("deal_price"),
+            "exchange_mode": "ashare_exchange" if "exchange" in exchange_kwargs else "uniform_limit_threshold",
+            "limit_price_buffer": flat_exchange_kwargs.get("limit_price_buffer"),
         },
         "caveats": _dedupe(
             [
@@ -160,6 +164,19 @@ def _find_port_analysis_config(records: list[dict[str, Any]]) -> dict[str, Any]:
         if record.get("class") == "PortAnaRecord":
             return record.get("kwargs", {}).get("config", {})
     return {}
+
+
+def _flat_exchange_kwargs(exchange_kwargs: dict[str, Any]) -> dict[str, Any]:
+    nested = exchange_kwargs.get("exchange")
+    if isinstance(nested, dict):
+        return dict(nested.get("kwargs", {}) or {})
+    return dict(exchange_kwargs or {})
+
+
+def _limit_model(exchange_kwargs: dict[str, Any], flat_exchange_kwargs: dict[str, Any]) -> str:
+    if "exchange" in exchange_kwargs:
+        return f"ashare_exchange_limit_up_down_buffer_{flat_exchange_kwargs.get('limit_price_buffer')}"
+    return f"qlib_uniform_limit_threshold_{flat_exchange_kwargs.get('limit_threshold')}"
 
 
 def _selected_filter(config: dict[str, Any]) -> str | None:

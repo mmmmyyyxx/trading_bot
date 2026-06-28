@@ -28,6 +28,7 @@ from ashare_adapter.universe import build_dynamic_universe, build_universe_diagn
 from scripts.build_expanded_universe import build_universe
 from scripts.run_rolling_baselines import MODEL_SPECS, ROLLING_WINDOWS, build_workflow_config, parse_qrun_log
 from scripts.run_rolling_baselines_2018_2026 import ROLLING_WINDOWS_2018_2026, _caveats, _merge_comparison
+from scripts.write_rolling_stability_summary import summarize_stability
 
 
 def test_symbol_and_limit_rules() -> None:
@@ -375,6 +376,130 @@ def test_rolling_config_can_use_ashare_exchange() -> None:
     assert exchange["class"] == "AShareExchange"
     assert exchange["module_path"] == "ashare_adapter.exchange"
     assert exchange["kwargs"]["limit_price_buffer"] == 0.002
+
+
+def test_rolling_config_can_use_periodic_rebalance() -> None:
+    config = build_workflow_config(
+        provider_uri="data/qlib_alpha158_hs300_full",
+        market="all",
+        benchmark="SH000300",
+        window=ROLLING_WINDOWS[0],
+        spec=MODEL_SPECS["alpha158_lgb"],
+        topk=50,
+        n_drop=10,
+        account=100000000,
+        open_cost=0.00031,
+        close_cost=0.00081,
+        min_cost=5.0,
+        limit_threshold=0.095,
+        num_threads=2,
+        rebalance_step=5,
+    )
+    strategy = config["task"]["record"][2]["kwargs"]["config"]["strategy"]
+
+    assert strategy["class"] == "PeriodicTopkDropoutStrategy"
+    assert strategy["module_path"] == "ashare_adapter.strategy"
+    assert strategy["kwargs"]["rebalance_step"] == 5
+
+
+def test_run_manifest_reads_nested_ashare_exchange_costs(tmp_path) -> None:
+    summary_path = tmp_path / "summary.json"
+    runtime_config_path = tmp_path / "runtime.yaml"
+    diagnostics_path = tmp_path / "universe_diagnostics.csv"
+    summary_path.write_text(
+        """
+{
+  "run": {"run_id": "abc", "experiment_id": "1"},
+  "data": {
+    "data_type": "real_akshare",
+    "synthetic_data": false,
+    "mock_data": false,
+    "requested_symbols": 2,
+    "symbols": 2,
+    "missing_symbols": []
+  }
+}
+""".strip(),
+        encoding="utf-8",
+    )
+    runtime_config_path.write_text(
+        yaml.safe_dump(
+            {
+                "benchmark": "SH000905",
+                "task": {
+                    "dataset": {
+                        "kwargs": {
+                            "handler": {"kwargs": {}},
+                            "segments": {"train": ["2018", "2020"], "valid": ["2021", "2021"], "test": ["2022", "2022"]},
+                        }
+                    },
+                    "record": [
+                        {
+                            "class": "PortAnaRecord",
+                            "kwargs": {
+                                "config": {
+                                    "strategy": {"kwargs": {"topk": 50, "n_drop": 10, "rebalance_step": 5}},
+                                    "backtest": {
+                                        "account": 100000000,
+                                        "exchange_kwargs": {
+                                            "exchange": {
+                                                "class": "AShareExchange",
+                                                "kwargs": {
+                                                    "open_cost": 0.00031,
+                                                    "close_cost": 0.00081,
+                                                    "min_cost": 5,
+                                                    "limit_threshold": 0.095,
+                                                    "limit_price_buffer": 0.001,
+                                                    "deal_price": "close",
+                                                },
+                                            }
+                                        },
+                                    },
+                                }
+                            },
+                        }
+                    ],
+                },
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    pd.DataFrame({"date": pd.date_range("2022-01-01", periods=2), "selected_universe_count": [2, 2]}).to_csv(
+        diagnostics_path, index=False
+    )
+
+    manifest = build_run_manifest(summary_path, runtime_config_path, diagnostics_path)
+
+    assert manifest["portfolio"]["exchange_mode"] == "ashare_exchange"
+    assert manifest["portfolio"]["cost"]["open_cost"] == 0.00031
+    assert manifest["portfolio"]["rebalance_step"] == 5
+    assert manifest["portfolio"]["limit_model"] == "ashare_exchange_limit_up_down_buffer_0.001"
+
+
+def test_rolling_stability_marks_recent_weakness() -> None:
+    rows = pd.DataFrame(
+        {
+            "data_type": ["real_akshare"] * 3,
+            "synthetic_data": [False] * 3,
+            "mock_data": [False] * 3,
+            "download_source": ["akshare"] * 3,
+            "universe_name": ["dynamic_candidate1000_top300_2018_2026"] * 3,
+            "model": ["Alpha158 + LightGBM"] * 3,
+            "model_key": ["alpha158_lgb"] * 3,
+            "is_ytd": [False, False, True],
+            "excess_annualized_return_with_cost": [0.1, 0.2, -0.01],
+            "excess_information_ratio_with_cost": [1.0, 2.0, -0.1],
+            "excess_max_drawdown_with_cost": [-0.1, -0.05, -0.02],
+            "data_quality_status": ["passed"] * 3,
+            "industry_quality_status": ["passed"] * 3,
+        }
+    )
+
+    summary = summarize_stability(rows)
+
+    assert summary.loc[0, "positive_excess_windows"] == 2
+    assert summary.loc[0, "conclusion_tag"] == "mostly_positive_but_recent_weakness"
 
 
 def test_rolling_2018_2026_windows_mark_ytd() -> None:

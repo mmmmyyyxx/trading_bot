@@ -268,10 +268,14 @@ def _write_experiment_metadata(
         "run": {
             "execute": bool(args.execute),
             "model": "Alpha158 + LightGBM",
+            "scenario": args.scenario_name,
             "benchmark_key": args.benchmark_key,
             "benchmark_symbol": args.benchmark or QLIB_BENCHMARK_SYMBOLS[args.benchmark_key],
             "topk": args.topk,
             "n_drop": args.n_drop,
+            "rebalance_step": args.rebalance_step,
+            "exchange_mode": "ashare_exchange" if args.use_ashare_exchange else "uniform_limit_threshold",
+            "limit_price_buffer": args.limit_price_buffer if args.use_ashare_exchange else None,
         },
         "caveats": [
             "Do not interpret current-constituent experiments as historical constituent backtests.",
@@ -337,6 +341,8 @@ def _update_universe_comparison(
     if csv_path.exists():
         comparison = pd.read_csv(csv_path)
         key_cols = ["universe_name", "model", "benchmark", "test_start", "test_end"]
+        if "scenario" in comparison.columns and row.get("scenario") is not None:
+            key_cols.append("scenario")
         mask = pd.Series(False, index=comparison.index)
         if set(key_cols).issubset(comparison.columns):
             mask = (
@@ -369,6 +375,7 @@ def _comparison_row(args: argparse.Namespace, output_dir: Path, summary: dict, m
     test = segments.get("test") or [None, None]
     return {
         "universe_name": args.universe_name,
+        "scenario": args.scenario_name,
         "data_type": data.get("data_type"),
         "synthetic_data": data.get("synthetic_data"),
         "mock_data": data.get("mock_data"),
@@ -385,8 +392,13 @@ def _comparison_row(args: argparse.Namespace, output_dir: Path, summary: dict, m
         "candidate_symbol_coverage": sufficiency.get("candidate_symbol_coverage"),
         "selected_top_n_reached": sufficiency.get("selected_top_n_reached"),
         "data_sufficient_for_dynamic_top_n": sufficiency.get("data_sufficient_for_dynamic_top_n"),
-        "model": summary.get("model", {}).get("name", "Alpha158 + LightGBM"),
+        "model": _model_name(summary, args.scenario_name),
         "benchmark": manifest.get("portfolio", {}).get("benchmark"),
+        "topk": args.topk,
+        "n_drop": args.n_drop,
+        "rebalance_step": args.rebalance_step,
+        "exchange_mode": "ashare_exchange" if args.use_ashare_exchange else "uniform_limit_threshold",
+        "limit_price_buffer": args.limit_price_buffer if args.use_ashare_exchange else None,
         "train_start": (segments.get("train") or [None, None])[0],
         "train_end": (segments.get("train") or [None, None])[1],
         "valid_start": (segments.get("valid") or [None, None])[0],
@@ -415,6 +427,11 @@ def _comparison_row(args: argparse.Namespace, output_dir: Path, summary: dict, m
         "summary_path": str(output_dir / "summary.md"),
         "manifest_path": str(output_dir / "run_manifest.json"),
     }
+
+
+def _model_name(summary: dict, scenario_name: str | None) -> str:
+    base = summary.get("model", {}).get("name", "Alpha158 + LightGBM")
+    return f"{base} ({scenario_name})" if scenario_name else base
 
 
 def _read_beta(path: Path) -> dict[str, float]:
@@ -459,6 +476,7 @@ def _remove_dir_checked(path: Path) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--universe-name", required=True)
+    parser.add_argument("--scenario-name", default=None)
     parser.add_argument("--universe-mode", default="current_constituent")
     parser.add_argument("--selected-mode", default="eligible_only")
     parser.add_argument("--symbols-file", default=None)
@@ -503,6 +521,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--open-cost", type=float, default=0.00031)
     parser.add_argument("--close-cost", type=float, default=0.00081)
     parser.add_argument("--min-cost", type=float, default=5.0)
+    parser.add_argument("--limit-threshold", type=float, default=0.095)
+    parser.add_argument("--use-ashare-exchange", action="store_true")
+    parser.add_argument("--limit-price-buffer", type=float, default=0.001)
+    parser.add_argument("--rebalance-step", type=int, default=1)
     parser.add_argument("--learning-rate", type=float, default=0.05)
     parser.add_argument("--num-threads", type=int, default=8)
     parser.add_argument("--qlib-kernels", type=int, default=1)
