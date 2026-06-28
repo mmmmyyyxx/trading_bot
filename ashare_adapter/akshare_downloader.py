@@ -42,6 +42,25 @@ BAR_COLUMNS = [
     "industry",
 ]
 
+SOURCE_PRIORITY = {"eastmoney": 1, "tencent_tx": 2, "ak_daily": 3, "legacy_unknown": 99, "unknown": 99}
+
+AUDIT_COLUMNS = [
+    "data_source",
+    "amount_estimated",
+    "price_adjust",
+    "source_priority",
+    "source_fetch_time",
+    "source_error",
+    "volume_unit",
+    "has_valid_ohlc",
+    "has_valid_volume",
+    "has_valid_amount",
+    "has_valid_limit",
+    "has_valid_list_date",
+    "has_valid_industry",
+    "quality_flags",
+]
+
 TRUTHY_ENV = {"1", "true", "TRUE", "yes"}
 
 
@@ -64,6 +83,7 @@ class AKShareDownloader:
         self._ak = ak
         self.metadata_cache_path = Path(metadata_cache_path)
         self.metadata = self.load_metadata(refresh=refresh_metadata) if load_metadata else {}
+        self.fetch_attempts: list[dict[str, object]] = []
 
     def fetch_bars(
         self,
@@ -150,6 +170,18 @@ class AKShareDownloader:
         metadata_industry = data["metadata_industry"].fillna("").astype(str)
         existing_industry = data.get("industry", pd.Series("", index=data.index)).fillna("").astype(str)
         data["industry"] = metadata_industry.where(metadata_industry.str.len() > 0, existing_industry)
+        if "industry_source" not in data.columns:
+            data["industry_source"] = ""
+        existing_source = data["industry_source"].fillna("").astype(str)
+        metadata_source = data["metadata_industry_source"].fillna("").astype(str)
+        industry_from_metadata = metadata_industry.str.len() > 0
+        data["industry_source"] = metadata_source.where(industry_from_metadata & metadata_source.str.len().gt(0), existing_source)
+        data.loc[data["industry"].fillna("").astype(str).str.strip().ne("") & data["industry_source"].fillna("").astype(str).str.strip().eq(""), "industry_source"] = "akshare_metadata_cache"
+        if "industry_update_date" not in data.columns:
+            data["industry_update_date"] = pd.NaT
+        metadata_update_date = pd.to_datetime(data["metadata_industry_update_date"], errors="coerce")
+        existing_update_date = pd.to_datetime(data["industry_update_date"], errors="coerce")
+        data["industry_update_date"] = metadata_update_date.combine_first(existing_update_date)
 
         data = data.sort_values(["symbol", "date"])
         prev_close = data.groupby("symbol")["close"].shift(1).fillna(data["close"])
@@ -159,7 +191,14 @@ class AKShareDownloader:
 
         return validate_bars(
             data.drop(
-                columns=["metadata_seen", "metadata_is_st", "metadata_list_date", "metadata_industry"],
+                columns=[
+                    "metadata_seen",
+                    "metadata_is_st",
+                    "metadata_list_date",
+                    "metadata_industry",
+                    "metadata_industry_source",
+                    "metadata_industry_update_date",
+                ],
                 errors="ignore",
             )
         )
@@ -181,13 +220,48 @@ class AKShareDownloader:
 
     def _fetch_one_symbol(self, symbol: str, start: str, end: str, adjust_arg: str) -> pd.DataFrame:
         fetchers = self._bar_fetchers()
-        for fetcher in fetchers:
+        for order, fetcher in enumerate(fetchers, start=1):
+            source = _fetcher_source_name(fetcher.__name__)
             try:
                 frame = fetcher(symbol, start, end, adjust_arg)
                 if not frame.empty:
+                    self.fetch_attempts.append(
+                        {
+                            "symbol": normalize_symbol(symbol),
+                            "source": source,
+                            "attempt_order": order,
+                            "status": "success",
+                            "rows": int(len(frame)),
+                            "fallback_used": bool(order > 1),
+                            "error": "",
+                        }
+                    )
                     return frame
             except Exception as exc:  # pragma: no cover - network/API dependent
+                self.fetch_attempts.append(
+                    {
+                        "symbol": normalize_symbol(symbol),
+                        "source": source,
+                        "attempt_order": order,
+                        "status": "failed",
+                        "rows": 0,
+                        "fallback_used": bool(order > 1),
+                        "error": str(exc),
+                    }
+                )
                 LOGGER.warning("%s failed for %s: %s", fetcher.__name__, symbol, exc)
+                continue
+            self.fetch_attempts.append(
+                {
+                    "symbol": normalize_symbol(symbol),
+                    "source": source,
+                    "attempt_order": order,
+                    "status": "empty",
+                    "rows": 0,
+                    "fallback_used": bool(order > 1),
+                    "error": "empty",
+                }
+            )
         return pd.DataFrame()
 
     def _bar_fetchers(self) -> list:
@@ -209,7 +283,7 @@ class AKShareDownloader:
             end_date=end,
             adjust=adjust_arg,
         )
-        return self._standardize_frame(raw, symbol, source="ak_daily")
+        return self._standardize_frame(raw, symbol, source="ak_daily", price_adjust=adjust_arg or "raw")
 
     def _fetch_eastmoney(self, symbol: str, start: str, end: str, adjust_arg: str) -> pd.DataFrame:
         raw = self._ak.stock_zh_a_hist(
@@ -230,11 +304,15 @@ class AKShareDownloader:
                 "\u6210\u4ea4\u989d": "amount",
             }
         )
-        return self._standardize_frame(renamed, symbol, source="eastmoney")
+        if "volume" in renamed.columns:
+            # Eastmoney daily A-share volume is reported in lots (手). Store
+            # normalized share volume so amount / volume is price-like.
+            renamed["volume"] = pd.to_numeric(renamed["volume"], errors="coerce") * 100.0
+        return self._standardize_frame(renamed, symbol, source="eastmoney", price_adjust=adjust_arg or "raw")
 
     def _fetch_tencent(self, symbol: str, start: str, end: str, adjust_arg: str) -> pd.DataFrame:
         raw = _fetch_tencent_raw(to_ak_daily_symbol(symbol), start, end, adjust_arg)
-        return self._standardize_frame(raw, symbol, source="tencent_tx")
+        return self._standardize_frame(raw, symbol, source="tencent_tx", price_adjust=adjust_arg or "raw")
 
     def _standardize_frame(
         self,
@@ -242,6 +320,8 @@ class AKShareDownloader:
         symbol: str,
         source: str = "",
         amount_estimated: bool = False,
+        price_adjust: str = "",
+        volume_unit: str = "share",
     ) -> pd.DataFrame:
         if raw.empty:
             return pd.DataFrame()
@@ -259,6 +339,12 @@ class AKShareDownloader:
             frame["amount_estimated"] = raw["amount_estimated"].fillna(False).astype(bool)
         else:
             frame["amount_estimated"] = bool(amount_estimated)
+        frame["price_adjust"] = price_adjust
+        frame["source_priority"] = SOURCE_PRIORITY.get(source, 50)
+        frame["source_fetch_time"] = pd.Timestamp.now(tz="UTC").isoformat()
+        frame["source_error"] = ""
+        frame["volume_unit"] = volume_unit
+        frame["quality_flags"] = ""
         return self.enrich_bars(frame)
 
     def _merge_code_name_metadata(self, metadata: dict[str, dict[str, object]]) -> None:
@@ -338,6 +424,8 @@ class AKShareDownloader:
             "metadata_is_st": bool(entry.get("is_st", False)),
             "metadata_list_date": entry.get("list_date"),
             "metadata_industry": entry.get("industry", ""),
+            "metadata_industry_source": entry.get("industry_source", "akshare_metadata_cache") if entry.get("industry", "") else "",
+            "metadata_industry_update_date": entry.get("industry_update_date"),
         }
 
 
@@ -357,6 +445,18 @@ def validate_bars(bars: pd.DataFrame) -> pd.DataFrame:
                 data[column] = pd.NA
             else:
                 data[column] = "" if column == "industry" else pd.NaT
+    for column in AUDIT_COLUMNS:
+        if column not in data.columns:
+            if column == "data_source":
+                data[column] = "legacy_unknown"
+            elif column == "amount_estimated":
+                data[column] = False
+            elif column == "source_priority":
+                data[column] = SOURCE_PRIORITY["legacy_unknown"]
+            elif column.startswith("has_valid_"):
+                data[column] = True
+            else:
+                data[column] = ""
 
     data["date"] = pd.to_datetime(data["date"])
     data["symbol"] = data["symbol"].map(normalize_symbol)
@@ -366,10 +466,36 @@ def validate_bars(bars: pd.DataFrame) -> pd.DataFrame:
         data[column] = data[column].fillna(False).astype(bool)
     data["list_date"] = pd.to_datetime(data["list_date"], errors="coerce")
     data["industry"] = data["industry"].fillna("").astype(str)
-    if "data_source" in data.columns:
-        data["data_source"] = data["data_source"].fillna("").astype(str)
-    if "amount_estimated" in data.columns:
-        data["amount_estimated"] = data["amount_estimated"].astype("boolean").fillna(False).astype(bool)
+    missing_source = data["data_source"].fillna("").astype(str).str.strip().eq("")
+    data["data_source"] = data["data_source"].fillna("").astype(str).str.strip()
+    data.loc[missing_source, "data_source"] = "legacy_unknown"
+    data["amount_estimated"] = data["amount_estimated"].astype("boolean").fillna(False).astype(bool)
+    data["source_priority"] = pd.to_numeric(data["source_priority"], errors="coerce")
+    data.loc[data["source_priority"].isna(), "source_priority"] = data["data_source"].map(lambda value: SOURCE_PRIORITY.get(str(value), 50))
+    data["source_priority"] = data["source_priority"].fillna(50).astype(int)
+
+    flags = data["quality_flags"].fillna("").astype(str).map(lambda text: {part for part in text.split(";") if part})
+    legacy_mask = data["data_source"].eq("legacy_unknown")
+    for idx in data.index[legacy_mask]:
+        flags.at[idx] = set(flags.at[idx]) | {"legacy_missing_data_source"}
+
+    data["has_valid_ohlc"] = (
+        data[["open", "high", "low", "close"]].notna().all(axis=1)
+        & data[["open", "high", "low", "close"]].gt(0).all(axis=1)
+        & data["high"].ge(data[["open", "low", "close"]].max(axis=1))
+        & data["low"].le(data[["open", "high", "close"]].min(axis=1))
+    )
+    data["has_valid_volume"] = data["volume"].notna() & data["volume"].ge(0)
+    data["has_valid_amount"] = data["amount"].notna() & data["amount"].ge(0)
+    data["has_valid_limit"] = (
+        data[["limit_up", "limit_down", "close"]].notna().all(axis=1)
+        & data["limit_up"].gt(data["limit_down"])
+        & data["limit_up"].ge(data["close"])
+        & data["limit_down"].le(data["close"])
+    )
+    data["has_valid_list_date"] = data["list_date"].isna() | data["list_date"].le(data["date"])
+    data["has_valid_industry"] = data["industry"].str.strip().ne("")
+    data["quality_flags"] = flags.map(lambda values: ";".join(sorted(values)))
     data = data.dropna(subset=["date", "symbol", "open", "high", "low", "close"])
     return data.sort_values(["date", "symbol"]).reset_index(drop=True)
 
@@ -452,6 +578,14 @@ def _to_float(value: object) -> float | None:
         return None
 
 
+def _fetcher_source_name(name: str) -> str:
+    return {
+        "_fetch_eastmoney": "eastmoney",
+        "_fetch_tencent": "tencent_tx",
+        "_fetch_daily": "ak_daily",
+    }.get(name, name.replace("_fetch_", ""))
+
+
 def _find_column(frame: pd.DataFrame, keywords: list[str], fallback_index: int | None) -> str | None:
     for column in frame.columns:
         text = str(column)
@@ -481,6 +615,8 @@ def _read_metadata_cache(path: Path) -> dict[str, dict[str, object]]:
             "name": "" if pd.isna(row.get("name", "")) else str(row.get("name", "")),
             "is_st": _as_bool(row.get("is_st", False)),
             "industry": "" if pd.isna(row.get("industry", "")) else str(row.get("industry", "")),
+            "industry_source": "" if pd.isna(row.get("industry_source", "")) else str(row.get("industry_source", "")),
+            "industry_update_date": row.get("industry_update_date"),
             "list_date": pd.Timestamp(list_date).normalize() if pd.notna(list_date) else None,
         }
     return metadata
@@ -495,6 +631,8 @@ def _write_metadata_cache(path: Path, metadata: dict[str, dict[str, object]]) ->
                 "name": entry.get("name", ""),
                 "is_st": bool(entry.get("is_st", False)),
                 "industry": entry.get("industry", ""),
+                "industry_source": entry.get("industry_source", ""),
+                "industry_update_date": entry.get("industry_update_date"),
                 "list_date": entry.get("list_date"),
             }
         )

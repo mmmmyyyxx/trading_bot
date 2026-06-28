@@ -16,7 +16,26 @@ from ashare_adapter.qlib_converter import read_bars, write_bars
 LOGGER = logging.getLogger(__name__)
 
 EMPTY_TEXT = {"", "nan", "none", "null", "--", "-", "na", "n/a"}
+INDUSTRY_SCHEMA_COLUMNS = [
+    "symbol",
+    "industry",
+    "industry_level",
+    "industry_source",
+    "industry_update_date",
+    "industry_raw",
+    "source_priority",
+    "is_point_in_time",
+]
 INDUSTRY_META_COLUMNS = ["industry", "industry_source", "industry_update_date"]
+
+SOURCE_PRIORITY = {
+    "cninfo_industry_change": 1,
+    "eastmoney_board_industry": 2,
+    "akshare_exchange_metadata": 3,
+    "akshare_metadata_cache": 3,
+    "existing_cache": 4,
+    "unknown": 99,
+}
 
 
 def industry_coverage(frame: pd.DataFrame, industry_col: str = "industry") -> dict[str, object]:
@@ -33,6 +52,82 @@ def industry_coverage(frame: pd.DataFrame, industry_col: str = "industry") -> di
     nonempty = int((by_symbol[industry_col] != "").sum())
     total = int(len(by_symbol))
     return {"symbols": total, "industry_nonempty": nonempty, "industry_coverage": nonempty / total if total else 0.0}
+
+
+def normalize_industry_schema(
+    frame: pd.DataFrame,
+    *,
+    default_source: str = "unknown",
+    default_level: str = "",
+    is_point_in_time: bool = False,
+) -> pd.DataFrame:
+    """Normalize any industry map to the project metadata schema."""
+
+    if frame is None or frame.empty:
+        return pd.DataFrame(columns=INDUSTRY_SCHEMA_COLUMNS)
+    data = frame.copy()
+    if "symbol" not in data.columns and "code" in data.columns:
+        data["symbol"] = data["code"].map(symbol_from_code)
+    if "symbol" not in data.columns:
+        raise ValueError("Industry metadata must contain symbol or code.")
+    data["symbol"] = data["symbol"].map(normalize_symbol)
+    if "industry" not in data.columns:
+        data["industry"] = ""
+    data["industry_raw"] = data.get("industry_raw", data["industry"])
+    data["industry"] = data["industry"].map(_clean_text)
+    data["industry_raw"] = data["industry_raw"].map(_clean_text)
+    if "industry_source" not in data.columns:
+        data["industry_source"] = default_source
+    data["industry_source"] = data["industry_source"].fillna("").astype(str).str.strip()
+    data.loc[data["industry_source"].eq(""), "industry_source"] = default_source
+    if "industry_level" not in data.columns:
+        data["industry_level"] = default_level
+    if "industry_update_date" in data.columns:
+        data["industry_update_date"] = pd.to_datetime(data["industry_update_date"], errors="coerce")
+    else:
+        data["industry_update_date"] = pd.NaT
+    if "source_priority" not in data.columns:
+        data["source_priority"] = data["industry_source"].map(lambda value: SOURCE_PRIORITY.get(str(value), 50))
+    data["source_priority"] = pd.to_numeric(data["source_priority"], errors="coerce").fillna(50).astype(int)
+    if "is_point_in_time" not in data.columns:
+        data["is_point_in_time"] = bool(is_point_in_time)
+    data["is_point_in_time"] = data["is_point_in_time"].astype("boolean").fillna(False).astype(bool)
+    return data[INDUSTRY_SCHEMA_COLUMNS].drop_duplicates("symbol", keep="last")
+
+
+def resolve_industry_sources(
+    existing: pd.DataFrame | None = None,
+    cninfo: pd.DataFrame | None = None,
+    eastmoney: pd.DataFrame | None = None,
+    akshare_meta: pd.DataFrame | None = None,
+    overwrite: bool = False,
+) -> pd.DataFrame:
+    """Resolve multiple industry sources with explicit source priority."""
+
+    frames: list[pd.DataFrame] = []
+    if existing is not None and not existing.empty:
+        frames.append(normalize_industry_schema(existing, default_source="existing_cache", default_level="existing"))
+    if akshare_meta is not None and not akshare_meta.empty:
+        frames.append(normalize_industry_schema(akshare_meta, default_source="akshare_exchange_metadata", default_level="akshare"))
+    if eastmoney is not None and not eastmoney.empty:
+        frames.append(normalize_industry_schema(eastmoney, default_source="eastmoney_board_industry", default_level="eastmoney_board"))
+    if cninfo is not None and not cninfo.empty:
+        frames.append(normalize_industry_schema(cninfo, default_source="cninfo_industry_change", default_level="cninfo_latest"))
+    if not frames:
+        return pd.DataFrame(columns=INDUSTRY_SCHEMA_COLUMNS)
+
+    data = pd.concat(frames, ignore_index=True)
+    data = data[data["industry"].map(_clean_text).ne("")]
+    if data.empty:
+        return pd.DataFrame(columns=INDUSTRY_SCHEMA_COLUMNS)
+    data = data.sort_values(["symbol", "source_priority", "industry_update_date"], ascending=[True, True, False])
+    if overwrite:
+        return data.drop_duplicates("symbol", keep="first").reset_index(drop=True)
+
+    existing_norm = normalize_industry_schema(existing, default_source="existing_cache", default_level="existing") if existing is not None and not existing.empty else pd.DataFrame(columns=INDUSTRY_SCHEMA_COLUMNS)
+    existing_nonempty = existing_norm[existing_norm["industry"].map(_clean_text).ne("")].drop_duplicates("symbol", keep="last")
+    fill_candidates = data[~data["symbol"].isin(set(existing_nonempty["symbol"]))].drop_duplicates("symbol", keep="first")
+    return pd.concat([existing_nonempty, fill_candidates], ignore_index=True).drop_duplicates("symbol", keep="first")
 
 
 def merge_industry_map(
@@ -311,6 +406,170 @@ def industry_unknown_by_position(positions: pd.DataFrame, bars: pd.DataFrame) ->
     return result.sort_values("date").reset_index(drop=True)
 
 
+def industry_coverage_report(
+    bars: pd.DataFrame,
+    positions: pd.DataFrame | None = None,
+    selected_col: str = "selected",
+) -> dict[str, pd.DataFrame | dict[str, object]]:
+    """Build industry metadata coverage reports for bars and optional positions."""
+
+    data = bars.copy()
+    if data.empty:
+        summary = {
+            "symbol_level_coverage": 0.0,
+            "row_level_coverage": 0.0,
+            "selected_universe_coverage": 0.0,
+            "position_weighted_coverage": None,
+            "unknown_symbol_count": 0,
+            "unknown_selected_avg_ratio": 0.0,
+            "unknown_position_weight_avg": None,
+            "industry_source_distribution": {},
+            "industry_quality_status": "failed",
+            "quality_status": "failed",
+        }
+        return {
+            "summary": summary,
+            "industry_metadata_coverage": pd.DataFrame(),
+            "industry_source_distribution": pd.DataFrame(columns=["industry_source", "rows", "row_ratio"]),
+            "industry_unknown_by_date": pd.DataFrame(),
+            "industry_unknown_by_selected_universe": pd.DataFrame(),
+            "industry_unknown_by_position": pd.DataFrame(),
+        }
+
+    data["symbol"] = data["symbol"].map(normalize_symbol)
+    data["date"] = pd.to_datetime(data["date"], errors="coerce")
+    if "industry" not in data.columns:
+        data["industry"] = ""
+    data["industry"] = data["industry"].map(_clean_text)
+    if "industry_source" not in data.columns:
+        data["industry_source"] = ""
+    data["industry_source"] = data["industry_source"].fillna("").astype(str).str.strip()
+    data.loc[data["industry_source"].eq("") & data["industry"].ne(""), "industry_source"] = "unknown_source"
+    if selected_col not in data.columns:
+        selected_col = "eligible" if "eligible" in data.columns else selected_col
+    if selected_col not in data.columns:
+        data[selected_col] = True
+    selected = data[selected_col].astype("boolean").fillna(False).astype(bool)
+    known = data["industry"].ne("")
+
+    by_symbol = data.groupby("symbol", as_index=False).agg(
+        industry=("industry", lambda values: next((value for value in values if value), "")),
+        industry_source=("industry_source", lambda values: next((str(value) for value in values if str(value).strip()), "")),
+        rows=("date", "count"),
+        selected_rows=(selected_col, lambda values: int(pd.Series(values).astype("boolean").fillna(False).sum())),
+    )
+    by_symbol["has_industry"] = by_symbol["industry"].ne("")
+    by_symbol["is_unknown"] = ~by_symbol["has_industry"]
+
+    source_dist = data.assign(industry_source=data["industry_source"].replace("", "unknown")).groupby("industry_source").agg(rows=("symbol", "count")).reset_index()
+    source_dist["row_ratio"] = source_dist["rows"] / len(data)
+    unknown_by_date = industry_unknown_by_date(data, selected_col=selected_col)
+    selected_unknown = unknown_by_date[
+        [
+            "date",
+            "selected_count",
+            "unknown_selected_count",
+            "unknown_selected_ratio",
+        ]
+    ].rename(columns={"unknown_selected_ratio": "unknown_ratio"})
+
+    position_report = (
+        industry_unknown_by_position(positions, data)
+        if positions is not None and not positions.empty
+        else pd.DataFrame(
+            columns=[
+                "date",
+                "position_count",
+                "unknown_position_count",
+                "gross_weight",
+                "unknown_weight",
+                "unknown_position_ratio",
+                "unknown_weight_ratio",
+            ]
+        )
+    )
+    position_unknown = _mean_or_none(position_report.get("unknown_weight_ratio"))
+    position_coverage = None if position_unknown is None else 1.0 - position_unknown
+
+    symbol_coverage = float(by_symbol["has_industry"].mean()) if len(by_symbol) else 0.0
+    row_coverage = float(known.mean()) if len(data) else 0.0
+    selected_coverage = float(known[selected].mean()) if int(selected.sum()) else 0.0
+    unknown_selected_avg = _mean_or_zero(unknown_by_date.get("unknown_selected_ratio"))
+    summary = {
+        "symbol_level_coverage": symbol_coverage,
+        "row_level_coverage": row_coverage,
+        "selected_universe_coverage": selected_coverage,
+        "position_weighted_coverage": position_coverage,
+        "unknown_symbol_count": int((~by_symbol["has_industry"]).sum()),
+        "unknown_selected_avg_ratio": unknown_selected_avg,
+        "unknown_position_weight_avg": position_unknown,
+        "industry_source_distribution": {str(row["industry_source"]): int(row["rows"]) for _, row in source_dist.iterrows()},
+        "industry_source_top": str(source_dist.sort_values("rows", ascending=False)["industry_source"].iloc[0]) if not source_dist.empty else "",
+    }
+    status = industry_quality_status(summary)
+    summary["industry_quality_status"] = status
+    summary["quality_status"] = status
+    if status == "failed":
+        summary["caveat"] = "Industry attribution is not reliable due to insufficient metadata coverage."
+
+    return {
+        "summary": summary,
+        "industry_metadata_coverage": by_symbol,
+        "industry_source_distribution": source_dist,
+        "industry_unknown_by_date": unknown_by_date,
+        "industry_unknown_by_selected_universe": selected_unknown,
+        "industry_unknown_by_position": position_report,
+    }
+
+
+def industry_quality_status(summary: dict[str, object]) -> str:
+    """Classify industry metadata coverage."""
+
+    symbol_cov = float(summary.get("symbol_level_coverage") or 0.0)
+    selected_cov = float(summary.get("selected_universe_coverage") or 0.0)
+    position_unknown_value = summary.get("unknown_position_weight_avg")
+    position_unknown = 0.0 if position_unknown_value is None else float(position_unknown_value)
+    if symbol_cov >= 0.95 and selected_cov >= 0.95 and position_unknown <= 0.10:
+        return "passed"
+    if symbol_cov >= 0.80 and selected_cov >= 0.80 and position_unknown <= 0.30:
+        return "warning"
+    return "failed"
+
+
+def write_industry_coverage_report(
+    bars: pd.DataFrame,
+    output_dir: str | Path,
+    positions: pd.DataFrame | None = None,
+    selected_col: str = "selected",
+) -> dict[str, object]:
+    """Write industry coverage reports and return the JSON summary."""
+
+    import json
+
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    report = industry_coverage_report(bars, positions=positions, selected_col=selected_col)
+    files = {
+        "industry_metadata_coverage": "industry_metadata_coverage.csv",
+        "industry_source_distribution": "industry_source_distribution.csv",
+        "industry_unknown_by_date": "industry_unknown_by_date.csv",
+        "industry_unknown_by_selected_universe": "industry_unknown_by_selected_universe.csv",
+        "industry_unknown_by_position": "industry_unknown_by_position.csv",
+    }
+    summary = dict(report["summary"])
+    summary["reports"] = {}
+    for key, filename in files.items():
+        frame = report[key]
+        assert isinstance(frame, pd.DataFrame)
+        path = out / filename
+        frame.to_csv(path, index=False)
+        summary["reports"][key] = str(path)
+    summary_path = out / "industry_coverage_summary.json"
+    summary["reports"]["summary"] = str(summary_path)
+    summary_path.write_text(json.dumps(_json_safe(summary), ensure_ascii=False, indent=2), encoding="utf-8")
+    return summary
+
+
 def _find_column(frame: pd.DataFrame, keywords: list[str], fallback_idx: int | None = None) -> str | None:
     if frame.empty:
         return None
@@ -329,6 +588,33 @@ def _clean_text(value: object) -> str:
         return ""
     text = str(value).strip()
     return "" if text.lower() in EMPTY_TEXT else text
+
+
+def _mean_or_zero(series: pd.Series | None) -> float:
+    value = _mean_or_none(series)
+    return 0.0 if value is None else float(value)
+
+
+def _mean_or_none(series: pd.Series | None) -> float | None:
+    if series is None:
+        return None
+    value = pd.to_numeric(series, errors="coerce").dropna().mean()
+    return None if pd.isna(value) else float(value)
+
+
+def _json_safe(value: object) -> object:
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            return value
+    return value
 
 
 def _empty_map() -> pd.DataFrame:

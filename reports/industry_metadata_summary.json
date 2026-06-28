@@ -1,7 +1,7 @@
 {
   "metadata_cache": "data\\cache\\akshare_metadata.parquet",
-  "target_symbols": 2997,
-  "fetched_industry_rows": 0,
+  "target_symbols": 1242,
+  "fetched_industry_rows": 5609,
   "failures": 0,
   "coverage_report": "reports\\industry_metadata_coverage.csv",
   "failure_report": "reports\\industry_metadata_failures.csv",

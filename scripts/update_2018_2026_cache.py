@@ -16,6 +16,7 @@ if str(ROOT) not in sys.path:
 
 from ashare_adapter.akshare_downloader import AKShareDownloader
 from ashare_adapter.config import UniverseConfig
+from ashare_adapter.data_quality import normalize_bar_audit_fields
 from ashare_adapter.metadata import normalize_symbol
 from ashare_adapter.qlib_converter import read_bars, write_bars
 from ashare_adapter.universe import build_dynamic_universe
@@ -43,6 +44,9 @@ def main() -> None:
         dynamic_liquidity_top_n=args.dynamic_liquidity_top_n,
         download_summary=args.download_summary,
         missing_symbols=args.missing_symbols,
+        download_source_summary=args.download_source_summary,
+        download_failure_summary=args.download_failure_summary,
+        source_fallback_summary=args.source_fallback_summary,
     )
     print(f"Wrote bars: {summary['output_bars']}")
     print(f"Actual symbols: {summary['actual_symbols']} / {summary['requested_symbols']}")
@@ -69,6 +73,9 @@ def update_cache(
     dynamic_liquidity_top_n: int | None = None,
     download_summary: str | Path | None = None,
     missing_symbols: str | Path | None = None,
+    download_source_summary: str | Path | None = None,
+    download_failure_summary: str | Path | None = None,
+    source_fallback_summary: str | Path | None = None,
 ) -> dict[str, Any]:
     """Update a bar cache by reusing existing rows and fetching missing ranges."""
 
@@ -89,6 +96,7 @@ def update_cache(
     fetch_jobs = _missing_fetch_jobs(existing, symbols, start, end)
     fetched_frames = []
     downloader = None
+    fetch_attempts: list[dict[str, Any]] = []
     for job in fetch_jobs:
         if not job["symbols"]:
             continue
@@ -118,10 +126,18 @@ def update_cache(
         else:
             job["downloaded_rows"] = 0
             job["downloaded_symbols"] = 0
+        if downloader is not None:
+            fetch_attempts.extend(getattr(downloader, "fetch_attempts", []))
+            downloader.fetch_attempts = []
 
-    combined = pd.concat([frame for frame in [existing, *fetched_frames] if not frame.empty], ignore_index=True)
+    available_frames = [frame for frame in [existing, *fetched_frames] if not frame.empty]
+    if not available_frames:
+        raise RuntimeError("No bar rows available after cache update.")
+    combined = pd.concat(available_frames, ignore_index=True)
     if combined.empty:
         raise RuntimeError("No bar rows available after cache update.")
+    combined = normalize_bar_audit_fields(combined, price_adjust=adjust)
+    combined = _fill_missing_industry_source(combined)
     combined = combined.drop_duplicates(["date", "symbol"], keep="last")
     combined = combined[(combined["date"] >= start) & (combined["date"] <= end)]
 
@@ -150,6 +166,7 @@ def update_cache(
         "data_start": str(pd.to_datetime(enriched["date"]).min().date()),
         "data_end": str(pd.to_datetime(enriched["date"]).max().date()),
         "fetch_jobs": fetch_jobs,
+        "fetch_attempts": fetch_attempts,
         "universe": {
             "min_listed_days": min_listed_days,
             "min_amount": min_amount,
@@ -161,15 +178,29 @@ def update_cache(
             "Current universe symbols are used historically unless historical membership data is supplied.",
             "Missing or failed symbols are recorded and do not stop the pipeline when usable data remains.",
         ],
+        "data_type": "real_akshare",
+        "synthetic_data": False,
+        "mock_data": False,
+        "download_source": "akshare",
     }
     if download_summary:
         target = Path(download_summary)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+        base_dir = target.parent
+        download_source_summary = download_source_summary or base_dir / "download_source_summary.csv"
+        download_failure_summary = download_failure_summary or base_dir / "download_failure_summary.csv"
+        source_fallback_summary = source_fallback_summary or base_dir / "source_fallback_summary.csv"
     if missing_symbols:
         target = Path(missing_symbols)
         target.parent.mkdir(parents=True, exist_ok=True)
         pd.DataFrame({"symbol": missing, "reason": "no_bars_after_update"}).to_csv(target, index=False)
+    if download_source_summary:
+        _write_download_source_summary(enriched, Path(download_source_summary))
+    if download_failure_summary:
+        _write_download_failure_summary(fetch_attempts, missing, Path(download_failure_summary))
+    if source_fallback_summary:
+        _write_source_fallback_summary(fetch_attempts, Path(source_fallback_summary))
     return summary
 
 
@@ -221,6 +252,89 @@ def _missing_fetch_jobs(
     return jobs
 
 
+def _write_download_source_summary(bars: pd.DataFrame, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    data = bars.copy()
+    if data.empty:
+        pd.DataFrame(columns=["data_source", "rows", "symbols", "selected_rows", "amount_estimated_rows", "row_ratio"]).to_csv(path, index=False)
+        return
+    if "data_source" not in data.columns:
+        data["data_source"] = "legacy_unknown"
+    if "amount_estimated" not in data.columns:
+        data["amount_estimated"] = False
+    if "selected" not in data.columns:
+        data["selected"] = False
+    data["data_source"] = data["data_source"].fillna("legacy_unknown").astype(str)
+    summary = data.groupby("data_source", dropna=False).agg(
+        rows=("symbol", "count"),
+        symbols=("symbol", "nunique"),
+        selected_rows=("selected", "sum"),
+        amount_estimated_rows=("amount_estimated", "sum"),
+    ).reset_index()
+    summary["row_ratio"] = summary["rows"] / len(data)
+    summary.to_csv(path, index=False)
+
+
+def _fill_missing_industry_source(bars: pd.DataFrame) -> pd.DataFrame:
+    data = bars.copy()
+    if "industry" not in data.columns:
+        return data
+    if "industry_source" not in data.columns:
+        data["industry_source"] = ""
+    has_industry = data["industry"].fillna("").astype(str).str.strip().ne("")
+    missing_source = data["industry_source"].fillna("").astype(str).str.strip().eq("")
+    data.loc[has_industry & missing_source, "industry_source"] = "akshare_metadata_cache"
+    if "industry_update_date" not in data.columns:
+        data["industry_update_date"] = pd.NaT
+    return data
+
+
+def _write_download_failure_summary(fetch_attempts: list[dict[str, Any]], missing: list[str], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    attempts = pd.DataFrame(fetch_attempts)
+    if attempts.empty:
+        attempts = pd.DataFrame(columns=["symbol", "source", "attempt_order", "status", "rows", "fallback_used", "error"])
+    failures = attempts[attempts["status"].astype(str).isin(["failed", "empty"])].copy() if "status" in attempts.columns else attempts
+    missing_rows = pd.DataFrame({"symbol": missing, "source": "", "attempt_order": pd.NA, "status": "missing_after_update", "rows": 0, "fallback_used": False, "error": "no_bars_after_update"})
+    pd.concat([failures, missing_rows], ignore_index=True).to_csv(path, index=False)
+
+
+def _write_source_fallback_summary(fetch_attempts: list[dict[str, Any]], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    attempts = pd.DataFrame(fetch_attempts)
+    if attempts.empty:
+        pd.DataFrame(
+            columns=[
+                "symbol",
+                "successful_source",
+                "successful_attempt_order",
+                "fallback_used",
+                "attempted_sources",
+                "failed_sources",
+                "errors",
+            ]
+        ).to_csv(path, index=False)
+        return
+    rows = []
+    for symbol, frame in attempts.groupby("symbol", dropna=False):
+        frame = frame.sort_values("attempt_order")
+        successes = frame[frame["status"].astype(str).eq("success")]
+        first_success = successes.iloc[0] if not successes.empty else None
+        failed = frame[frame["status"].astype(str).isin(["failed", "empty"])]
+        rows.append(
+            {
+                "symbol": symbol,
+                "successful_source": "" if first_success is None else first_success.get("source", ""),
+                "successful_attempt_order": None if first_success is None else first_success.get("attempt_order"),
+                "fallback_used": bool(False if first_success is None else first_success.get("fallback_used", False)),
+                "attempted_sources": ";".join(frame["source"].fillna("").astype(str).tolist()) if "source" in frame else "",
+                "failed_sources": ";".join(failed["source"].fillna("").astype(str).tolist()) if "source" in failed else "",
+                "errors": "; ".join(failed["error"].fillna("").astype(str).tolist()) if "error" in failed else "",
+            }
+        )
+    pd.DataFrame(rows).to_csv(path, index=False)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--symbols-file", required=True)
@@ -242,6 +356,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dynamic-liquidity-top-n", type=int, default=None)
     parser.add_argument("--download-summary", default=None)
     parser.add_argument("--missing-symbols", default=None)
+    parser.add_argument("--download-source-summary", default=None)
+    parser.add_argument("--download-failure-summary", default=None)
+    parser.add_argument("--source-fallback-summary", default=None)
     return parser.parse_args()
 
 

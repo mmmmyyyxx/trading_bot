@@ -18,6 +18,7 @@ from ashare_adapter.industry_metadata import (
     fetch_cninfo_industry_map,
     fetch_eastmoney_industry_map,
     industry_coverage,
+    industry_quality_status,
     industry_unknown_by_date,
     industry_unknown_by_position,
     merge_industry_map,
@@ -41,12 +42,19 @@ def main() -> None:
 
     industry_maps: list[pd.DataFrame] = []
     failures = pd.DataFrame(columns=["symbol", "reason"])
+    enabled_sources = _parse_sources(args.sources)
+    args.refresh_eastmoney = bool(args.refresh_eastmoney or "eastmoney" in enabled_sources)
+    args.refresh_cninfo = bool(args.refresh_cninfo or "cninfo" in enabled_sources)
+    args.overwrite_industry = bool(args.overwrite_industry or args.overwrite)
+
     if args.refresh_eastmoney or args.refresh_cninfo:
         import akshare as ak  # type: ignore
 
         if args.refresh_eastmoney:
             try:
-                industry_maps.append(fetch_eastmoney_industry_map(ak, sleep=args.sleep))
+                eastmoney_map = fetch_eastmoney_industry_map(ak, sleep=args.sleep)
+                industry_maps.append(eastmoney_map)
+                _write_source_cache(eastmoney_map, Path(args.industry_cache_dir) / "eastmoney_industry_map.parquet")
             except Exception as exc:  # pragma: no cover - network/API dependent
                 failures = pd.concat(
                     [failures, pd.DataFrame([{"symbol": "*", "reason": f"eastmoney_failed: {exc}"}])],
@@ -61,11 +69,12 @@ def main() -> None:
                 missing,
                 start_date=args.cninfo_start_date,
                 end_date=args.cninfo_end_date,
-                workers=args.workers,
+                workers=args.max_workers,
                 retry=args.retry,
                 sleep=args.sleep,
             )
             industry_maps.append(cninfo_map)
+            _write_source_cache(cninfo_map, Path(args.industry_cache_dir) / "cninfo_industry_map.parquet")
             failures = pd.concat([failures, cninfo_failures], ignore_index=True)
 
     industry_map = _combine_industry_maps(industry_maps)
@@ -96,7 +105,7 @@ def main() -> None:
         report_rows.append({"dataset": "qlib_metadata", "path": str(Path(qlib_dir) / "metadata"), "stage": "after", **after})
 
     report = pd.DataFrame(report_rows)
-    report_path = Path(args.output_report)
+    report_path = Path(args.output_coverage or args.output_report)
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report.to_csv(report_path, index=False)
 
@@ -123,7 +132,18 @@ def main() -> None:
         "unknown_by_position_report": str(unknown_by_position_path),
         "overwrite_industry": bool(args.overwrite_industry),
     }
-    Path(args.output_summary).write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    quality_summary = _coverage_quality_summary(metadata, report, args)
+    summary.update(quality_summary)
+    summary_path = Path(args.output_summary)
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    if args.fail_on_low_coverage and summary.get("quality_status") == "failed":
+        raise RuntimeError(
+            "Industry metadata coverage failed: "
+            f"symbol_level_coverage={summary.get('symbol_level_coverage')}, "
+            f"selected_universe_coverage={summary.get('selected_universe_coverage')}, "
+            f"unknown_position_weight_avg={summary.get('unknown_position_weight_avg')}"
+        )
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 
 
@@ -133,21 +153,36 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--symbols-file", action="append", default=[])
     parser.add_argument("--bars", nargs="*", default=[])
     parser.add_argument("--qlib-dir", action="append", default=[])
+    parser.add_argument("--sources", default="")
     parser.add_argument("--refresh-eastmoney", action="store_true")
     parser.add_argument("--refresh-cninfo", action="store_true")
+    parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--overwrite-industry", action="store_true")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--max-workers", type=int, default=None)
+    parser.add_argument("--batch-size", type=int, default=200)
     parser.add_argument("--retry", type=int, default=1)
     parser.add_argument("--sleep", type=float, default=0.02)
     parser.add_argument("--max-fetch-symbols", type=int, default=None)
     parser.add_argument("--cninfo-start-date", default="19900101")
     parser.add_argument("--cninfo-end-date", default="20260627")
+    parser.add_argument("--industry-cache-dir", default="data/cache/industry")
+    parser.add_argument("--output-coverage", default=None)
     parser.add_argument("--output-report", default="reports/industry_metadata_coverage.csv")
     parser.add_argument("--failure-report", default="reports/industry_metadata_failures.csv")
     parser.add_argument("--unknown-by-date-report", default="reports/industry_unknown_by_date.csv")
     parser.add_argument("--unknown-by-position-report", default="reports/industry_unknown_by_position.csv")
     parser.add_argument("--output-summary", default="reports/industry_metadata_summary.json")
-    return parser.parse_args()
+    parser.add_argument("--fail-on-low-coverage", action="store_true")
+    parser.add_argument("--min-symbol-coverage", type=float, default=0.95)
+    parser.add_argument("--min-selected-coverage", type=float, default=0.95)
+    parser.add_argument("--max-position-unknown", type=float, default=0.10)
+    args = parser.parse_args()
+    if args.max_workers is None:
+        args.max_workers = args.workers
+    else:
+        args.workers = args.max_workers
+    return args
 
 
 def _target_symbols(args: argparse.Namespace, metadata: pd.DataFrame) -> list[str]:
@@ -172,6 +207,64 @@ def _combine_industry_maps(frames: list[pd.DataFrame]) -> pd.DataFrame:
     data = pd.concat(valid, ignore_index=True)
     data["symbol"] = data["symbol"].map(normalize_symbol)
     return data.drop_duplicates("symbol", keep="last")
+
+
+def _parse_sources(value: str) -> set[str]:
+    if not value:
+        return set()
+    aliases = {"existing": "existing", "akshare": "akshare", "eastmoney": "eastmoney", "cninfo": "cninfo"}
+    result = set()
+    for item in value.split(","):
+        key = item.strip().lower()
+        if not key:
+            continue
+        if key not in aliases:
+            raise ValueError(f"Unsupported industry source: {item}")
+        result.add(aliases[key])
+    return result
+
+
+def _write_source_cache(frame: pd.DataFrame, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if frame is None or frame.empty:
+        pd.DataFrame(columns=["symbol", "industry", "industry_source"]).to_parquet(path, index=False)
+        return
+    frame.to_parquet(path, index=False)
+
+
+def _coverage_quality_summary(metadata: pd.DataFrame, report: pd.DataFrame, args: argparse.Namespace) -> dict[str, object]:
+    coverage = industry_coverage(metadata)
+    symbol_coverage = float(coverage.get("industry_coverage") or 0.0)
+    bars_after = report[(report.get("dataset") == "bars") & (report.get("stage") == "after")] if not report.empty else pd.DataFrame()
+    selected_coverage = symbol_coverage
+    if not bars_after.empty and "industry_coverage" in bars_after.columns:
+        selected_coverage = float(pd.to_numeric(bars_after["industry_coverage"], errors="coerce").fillna(0.0).min())
+    unknown_position = 0.0
+    status = industry_quality_status(
+        {
+            "symbol_level_coverage": symbol_coverage,
+            "selected_universe_coverage": selected_coverage,
+            "unknown_position_weight_avg": unknown_position,
+        }
+    )
+    if (
+        symbol_coverage < float(args.min_symbol_coverage)
+        or selected_coverage < float(args.min_selected_coverage)
+        or unknown_position > float(args.max_position_unknown)
+    ):
+        status = "failed"
+    source_dist = (
+        metadata.get("industry_source", pd.Series(dtype=str)).fillna("unknown").astype(str).value_counts().to_dict()
+        if not metadata.empty
+        else {}
+    )
+    return {
+        "symbol_level_coverage": symbol_coverage,
+        "selected_universe_coverage": selected_coverage,
+        "unknown_position_weight_avg": unknown_position,
+        "industry_source_distribution": source_dist,
+        "quality_status": status,
+    }
 
 
 def _prepare_metadata(metadata: pd.DataFrame) -> pd.DataFrame:

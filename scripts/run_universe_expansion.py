@@ -15,10 +15,13 @@ if str(ROOT) not in sys.path:
 
 from ashare_adapter.benchmarks import QLIB_BENCHMARK_SYMBOLS, dump_benchmarks_to_qlib, load_akshare_benchmarks, write_benchmarks
 from ashare_adapter.config import UniverseConfig
+from ashare_adapter.data_quality import write_data_quality_report, write_qlib_quality_sidecars
 from ashare_adapter.diagnostics import benchmark_comparison
 from ashare_adapter.exposure import write_exposure_diagnostics
+from ashare_adapter.industry_metadata import write_industry_coverage_report
 from ashare_adapter.manifest import build_run_manifest
 from ashare_adapter.qlib_converter import dump_qlib_bin, ensure_future_calendar, read_bars
+from ashare_adapter.report_policy import assert_formal_report_uses_real_data, real_data_markers
 from ashare_adapter.result_export import export_alpha158_results
 from ashare_adapter.active_exposure import write_active_attribution
 from scripts.build_expanded_universe import build_universe
@@ -85,6 +88,31 @@ def main() -> None:
     bars = read_bars(bars_path)
     _write_universe_diagnostics(bars, output_dir / "universe_diagnostics.csv", args.dynamic_liquidity_top_n)
 
+    data_quality_summary = write_data_quality_report(
+        bars,
+        output_dir=output_dir / "data_quality",
+        selected_col="selected",
+        fail_on_error=False,
+    )
+    if data_quality_summary.get("quality_status") == "failed" and not args.allow_low_quality_data:
+        _write_failure_report(
+            output_dir,
+            "data_quality_failed",
+            f"Data quality audit failed: {data_quality_summary.get('failure_reason', 'unknown')}",
+            extra={"data_quality": data_quality_summary, "download_summary": cache_summary},
+        )
+        raise RuntimeError(
+            "Data quality audit failed; refusing to generate Qlib data or formal reports. "
+            "Use --allow-low-quality-data only for explicitly caveated diagnostics."
+        )
+
+    industry_quality_summary = write_industry_coverage_report(
+        bars,
+        output_dir=output_dir / "industry",
+        positions=None,
+        selected_col="selected",
+    )
+
     if args.refresh_qlib and qlib_dir.exists():
         _remove_dir_checked(qlib_dir)
     universe_config = UniverseConfig(
@@ -95,13 +123,21 @@ def main() -> None:
     )
     if args.refresh_qlib or not (qlib_dir / "features").exists():
         dump_qlib_bin(bars, qlib_dir, universe_config, market=args.market)
+        write_qlib_quality_sidecars(
+            qlib_dir,
+            bars,
+            data_quality_summary=data_quality_summary,
+            industry_quality_summary=industry_quality_summary,
+        )
     ensure_future_calendar(qlib_dir)
 
     benchmarks_path = Path(args.benchmarks_path)
     if benchmarks_path.exists() and not args.refresh_benchmarks:
         benchmarks = pd.read_parquet(benchmarks_path) if benchmarks_path.suffix.lower() in {".parquet", ".pq"} else pd.read_csv(benchmarks_path)
+        _validate_real_benchmarks(benchmarks, args.benchmark_keys)
     else:
         benchmarks = load_akshare_benchmarks(args.start_date, args.end_date, keys=args.benchmark_keys)
+        _validate_real_benchmarks(benchmarks, args.benchmark_keys)
         write_benchmarks(benchmarks, benchmarks_path)
     dump_benchmarks_to_qlib(benchmarks, qlib_dir, market="benchmarks")
 
@@ -121,6 +157,9 @@ def main() -> None:
             qrun_log=qrun_log,
             universe_diagnostics_path=output_dir / "universe_diagnostics.csv",
             requested_symbols=_read_symbols(symbols_file),
+            data_quality_summary=data_quality_summary,
+            industry_quality_summary=industry_quality_summary,
+            **real_data_markers(),
         )
         manifest = build_run_manifest(
             summary_path=output_dir / "summary.json",
@@ -128,6 +167,8 @@ def main() -> None:
             universe_diagnostics_path=output_dir / "universe_diagnostics.csv",
             symbols_file=symbols_file,
             output_path=output_dir / "run_manifest.json",
+            data_quality_summary=data_quality_summary,
+            industry_quality_summary=industry_quality_summary,
         )
         records_dir = output_dir / "qlib_records"
         exported = export_records(summary["run"]["run_dir"], records_dir)
@@ -135,6 +176,28 @@ def main() -> None:
         if {"equity", "positions"}.issubset(exported):
             equity = pd.read_csv(exported["equity"])
             positions = pd.read_csv(exported["positions"])
+            industry_quality_summary = write_industry_coverage_report(
+                bars,
+                output_dir=output_dir / "industry",
+                positions=positions,
+                selected_col="selected",
+            )
+            summary = _refresh_quality_sections(output_dir / "summary.json", data_quality_summary, industry_quality_summary)
+            manifest = build_run_manifest(
+                summary_path=output_dir / "summary.json",
+                runtime_config_path=runtime_config,
+                universe_diagnostics_path=output_dir / "universe_diagnostics.csv",
+                symbols_file=symbols_file,
+                output_path=output_dir / "run_manifest.json",
+                data_quality_summary=data_quality_summary,
+                industry_quality_summary=industry_quality_summary,
+            )
+            write_qlib_quality_sidecars(
+                qlib_dir,
+                bars,
+                data_quality_summary=data_quality_summary,
+                industry_quality_summary=industry_quality_summary,
+            )
             benchmark_comparison(equity, benchmarks).to_csv(output_dir / "benchmark_comparison.csv", index=False)
             write_exposure_diagnostics(
                 output_dir=exposure_dir,
@@ -153,10 +216,10 @@ def main() -> None:
                     benchmarks=benchmarks,
                     benchmark_symbols=_read_symbols(symbols_file),
                 )
-        _write_experiment_metadata(output_dir, args, universe_meta, cache_summary, manifest)
+        _write_experiment_metadata(output_dir, args, universe_meta, cache_summary, manifest, data_quality_summary, industry_quality_summary)
         _update_universe_comparison(args, output_dir, summary, manifest)
     else:
-        _write_experiment_metadata(output_dir, args, universe_meta, cache_summary, None)
+        _write_experiment_metadata(output_dir, args, universe_meta, cache_summary, None, data_quality_summary, industry_quality_summary)
     print(f"Wrote universe expansion output: {output_dir}")
 
 
@@ -192,11 +255,16 @@ def _write_experiment_metadata(
     universe_meta: dict,
     cache_summary: dict,
     manifest: dict | None,
+    data_quality_summary: dict | None = None,
+    industry_quality_summary: dict | None = None,
 ) -> None:
     payload = {
+        **real_data_markers(),
         "universe": universe_meta,
         "cache": cache_summary,
         "manifest": manifest,
+        "data_quality": data_quality_summary or {},
+        "industry_quality": industry_quality_summary or {},
         "run": {
             "execute": bool(args.execute),
             "model": "Alpha158 + LightGBM",
@@ -215,6 +283,45 @@ def _write_experiment_metadata(
     (output_dir / "experiment_metadata.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _refresh_quality_sections(
+    summary_path: Path,
+    data_quality_summary: dict,
+    industry_quality_summary: dict,
+) -> dict:
+    from ashare_adapter.result_export import _render_markdown, _sanitize
+
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    summary["data_quality"] = data_quality_summary
+    summary["industry_quality"] = industry_quality_summary
+    sanitized = _sanitize(summary)
+    summary_path.write_text(json.dumps(sanitized, ensure_ascii=False, indent=2), encoding="utf-8")
+    summary_path.with_suffix(".md").write_text(_render_markdown(sanitized), encoding="utf-8")
+    return sanitized
+
+
+def _validate_real_benchmarks(benchmarks: pd.DataFrame, required_keys: list[str]) -> None:
+    if benchmarks.empty:
+        raise RuntimeError("AKShare benchmark download returned no rows; refusing to continue.")
+    if "benchmark" not in benchmarks.columns:
+        raise RuntimeError("Benchmark data is missing the benchmark column; refusing to continue.")
+    missing = sorted(set(required_keys) - set(benchmarks["benchmark"].dropna().astype(str)))
+    if missing:
+        raise RuntimeError(f"AKShare benchmark data missing required keys {missing}; refusing to continue.")
+    if "source" not in benchmarks.columns or not benchmarks["source"].dropna().astype(str).str.lower().eq("akshare").all():
+        raise RuntimeError("Benchmark data is not fully tagged as source=akshare; refusing to continue.")
+
+
+def _write_failure_report(output_dir: Path, status: str, reason: str, extra: dict | None = None) -> None:
+    payload = {
+        **real_data_markers(),
+        "status": status,
+        "failure_reason": reason,
+        "extra": extra or {},
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "failure_report.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def _update_universe_comparison(
     args: argparse.Namespace,
     output_dir: Path,
@@ -224,6 +331,8 @@ def _update_universe_comparison(
     row = _comparison_row(args, output_dir, summary, manifest)
     csv_path = Path(args.comparison_csv)
     md_path = Path(args.comparison_md)
+    assert_formal_report_uses_real_data(csv_path, {"data": real_data_markers()})
+    assert_formal_report_uses_real_data(md_path, {"data": real_data_markers()})
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     if csv_path.exists():
         comparison = pd.read_csv(csv_path)
@@ -248,6 +357,9 @@ def _update_universe_comparison(
 def _comparison_row(args: argparse.Namespace, output_dir: Path, summary: dict, manifest: dict) -> dict[str, object]:
     signal = summary.get("signal", {})
     portfolio = summary.get("portfolio", {})
+    data = manifest.get("data", {})
+    data_quality = manifest.get("data_quality", {})
+    industry_quality = manifest.get("industry_quality", {})
     universe = manifest.get("universe", {})
     segments = manifest.get("segments", {})
     beta = _read_beta(output_dir / "exposure" / "beta_exposure.csv")
@@ -257,6 +369,9 @@ def _comparison_row(args: argparse.Namespace, output_dir: Path, summary: dict, m
     test = segments.get("test") or [None, None]
     return {
         "universe_name": args.universe_name,
+        "data_type": data.get("data_type"),
+        "synthetic_data": data.get("synthetic_data"),
+        "mock_data": data.get("mock_data"),
         "universe_mode": args.universe_mode,
         "selected_mode": universe.get("selected_mode", args.selected_mode),
         "dynamic_liquidity_top_n": universe.get("dynamic_liquidity_top_n", args.dynamic_liquidity_top_n),
@@ -290,6 +405,8 @@ def _comparison_row(args: argparse.Namespace, output_dir: Path, summary: dict, m
         "benchmark_total_return": portfolio.get("benchmark_total_return"),
         "turnover": portfolio.get("avg_daily_turnover"),
         "cost": portfolio.get("total_cost_sum"),
+        "data_quality_status": data_quality.get("quality_status"),
+        "industry_quality_status": industry_quality.get("industry_quality_status", industry_quality.get("quality_status")),
         "beta_hs300": beta.get("hs300"),
         "beta_csi500": beta.get("csi500"),
         "beta_csi1000": beta.get("csi1000"),
@@ -392,6 +509,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--joblib-backend", default="threading")
     parser.add_argument("--execute", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--run-active-attribution", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--allow-low-quality-data", action="store_true")
     parser.add_argument("--comparison-csv", default="reports/universe_expansion_comparison.csv")
     parser.add_argument("--comparison-md", default="reports/universe_expansion_comparison.md")
     return parser.parse_args()

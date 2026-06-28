@@ -1,17 +1,18 @@
 # Alpha158 LightGBM Baseline
 
-Run: `1b56b291d90f46d1959ddf2a33c781d3`  
+Run: `70769ed138494478b56f26e03895cd66`  
 Data: 300 symbols, 567733 rows, 2018-01-02 to 2026-06-24
+Data type: `real_akshare`; synthetic: `False`; mock: `False`
 Universe: eligible_only; selected filter: `$selected > 0.5`
 
 ## Signal
 
 | Metric | Value |
 |---|---:|
-| IC | 0.025496 |
-| ICIR | 0.186640 |
-| Rank IC | 0.012490 |
-| Rank ICIR | 0.088434 |
+| IC | 0.030360 |
+| ICIR | 0.178009 |
+| Rank IC | 0.012832 |
+| Rank ICIR | 0.077555 |
 | Test days | 353 |
 
 ## Portfolio
@@ -21,33 +22,73 @@ Universe: eligible_only; selected filter: `$selected > 0.5`
 | Benchmark annualized return | 16.50% |
 | Benchmark information ratio | 1.066 |
 | Benchmark max drawdown | -10.80% |
-| Excess annualized return with cost | 31.63% |
-| Excess information ratio with cost | 2.695 |
-| Excess max drawdown with cost | -10.41% |
-| Excess annualized return without cost | 36.89% |
-| Excess information ratio without cost | 3.144 |
-| Excess max drawdown without cost | -9.80% |
-| Account total return | 97.12% |
+| Excess annualized return with cost | 35.49% |
+| Excess information ratio with cost | 2.445 |
+| Excess max drawdown with cost | -11.05% |
+| Excess annualized return without cost | 40.79% |
+| Excess information ratio without cost | 2.810 |
+| Excess max drawdown without cost | -10.45% |
+| Account total return | 106.82% |
 | Benchmark total return | 25.62% |
-| Average daily turnover | 0.396250 |
-| Total cost sum | 1792632443.68 |
+| Average daily turnover | 0.398710 |
+| Total cost sum | 1862227255.23 |
 | Average positions | 49.95 |
 
 ## Group Returns
 
 | Group | Mean Daily Return | Simple Annualized |
 |---|---:|---:|
-| group_1 | 0.02% | 4.67% |
-| group_2 | 0.06% | 15.73% |
-| group_3 | 0.07% | 16.97% |
-| group_4 | 0.14% | 36.09% |
-| group_5 | 0.19% | 47.15% |
-| group_5_minus_1 | 0.17% | 42.48% |
+| group_1 | 0.01% | 2.40% |
+| group_2 | 0.05% | 13.82% |
+| group_3 | 0.09% | 23.15% |
+| group_4 | 0.12% | 30.74% |
+| group_5 | 0.21% | 52.82% |
+| group_5_minus_1 | 0.20% | 50.42% |
+
+## Data Sufficiency
+
+| Check | Value |
+|---|---:|
+| Candidate coverage | 100.00% |
+| Dynamic liquidity top-N | n/a |
+| Max selected universe count | 300 |
+| Selected count reached top-N | n/a |
+| Data sufficient for dynamic top-N | n/a |
+
+eligible_only universe; dynamic liquidity top-N was not requested.
+
+## Data Quality
+
+| Check | Value |
+|---|---:|
+| data_quality_status | warning |
+| unknown_source_ratio | 0.00% |
+| selected_unknown_source_ratio | 0.00% |
+| amount_estimated_ratio | 0.00% |
+| invalid_ohlc_ratio | 0.36% |
+| invalid_amount_ratio | 0.00% |
+| invalid_limit_ratio | 1.64% |
+| vwap_unit_outlier_ratio | 1.53% |
+| duplicate_rows | 0 |
+| data_source_distribution | eastmoney=567733 |
+
+## Industry Metadata Quality
+
+| Check | Value |
+|---|---:|
+| industry_quality_status | passed |
+| symbol_level_coverage | 100.00% |
+| selected_universe_coverage | 100.00% |
+| position_weighted_unknown | 0.20% |
+| industry_source_top | eastmoney_board_industry |
+
+This result should be interpreted as a data-quality-sensitive research result, not a validated strategy result.
 
 ## Notes
 
 - Requested symbols: 300; downloaded symbols: 300; missing: none.
 - Selected universe count: avg 273.63, min 222, max 300.
+- Bar data sources: eastmoney=567733; amount-estimated rows: 0.
 - This is a baseline research backtest result, not investment advice.
 
 ## Caveats

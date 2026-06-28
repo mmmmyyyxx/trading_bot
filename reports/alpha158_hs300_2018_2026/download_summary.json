@@ -2,7 +2,7 @@
   "universe_name": "hs300_current_2018_2026",
   "symbols_file": "data\\cache\\expanded_universes\\hs300_current_symbols.txt",
   "output_bars": "data\\hs300_current_2018_2026_bars.parquet",
-  "existing_bars": "data\\alpha158_hs300_full_bars.parquet",
+  "existing_bars": null,
   "start_date": "2018-01-01",
   "end_date": "2026-06-24",
   "requested_symbols": 300,
@@ -12,17 +12,6 @@
   "data_start": "2018-01-02",
   "data_end": "2026-06-24",
   "fetch_jobs": [
-    {
-      "symbols": [
-        "001280.SZ",
-        "600930.SH"
-      ],
-      "start": "2018-01-01",
-      "end": "2026-06-24",
-      "reason": "missing_symbols",
-      "downloaded_rows": 360,
-      "downloaded_symbols": 2
-    },
     {
       "symbols": [
         "000001.SZ",
@@ -326,10 +315,10 @@
         "688521.SH",
         "688981.SH"
       ],
-      "start": "2025-01-01",
+      "start": "2018-01-01",
       "end": "2026-06-24",
-      "reason": "extend_end_date",
-      "downloaded_rows": 105981,
+      "reason": "empty_cache",
+      "downloaded_rows": 567733,
       "downloaded_symbols": 300
     }
   ],
@@ -343,5 +332,9 @@
   "caveats": [
     "Current universe symbols are used historically unless historical membership data is supplied.",
     "Missing or failed symbols are recorded and do not stop the pipeline when usable data remains."
-  ]
+  ],
+  "data_type": "real_akshare",
+  "synthetic_data": false,
+  "mock_data": false,
+  "download_source": "akshare"
 }

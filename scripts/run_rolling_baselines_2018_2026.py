@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ if str(ROOT) not in sys.path:
 
 from ashare_adapter.exposure import beta_exposure, industry_exposure
 from ashare_adapter.qlib_converter import read_bars
+from ashare_adapter.report_policy import assert_formal_report_uses_real_data, real_data_markers
 
 from scripts.run_rolling_baselines import (
     MODEL_SPECS,
@@ -70,6 +72,9 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     universe_summary = _summarize_universe(args.universe_diagnostics)
     exposure_summary = _summarize_exposure(args.bars, args.equity, args.benchmarks, args.exposure_dir)
+    data_quality = _read_json(args.data_quality_summary)
+    industry_quality = _read_json(args.industry_quality_summary)
+    markers = real_data_markers()
     selected_mode = _normalize_selected_mode(args.selected_mode)
     rows = []
     for window in _windows(args.end_date):
@@ -98,9 +103,12 @@ def main() -> None:
             )
             config_path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
             row = {
+                **markers,
                 "universe_name": args.universe_name,
                 "universe_mode": args.universe_mode,
                 "selected_mode": selected_mode,
+                "start_date": args.start_date,
+                "end_date": args.end_date,
                 "dynamic_liquidity_top_n": args.dynamic_liquidity_top_n,
                 "candidate_pool_size": args.candidate_pool_size,
                 "requested_symbols": args.requested_symbols,
@@ -128,6 +136,18 @@ def main() -> None:
                 "config_path": str(config_path),
                 "log_path": str(log_path),
                 "caveats": _caveats(args, window),
+                "data_quality_status": data_quality.get("quality_status"),
+                "industry_quality_status": industry_quality.get("industry_quality_status", industry_quality.get("quality_status")),
+                "unknown_source_ratio": data_quality.get("unknown_source_ratio"),
+                "selected_unknown_source_ratio": data_quality.get("selected_unknown_source_ratio"),
+                "amount_estimated_ratio": data_quality.get("amount_estimated_ratio"),
+                "invalid_ohlc_ratio": data_quality.get("invalid_ohlc_ratio"),
+                "invalid_amount_ratio": data_quality.get("invalid_amount_ratio"),
+                "invalid_limit_ratio": data_quality.get("invalid_limit_ratio"),
+                "vwap_unit_outlier_ratio": data_quality.get("vwap_unit_outlier_ratio"),
+                "industry_symbol_coverage": industry_quality.get("symbol_level_coverage"),
+                "industry_selected_coverage": industry_quality.get("selected_universe_coverage"),
+                "industry_position_weighted_unknown": industry_quality.get("unknown_position_weight_avg"),
                 **exposure_summary,
             }
             if args.execute:
@@ -139,6 +159,8 @@ def main() -> None:
 
     comparison_path = Path(args.comparison_csv)
     comparison_path.parent.mkdir(parents=True, exist_ok=True)
+    assert_formal_report_uses_real_data(comparison_path, {"data": markers})
+    assert_formal_report_uses_real_data(args.comparison_md, {"data": markers})
     comparison = _merge_comparison(comparison_path, rows)
     comparison.to_csv(comparison_path, index=False)
     Path(args.comparison_md).write_text(_render_markdown(comparison, args.execute), encoding="utf-8")
@@ -186,6 +208,14 @@ def _merge_comparison(path: Path, rows: list[dict[str, Any]]) -> pd.DataFrame:
 
 def _ensure_report_columns(frame: pd.DataFrame) -> pd.DataFrame:
     required = [
+        "data_type",
+        "synthetic_data",
+        "mock_data",
+        "download_source",
+        "start_date",
+        "end_date",
+        "data_quality_status",
+        "industry_quality_status",
         "beta_hs300",
         "beta_csi500",
         "beta_csi1000",
@@ -258,6 +288,15 @@ def _read_frame(path: str | Path) -> pd.DataFrame:
     if source.suffix.lower() in {".parquet", ".pq"}:
         return pd.read_parquet(source)
     return pd.read_csv(source)
+
+
+def _read_json(path: str | None) -> dict[str, Any]:
+    if not path:
+        return {}
+    source = Path(path)
+    if not source.exists():
+        return {}
+    return json.loads(source.read_text(encoding="utf-8"))
 
 
 def _coverage(requested_symbols: int | None, actual_symbols: int | None) -> float | None:
@@ -334,6 +373,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--equity", default=None)
     parser.add_argument("--benchmarks", default=None)
     parser.add_argument("--exposure-dir", default=None)
+    parser.add_argument("--data-quality-summary", default=None)
+    parser.add_argument("--industry-quality-summary", default=None)
+    parser.add_argument("--start-date", default="2018-01-01")
     parser.add_argument("--end-date", default="2026-06-24")
     parser.add_argument("--output-dir", default="reports/rolling_baselines_2018_2026")
     parser.add_argument("--comparison-csv", default="reports/rolling_baseline_comparison_2018_2026.csv")

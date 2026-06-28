@@ -11,6 +11,7 @@ from typing import Any
 import pandas as pd
 import yaml
 
+from ashare_adapter.report_policy import assert_formal_report_uses_real_data
 from ashare_adapter.sufficiency import assess_data_sufficiency, data_sufficiency_caveats
 
 
@@ -20,6 +21,10 @@ def build_run_manifest(
     universe_diagnostics_path: str | Path | None = None,
     symbols_file: str | Path | None = None,
     output_path: str | Path | None = None,
+    data_quality_summary: dict[str, Any] | None = None,
+    industry_quality_summary: dict[str, Any] | None = None,
+    data_quality_paths: dict[str, str] | None = None,
+    industry_quality_paths: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Build a lightweight manifest for a completed Qlib run."""
 
@@ -43,12 +48,17 @@ def build_run_manifest(
         "run_time": datetime.now().astimezone().isoformat(timespec="seconds"),
         "run": summary.get("run", {}),
         "data": {
+            "data_type": summary.get("data", {}).get("data_type"),
+            "synthetic_data": summary.get("data", {}).get("synthetic_data"),
+            "mock_data": summary.get("data", {}).get("mock_data"),
+            "download_source": summary.get("data", {}).get("download_source"),
             "bars_path": summary.get("data", {}).get("bars_path"),
             "data_start": summary.get("data", {}).get("start"),
             "data_end": summary.get("data", {}).get("end"),
             "rows": summary.get("data", {}).get("rows"),
             "data_sources": summary.get("data", {}).get("data_sources", {}),
             "amount_estimated_rows": summary.get("data", {}).get("amount_estimated_rows"),
+            "benchmark_sources": summary.get("data", {}).get("benchmark_sources", {}),
         },
         "segments": {
             "train": segments.get("train"),
@@ -71,6 +81,8 @@ def build_run_manifest(
             "data_sufficient_for_dynamic_top_n": sufficiency["data_sufficient_for_dynamic_top_n"],
         },
         "data_sufficiency": sufficiency,
+        "data_quality": _quality_manifest_section(summary.get("data_quality", {}), data_quality_summary, data_quality_paths),
+        "industry_quality": _quality_manifest_section(summary.get("industry_quality", {}), industry_quality_summary, industry_quality_paths),
         "benchmarks": summary.get("data", {}).get("benchmarks", []),
         "portfolio": {
             "benchmark": config.get("benchmark"),
@@ -100,8 +112,25 @@ def build_run_manifest(
     if output_path:
         target = Path(output_path)
         target.parent.mkdir(parents=True, exist_ok=True)
+        assert_formal_report_uses_real_data(target, manifest)
         target.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return manifest
+
+
+def _quality_manifest_section(
+    summary_section: dict[str, Any] | None,
+    explicit_summary: dict[str, Any] | None,
+    explicit_paths: dict[str, str] | None,
+) -> dict[str, Any]:
+    values = dict(summary_section or {})
+    if explicit_summary:
+        values.update(explicit_summary)
+    reports = dict(values.get("reports", {}) or {})
+    if explicit_paths:
+        reports.update(explicit_paths)
+    if reports:
+        values["reports"] = reports
+    return values
 
 
 def _summarize_universe(path: str | Path | None) -> dict[str, Any]:

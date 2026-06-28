@@ -12,6 +12,7 @@ from typing import Any
 import pandas as pd
 import yaml
 
+from ashare_adapter.report_policy import assert_formal_report_uses_real_data, real_data_markers
 from ashare_adapter.sufficiency import assess_data_sufficiency, data_sufficiency_caveats
 
 
@@ -25,6 +26,12 @@ def export_alpha158_results(
     universe_diagnostics_path: str | Path | None = None,
     requested_symbols: list[str] | None = None,
     caveats: list[str] | None = None,
+    data_quality_summary: dict[str, Any] | None = None,
+    industry_quality_summary: dict[str, Any] | None = None,
+    data_type: str | None = None,
+    synthetic_data: bool | None = None,
+    mock_data: bool | None = None,
+    download_source: str | None = None,
 ) -> dict[str, Any]:
     """Export Qlib run artifacts and return the summary dictionary."""
 
@@ -69,11 +76,22 @@ def export_alpha158_results(
     else:
         missing = []
     benchmark_summary = _summarize_benchmarks(benchmarks_path)
+    benchmark_sources = _summarize_benchmark_sources(benchmarks_path)
+    markers = _infer_data_markers(
+        bars_summary,
+        benchmark_sources,
+        data_type=data_type,
+        synthetic_data=synthetic_data,
+        mock_data=mock_data,
+        download_source=download_source,
+    )
     data_summary = {
+        **markers,
         **bars_summary,
         "requested_symbols": len(requested) if requested else None,
         "missing_symbols": missing,
         "benchmarks": benchmark_summary,
+        "benchmark_sources": benchmark_sources,
     }
     sufficiency = assess_data_sufficiency(data_summary, universe_summary)
     default_caveats = _default_caveats(data_summary, universe_summary, sufficiency)
@@ -93,6 +111,8 @@ def export_alpha158_results(
         "data": data_summary,
         "universe": universe_summary,
         "data_sufficiency": sufficiency,
+        "data_quality": data_quality_summary or {},
+        "industry_quality": industry_quality_summary or {},
         "model": {
             "name": "Alpha158 + LightGBM",
             "best_iteration": _parse_best_iteration(qrun_log),
@@ -214,6 +234,48 @@ def _summarize_benchmarks(path: str | Path | None) -> list[str]:
     return sorted(frame["benchmark"].dropna().astype(str).unique().tolist())
 
 
+def _summarize_benchmark_sources(path: str | Path | None) -> dict[str, str]:
+    if not path or not Path(path).exists():
+        return {}
+    frame = pd.read_parquet(path) if Path(path).suffix.lower() in {".parquet", ".pq"} else pd.read_csv(path)
+    if not {"benchmark", "source"}.issubset(frame.columns):
+        return {}
+    return {
+        str(key): str(value)
+        for key, value in frame.groupby("benchmark")["source"].agg(lambda values: next((v for v in values if pd.notna(v)), "unknown")).items()
+    }
+
+
+def _infer_data_markers(
+    bars_summary: dict[str, Any],
+    benchmark_sources: dict[str, str],
+    *,
+    data_type: str | None,
+    synthetic_data: bool | None,
+    mock_data: bool | None,
+    download_source: str | None,
+) -> dict[str, Any]:
+    markers = real_data_markers(download_source or "akshare")
+    if data_type is not None:
+        markers["data_type"] = data_type
+    if synthetic_data is not None:
+        markers["synthetic_data"] = bool(synthetic_data)
+    if mock_data is not None:
+        markers["mock_data"] = bool(mock_data)
+    if download_source is not None:
+        markers["download_source"] = download_source
+
+    sources = {str(key).lower() for key in (bars_summary.get("data_sources") or {})}
+    benchmark_source_values = {str(value).lower() for value in benchmark_sources.values()}
+    bad_tokens = {"synthetic", "mock", "random", "generated", "sample", "fake"}
+    if sources & bad_tokens or benchmark_source_values & bad_tokens:
+        markers["data_type"] = "synthetic"
+        markers["synthetic_data"] = True
+    if not bars_summary.get("rows") or not benchmark_sources:
+        markers["data_type"] = data_type or "unknown"
+    return markers
+
+
 def _summarize_universe(path: str | Path | None) -> dict[str, Any]:
     if not path or not Path(path).exists():
         return {
@@ -327,6 +389,8 @@ def _compute_benchmark_risk(report: pd.DataFrame) -> dict[str, float]:
 
 def _write_summary(summary: dict[str, Any], out: Path) -> None:
     sanitized = _sanitize(summary)
+    assert_formal_report_uses_real_data(out / "summary.json", sanitized)
+    assert_formal_report_uses_real_data(out / "summary.md", sanitized)
     (out / "summary.json").write_text(json.dumps(sanitized, ensure_ascii=False, indent=2), encoding="utf-8")
     (out / "summary.md").write_text(_render_markdown(sanitized), encoding="utf-8")
 
@@ -337,11 +401,14 @@ def _render_markdown(summary: dict[str, Any]) -> str:
     data = summary["data"]
     universe = summary.get("universe", {})
     sufficiency = summary.get("data_sufficiency", {})
+    data_quality = summary.get("data_quality") or {}
+    industry_quality = summary.get("industry_quality") or {}
     lines = [
         "# Alpha158 LightGBM Baseline",
         "",
         f"Run: `{summary['run']['run_id']}`  ",
         f"Data: {data.get('symbols')} symbols, {data.get('rows')} rows, {data.get('start')} to {data.get('end')}",
+        f"Data type: `{data.get('data_type')}`; synthetic: `{data.get('synthetic_data')}`; mock: `{data.get('mock_data')}`",
         f"Universe: {universe.get('selected_mode', 'unknown')}; selected filter: `$selected > 0.5`",
         "",
         "## Signal",
@@ -395,6 +462,53 @@ def _render_markdown(summary: dict[str, Any]) -> str:
                 f"| Data sufficient for dynamic top-N | {_bool_text(sufficiency.get('data_sufficient_for_dynamic_top_n'))} |",
                 "",
                 f"{sufficiency.get('note') or ''}",
+            ]
+        )
+    if data_quality:
+        lines.extend(
+            [
+                "",
+                "## Data Quality",
+                "",
+                "| Check | Value |",
+                "|---|---:|",
+                f"| data_quality_status | {data_quality.get('quality_status', 'unknown')} |",
+                f"| unknown_source_ratio | {_pct(data_quality.get('unknown_source_ratio'))} |",
+                f"| selected_unknown_source_ratio | {_pct(data_quality.get('selected_unknown_source_ratio'))} |",
+                f"| amount_estimated_ratio | {_pct(data_quality.get('amount_estimated_ratio'))} |",
+                f"| invalid_ohlc_ratio | {_pct(data_quality.get('invalid_ohlc_ratio'))} |",
+                f"| invalid_amount_ratio | {_pct(data_quality.get('invalid_amount_ratio'))} |",
+                f"| invalid_limit_ratio | {_pct(data_quality.get('invalid_limit_ratio'))} |",
+                f"| vwap_unit_outlier_ratio | {_pct(data_quality.get('vwap_unit_outlier_ratio'))} |",
+                f"| duplicate_rows | {_num(data_quality.get('duplicate_rows'), 0)} |",
+                f"| data_source_distribution | {_data_sources_text(data.get('data_sources'))} |",
+            ]
+        )
+    if industry_quality:
+        lines.extend(
+            [
+                "",
+                "## Industry Metadata Quality",
+                "",
+                "| Check | Value |",
+                "|---|---:|",
+                f"| industry_quality_status | {industry_quality.get('industry_quality_status', industry_quality.get('quality_status', 'unknown'))} |",
+                f"| symbol_level_coverage | {_pct(industry_quality.get('symbol_level_coverage'))} |",
+                f"| selected_universe_coverage | {_pct(industry_quality.get('selected_universe_coverage'))} |",
+                f"| position_weighted_unknown | {_pct(industry_quality.get('unknown_position_weight_avg'))} |",
+                f"| industry_source_top | {industry_quality.get('industry_source_top', 'unknown')} |",
+            ]
+        )
+        if industry_quality.get("quality_status") == "failed" or industry_quality.get("industry_quality_status") == "failed":
+            lines.append("")
+            lines.append("Industry attribution is not reliable due to insufficient metadata coverage.")
+    if (data_quality and data_quality.get("quality_status") != "passed") or (
+        industry_quality and industry_quality.get("quality_status") not in {None, "passed"}
+    ):
+        lines.extend(
+            [
+                "",
+                "This result should be interpreted as a data-quality-sensitive research result, not a validated strategy result.",
             ]
         )
     missing = data.get("missing_symbols") or []

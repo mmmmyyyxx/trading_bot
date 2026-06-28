@@ -35,6 +35,7 @@ scripts/
   apply_signal_mask.py
   write_run_manifest.py
   enrich_industry_metadata.py
+  run_data_quality_audit.py
   run_exposure_diagnostics.py
   run_rolling_baselines.py
   run_diagnostics.py
@@ -43,6 +44,7 @@ ashare_adapter/
   benchmarks.py
   config.py
   cost.py
+  data_quality.py
   diagnostics.py
   exchange.py
   exposure.py
@@ -52,6 +54,7 @@ ashare_adapter/
   manifest.py
   metadata.py
   qlib_converter.py
+  report_policy.py
   signal_mask.py
   universe.py
 tests/
@@ -74,6 +77,55 @@ python -m pip install -e .[data,qlib,test]
 ```
 
 The intended runtime is the existing conda environment `ql`.
+
+## Real Data Policy
+
+Formal research reports must use real AKShare data. Synthetic, mock, random, or
+generated data is allowed only for unit tests and must write to temporary
+directories or `reports/synthetic_test_only/`.
+
+Real runs must include these manifest fields:
+
+```json
+{
+  "data_type": "real_akshare",
+  "synthetic_data": false,
+  "mock_data": false,
+  "download_source": "akshare"
+}
+```
+
+If AKShare bar or benchmark download fails, the pipeline must stop instead of
+falling back to synthetic data. Reports generated from synthetic data must not
+be used for strategy conclusions and must not be written to formal report paths
+such as `reports/alpha158_*/summary.*`,
+`reports/universe_expansion_comparison.*`, or
+`reports/rolling_baseline_comparison*`.
+
+Run a real-data smoke test before larger universes. Use 10-20 liquid A-share
+symbols, real HS300 benchmark data, and a short 2023-2024 window. If this fails,
+fix the data or network issue before running HS300, CSI800, dynamic liquidity,
+or rolling OOS experiments.
+
+## Data Quality
+
+Every formal real-data run audits bars before Qlib binary dump:
+
+```powershell
+python scripts/run_data_quality_audit.py `
+  --bars data/hs300_current_2018_2026_bars.parquet `
+  --output-dir reports/alpha158_hs300_2018_2026/data_quality `
+  --fail-on-error
+```
+
+The audit writes `data_quality_summary.json`, source/date/symbol summaries,
+selected-universe quality, duplicate rows, VWAP unit checks, limit coverage, and
+pause/ST coverage. A failed audit blocks `run_universe_expansion.py` unless
+`--allow-low-quality-data` is explicitly used for caveated diagnostics.
+
+Industry metadata coverage is reported separately under each run's `industry/`
+directory. If coverage is insufficient, summaries state that industry
+attribution is not reliable.
 
 ## Minimal Flow
 
