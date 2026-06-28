@@ -34,6 +34,7 @@ scripts/
   export_qlib_records.py
   apply_signal_mask.py
   write_run_manifest.py
+  enrich_industry_metadata.py
   run_exposure_diagnostics.py
   run_rolling_baselines.py
   run_diagnostics.py
@@ -43,9 +44,11 @@ ashare_adapter/
   config.py
   cost.py
   diagnostics.py
+  exchange.py
   exposure.py
   factors.py
   filters.py
+  industry_metadata.py
   manifest.py
   metadata.py
   qlib_converter.py
@@ -165,6 +168,21 @@ python scripts/run_exposure_diagnostics.py `
   --output-dir reports/alpha158_hs300_full/exposure
 ```
 
+Enrich industry metadata for existing caches and bars:
+
+```powershell
+python scripts/enrich_industry_metadata.py `
+  --metadata-cache data/cache/akshare_metadata.parquet `
+  --bars data/csi800_current_2018_2026_bars.parquet `
+  --qlib-dir data/qlib_csi800_2018_2026 `
+  --refresh-cninfo `
+  --workers 1
+```
+
+CNINFO enrichment is cacheable and can be run in batches.  On Windows, keep
+`--workers 1` if AKShare's JavaScript runtime dependency is unstable under
+threaded calls.
+
 Generate rolling out-of-sample configs and a dry-run comparison table:
 
 ```powershell
@@ -223,6 +241,12 @@ reported as a complete calendar year. Large artifacts remain ignored:
 `mlruns/`, Qlib binary data, large predictions, and positions should not be
 committed.
 
+Add `--use-ashare-exchange` to generated rolling workflows to use the custom
+`ashare_adapter.exchange.AShareExchange`.  This optional exchange blocks buys
+at per-stock `limit_up`, blocks sells at per-stock `limit_down`, and blocks
+paused names through `$is_paused`.  The default remains Qlib's uniform
+`limit_threshold` so old reports are reproducible unless the flag is explicit.
+
 ## A-share Data Notes
 
 Qlib binary features are numeric.  The converter writes numeric fields such as
@@ -248,10 +272,11 @@ dataset loading.  `apply_signal_mask.py` and `export_qlib_records.py
 --apply-mask` provide a second diagnostics-layer check by masking any
 non-selected prediction scores to `NaN`.
 
-Current Qlib backtests still use Qlib's simplified `limit_threshold` exchange
-setting.  The per-stock `limit_up`/`limit_down` fields are written into Qlib
-data for later custom exchange or order-filter work, but they are not yet a
-full replacement for A-share board-specific trading constraints.
+Current committed baseline reports still use Qlib's simplified
+`limit_threshold` exchange setting unless their manifest says
+`ashare_exchange_limit_up_down_buffer_*`.  The project now includes an optional
+`AShareExchange` for new experiments that uses per-stock `limit_up`,
+`limit_down`, and `is_paused` fields as an order filter.
 
 Expanded-universe reports must keep these caveats visible: current-constituent
 or current-listed survivorship bias, `eligible_only` versus dynamic top-N,

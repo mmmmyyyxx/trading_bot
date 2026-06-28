@@ -1,0 +1,147 @@
+{
+  "run": {
+    "experiment_id": "738980534231996348",
+    "run_id": "c6c59f06bcb24ccca6a3daa5cabfc292",
+    "run_dir": "mlruns\\738980534231996348\\c6c59f06bcb24ccca6a3daa5cabfc292",
+    "status": "3",
+    "qrun_log": "reports\\alpha158_csi1800_2018_2026\\qrun_alpha158.log"
+  },
+  "data": {
+    "bars_path": "data\\csi1800_current_2018_2026_bars.parquet",
+    "symbols": 1800,
+    "rows": 3200985,
+    "start": "2018-01-02",
+    "end": "2026-06-24",
+    "data_sources": {
+      "tencent_tx": 1730404,
+      "unknown": 1470581
+    },
+    "amount_estimated_rows": 0,
+    "requested_symbols": 1800,
+    "missing_symbols": [],
+    "benchmarks": [
+      "csi1000",
+      "csi500",
+      "hs300"
+    ]
+  },
+  "universe": {
+    "dynamic_liquidity_top_n": null,
+    "selected_mode": "eligible_only",
+    "avg_selected_universe_count": 1529.1178188899707,
+    "min_selected_universe_count": 1124,
+    "max_selected_universe_count": 1800
+  },
+  "data_sufficiency": {
+    "requested_symbols": 1800,
+    "actual_symbols": 1800,
+    "candidate_symbol_coverage": 1.0,
+    "candidate_coverage_threshold": 0.8,
+    "candidate_coverage_ok": true,
+    "dynamic_liquidity_top_n": null,
+    "avg_selected_universe_count": 1529.1178188899707,
+    "min_selected_universe_count": 1124,
+    "max_selected_universe_count": 1800,
+    "selected_top_n_reached": null,
+    "data_sufficient_for_dynamic_top_n": null,
+    "note": "eligible_only universe; dynamic liquidity top-N was not requested."
+  },
+  "model": {
+    "name": "Alpha158 + LightGBM",
+    "best_iteration": 33,
+    "l2_train": 0.9914551454846947,
+    "l2_valid": 0.9991561106927396
+  },
+  "signal": {
+    "IC": 0.03367361535255127,
+    "ICIR": 0.3985842557596753,
+    "Rank IC": 0.02027465185868673,
+    "Rank ICIR": 0.19213031537624148,
+    "test_days": 353
+  },
+  "portfolio": {
+    "benchmark_mean": 0.001206,
+    "benchmark_std": 0.014631,
+    "benchmark_annualized_return": 0.286943,
+    "benchmark_information_ratio": 1.271297,
+    "benchmark_max_drawdown": -0.177289,
+    "excess_without_cost_mean": 0.0019747999165672793,
+    "excess_without_cost_std": 0.008362622462956926,
+    "excess_without_cost_annualized_return": 0.4700023801430125,
+    "excess_without_cost_information_ratio": 3.6430831863639725,
+    "excess_without_cost_max_drawdown": -0.06178526073497312,
+    "excess_with_cost_mean": 0.0017474993819277039,
+    "excess_with_cost_std": 0.00836071782274515,
+    "excess_with_cost_annualized_return": 0.41590485289879353,
+    "excess_with_cost_information_ratio": 3.224496747862923,
+    "excess_with_cost_max_drawdown": -0.06245470645279219,
+    "account_total_return": 1.6735549588553273,
+    "benchmark_total_return": 0.47598206996917725,
+    "avg_daily_turnover": 0.407020245816087,
+    "avg_daily_total_turnover": 11482393120.498045,
+    "total_cost_sum": 2274598804.2197113,
+    "avg_daily_cost": 0.00022730053463957542,
+    "avg_positions": 49.926760563380284,
+    "max_positions": 52,
+    "ffr": 1.0,
+    "pa": 0.0,
+    "pos": 0.0
+  },
+  "group_returns": {
+    "group_1": {
+      "mean_daily_return": 0.0003650872386060655,
+      "annualized_return_simple": 0.09200198203325272,
+      "volatility_daily": 0.012399880215525627,
+      "count_days": 353.0
+    },
+    "group_2": {
+      "mean_daily_return": 0.001060726586729288,
+      "annualized_return_simple": 0.26730310916900635,
+      "volatility_daily": 0.012583448551595211,
+      "count_days": 353.0
+    },
+    "group_3": {
+      "mean_daily_return": 0.0014234527479857206,
+      "annualized_return_simple": 0.35871008038520813,
+      "volatility_daily": 0.012418690137565136,
+      "count_days": 353.0
+    },
+    "group_4": {
+      "mean_daily_return": 0.0015031651128083467,
+      "annualized_return_simple": 0.37879762053489685,
+      "volatility_daily": 0.012356283143162727,
+      "count_days": 353.0
+    },
+    "group_5": {
+      "mean_daily_return": 0.002295617014169693,
+      "annualized_return_simple": 0.5784955024719238,
+      "volatility_daily": 0.014663336798548698,
+      "count_days": 353.0
+    },
+    "group_5_minus_1": {
+      "mean_daily_return": 0.0019305297173559666,
+      "annualized_return_simple": 0.4864934980869293,
+      "volatility_daily": 0.006869012489914894,
+      "count_days": 353.0
+    }
+  },
+  "caveats": [
+    "Results inherit the survivorship properties of the supplied symbol universe; current-constituent or current-listed universes are not historical membership backtests.",
+    "selected_mode=eligible_only; no dynamic liquidity top-N filter was applied.",
+    "The 2026 period is year-to-date, not a complete calendar year.",
+    "Qlib baseline backtests use the configured uniform limit_threshold and do not fully enforce per-stock A-share board/ST limit rules.",
+    "Industry and active-exposure diagnostics depend on metadata coverage; inspect unknown industry weight before using industry conclusions.",
+    "Bar data uses mixed sources; verify source-specific price/volume/amount conventions before interpreting liquidity-sensitive results."
+  ],
+  "outputs": {
+    "summary_json": "reports\\alpha158_csi1800_2018_2026\\summary.json",
+    "summary_md": "reports\\alpha158_csi1800_2018_2026\\summary.md",
+    "port_analysis_csv": "reports\\alpha158_csi1800_2018_2026\\port_analysis_1day.csv",
+    "report_csv": "reports\\alpha158_csi1800_2018_2026\\report_normal_1day.csv",
+    "indicator_analysis_csv": "reports\\alpha158_csi1800_2018_2026\\indicator_analysis_1day.csv",
+    "ic_daily_csv": "reports\\alpha158_csi1800_2018_2026\\ic_daily.csv",
+    "rank_ic_daily_csv": "reports\\alpha158_csi1800_2018_2026\\rank_ic_daily.csv",
+    "group_daily_csv": "reports\\alpha158_csi1800_2018_2026\\factor_group_returns_daily.csv",
+    "group_summary_csv": "reports\\alpha158_csi1800_2018_2026\\factor_group_summary.csv"
+  }
+}

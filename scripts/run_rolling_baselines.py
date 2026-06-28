@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from ashare_adapter.exchange import ashare_exchange_kwargs
+
 
 ROLLING_WINDOWS = [
     {
@@ -74,6 +76,8 @@ def main() -> None:
                 min_cost=args.min_cost,
                 limit_threshold=args.limit_threshold,
                 num_threads=args.num_threads,
+                use_ashare_exchange=args.use_ashare_exchange,
+                limit_price_buffer=args.limit_price_buffer,
             )
             config_path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
             row = _base_row(window, model_name, spec, config_path, log_path, args.benchmark)
@@ -107,6 +111,8 @@ def build_workflow_config(
     min_cost: float,
     limit_threshold: float,
     num_threads: int,
+    use_ashare_exchange: bool = False,
+    limit_price_buffer: float = 0.001,
 ) -> dict[str, Any]:
     """Build a Qlib workflow config for one rolling window/model."""
 
@@ -118,6 +124,26 @@ def build_workflow_config(
         "kernels": 1,
         "joblib_backend": "threading",
     }
+    if use_ashare_exchange:
+        exchange_kwargs = ashare_exchange_kwargs(
+            start_time=window["test"][0],
+            end_time=window["test"][1],
+            codes=market,
+            deal_price="close",
+            open_cost=open_cost,
+            close_cost=close_cost,
+            min_cost=min_cost,
+            limit_threshold=limit_threshold,
+            limit_price_buffer=limit_price_buffer,
+        )
+    else:
+        exchange_kwargs = {
+            "limit_threshold": limit_threshold,
+            "deal_price": "close",
+            "open_cost": open_cost,
+            "close_cost": close_cost,
+            "min_cost": min_cost,
+        }
     port_analysis_config = {
         "strategy": {
             "class": "TopkDropoutStrategy",
@@ -129,13 +155,7 @@ def build_workflow_config(
             "end_time": window["test"][1],
             "account": account,
             "benchmark": benchmark,
-            "exchange_kwargs": {
-                "limit_threshold": limit_threshold,
-                "deal_price": "close",
-                "open_cost": open_cost,
-                "close_cost": close_cost,
-                "min_cost": min_cost,
-            },
+            "exchange_kwargs": exchange_kwargs,
         },
     }
     if spec["kind"] == "alpha158":
@@ -170,8 +190,13 @@ def build_workflow_config(
             "start_time": start_time,
             "end_time": end_time,
             "instruments": market,
-            "infer_processors": [],
+            "infer_processors": [
+                {"class": "ProcessInf"},
+                {"class": "Fillna", "kwargs": {"fields_group": "feature", "fill_value": 0}},
+            ],
             "learn_processors": [
+                {"class": "ProcessInf"},
+                {"class": "Fillna", "kwargs": {"fields_group": "feature", "fill_value": 0}},
                 {"class": "DropnaLabel"},
                 {"class": "CSRankNorm", "kwargs": {"fields_group": "label"}},
             ],
@@ -351,6 +376,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-cost", type=float, default=5.0)
     parser.add_argument("--limit-threshold", type=float, default=0.095)
     parser.add_argument("--num-threads", type=int, default=4)
+    parser.add_argument("--use-ashare-exchange", action="store_true")
+    parser.add_argument("--limit-price-buffer", type=float, default=0.001)
     return parser.parse_args()
 
 

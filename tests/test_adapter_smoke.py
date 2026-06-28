@@ -12,6 +12,7 @@ from ashare_adapter.benchmarks import dump_benchmarks_to_qlib
 from ashare_adapter.config import UniverseConfig
 from ashare_adapter.diagnostics import compute_group_returns, compute_ic, compute_turnover, split_oos
 from ashare_adapter.factors import reversal_lowvol_scores
+from ashare_adapter.industry_metadata import industry_coverage, merge_industry_map, parse_cninfo_industry
 from ashare_adapter.manifest import build_run_manifest
 from ashare_adapter.metadata import limit_rate, normalize_symbol, to_qlib_symbol, write_metadata_sidecar
 from ashare_adapter.qlib_converter import dump_qlib_bin, prepare_qlib_frame
@@ -273,6 +274,54 @@ def test_rolling_config_yaml_and_log_parse() -> None:
     assert parsed == {"experiment_id": "123", "run_id": "abcdef123"}
 
 
+def test_reversal_rolling_config_cleans_infinite_features() -> None:
+    config = build_workflow_config(
+        provider_uri="data/qlib_alpha158_hs300_full",
+        market="all",
+        benchmark="SH000300",
+        window=ROLLING_WINDOWS[0],
+        spec=MODEL_SPECS["reversal_lowvol_1d"],
+        topk=50,
+        n_drop=10,
+        account=100000000,
+        open_cost=0.00031,
+        close_cost=0.00081,
+        min_cost=5.0,
+        limit_threshold=0.095,
+        num_threads=2,
+    )
+    handler = config["task"]["dataset"]["kwargs"]["handler"]["kwargs"]
+
+    assert handler["infer_processors"][0]["class"] == "ProcessInf"
+    assert handler["learn_processors"][0]["class"] == "ProcessInf"
+    assert handler["learn_processors"][1]["kwargs"]["fields_group"] == "feature"
+
+
+def test_rolling_config_can_use_ashare_exchange() -> None:
+    config = build_workflow_config(
+        provider_uri="data/qlib_alpha158_hs300_full",
+        market="all",
+        benchmark="SH000300",
+        window=ROLLING_WINDOWS[0],
+        spec=MODEL_SPECS["alpha158_lgb"],
+        topk=50,
+        n_drop=10,
+        account=100000000,
+        open_cost=0.00031,
+        close_cost=0.00081,
+        min_cost=5.0,
+        limit_threshold=0.095,
+        num_threads=2,
+        use_ashare_exchange=True,
+        limit_price_buffer=0.002,
+    )
+    exchange = config["task"]["record"][2]["kwargs"]["config"]["backtest"]["exchange_kwargs"]["exchange"]
+
+    assert exchange["class"] == "AShareExchange"
+    assert exchange["module_path"] == "ashare_adapter.exchange"
+    assert exchange["kwargs"]["limit_price_buffer"] == 0.002
+
+
 def test_rolling_2018_2026_windows_mark_ytd() -> None:
     assert len(ROLLING_WINDOWS_2018_2026) == 5
     assert ROLLING_WINDOWS_2018_2026[-1]["name"] == "2022_2026_ytd"
@@ -381,6 +430,40 @@ def test_metadata_sidecar_writes_industry_and_list_date(tmp_path) -> None:
     assert frame.loc[0, "qlib_symbol"] == "SZ000001"
     assert frame.loc[0, "industry"] == "bank"
     assert pd.Timestamp(frame.loc[0, "list_date"]).date().isoformat() == "1991-04-03"
+
+
+def test_industry_metadata_merge_and_coverage() -> None:
+    metadata = pd.DataFrame(
+        {
+            "symbol": ["600000.SH", "000001.SZ"],
+            "industry": ["", "bank"],
+        }
+    )
+    industry_map = pd.DataFrame(
+        {
+            "symbol": ["600000.SH", "000001.SZ"],
+            "industry": ["bank", "finance"],
+            "industry_source": ["cninfo", "cninfo"],
+        }
+    )
+
+    merged = merge_industry_map(metadata, industry_map, overwrite=False)
+    coverage = industry_coverage(merged)
+
+    assert merged.loc[merged["symbol"] == "600000.SH", "industry"].iloc[0] == "bank"
+    assert merged.loc[merged["symbol"] == "000001.SZ", "industry"].iloc[0] == "bank"
+    assert coverage["industry_nonempty"] == 2
+
+
+def test_parse_cninfo_industry_uses_latest_detailed_value() -> None:
+    raw = pd.DataFrame(
+        [
+            ["old_short", "old_l1", "old_l2", "old_l3", "old_l4", "name", "code", "standard", "sid", "600000", "2020-01-01"],
+            ["new_short", "new_l1", "new_l2", "new_l3", "new_l4", "name", "code", "standard", "sid", "600000", "2024-01-01"],
+        ]
+    )
+
+    assert parse_cninfo_industry(raw) == "new_l4"
 
 
 def _make_bars(symbol_count: int = 5, periods: int = 10) -> pd.DataFrame:

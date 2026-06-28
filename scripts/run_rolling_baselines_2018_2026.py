@@ -88,6 +88,8 @@ def main() -> None:
                 min_cost=args.min_cost,
                 limit_threshold=args.limit_threshold,
                 num_threads=args.num_threads,
+                use_ashare_exchange=args.use_ashare_exchange,
+                limit_price_buffer=args.limit_price_buffer,
             )
             config_path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
             row = {
@@ -225,7 +227,11 @@ def _caveats(args: argparse.Namespace, window: dict[str, Any]) -> str:
         "current_constituent_bias" if args.universe_mode == "current_constituent" else "current_listed_candidate_bias",
         args.selected_mode,
         "2026_ytd_window" if window.get("is_ytd") else "complete_calendar_test_window",
-        f"qlib_uniform_limit_threshold_{args.limit_threshold}",
+        (
+            f"ashare_exchange_limit_up_down_buffer_{getattr(args, 'limit_price_buffer', 0.001)}"
+            if getattr(args, "use_ashare_exchange", False)
+            else f"qlib_uniform_limit_threshold_{args.limit_threshold}"
+        ),
         "industry_metadata_coverage_required",
     ]
     return "; ".join(caveats)
@@ -265,6 +271,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-cost", type=float, default=5.0)
     parser.add_argument("--limit-threshold", type=float, default=0.095)
     parser.add_argument("--num-threads", type=int, default=4)
+    parser.add_argument("--use-ashare-exchange", action="store_true")
+    parser.add_argument("--limit-price-buffer", type=float, default=0.001)
     return parser.parse_args()
 
 
